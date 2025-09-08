@@ -98,7 +98,10 @@ export class HTTPServer {
 
         await this.mcpServer.getServer().connect(transport);
       } catch (error) {
-        this.logger.error('MCP request failed', { error: (error as Error).message, stack: (error as Error).stack });
+        this.logger.error('MCP request failed', {
+          error: (error as Error).message,
+          stack: (error as Error).stack,
+        });
 
         if (!res.headersSent) {
           res.status(500).json({
@@ -146,7 +149,10 @@ export class HTTPServer {
       if (!res.headersSent) {
         res.status(500).json({
           error: 'Internal Server Error',
-          message: process.env['NODE_ENV'] === 'development' ? (error as Error).message : 'Something went wrong',
+          message:
+            process.env['NODE_ENV'] === 'development'
+              ? (error as Error).message
+              : 'Something went wrong',
           timestamp: new Date().toISOString(),
         });
       }
