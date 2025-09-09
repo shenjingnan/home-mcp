@@ -2,6 +2,7 @@
  * Tests for ConfigManager
  */
 
+import { vi, describe, it, beforeEach, afterEach, expect } from 'vitest';
 import { ConfigManager } from './index';
 
 describe('ConfigManager', () => {

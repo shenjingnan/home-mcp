@@ -2,20 +2,18 @@
  * Tests for HomeAssistantClient
  */
 
+import { vi, describe, it, beforeEach, expect } from 'vitest';
 import { HomeAssistantClient } from './home-assistant';
 import { HomeAssistantConfig } from '@/types';
 
-// Mock fetch globally
-global.fetch = jest.fn();
+const fetchMock = vi.mocked(fetch);
 
 describe('HomeAssistantClient', () => {
   let client: HomeAssistantClient;
   let mockConfig: HomeAssistantConfig;
-  let fetchMock: jest.MockedFunction<typeof fetch>;
 
   beforeEach(() => {
-    fetchMock = fetch as jest.MockedFunction<typeof fetch>;
-    fetchMock.mockClear();
+    vi.clearAllMocks();
 
     mockConfig = {
       baseUrl: 'http://localhost:8123',
@@ -39,8 +37,8 @@ describe('HomeAssistantClient', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ message: 'API running.' }),
-      } as Response);
+        json: vi.fn().mockResolvedValue({ message: 'API running.' }),
+      } as any);
 
       const result = await client.testConnection();
       expect(result).toBe(true);
@@ -68,7 +66,7 @@ describe('HomeAssistantClient', () => {
         ok: false,
         status: 401,
         statusText: 'Unauthorized',
-      } as Response);
+      } as any);
 
       const result = await client.testConnection();
       expect(result).toBe(false);
@@ -91,8 +89,8 @@ describe('HomeAssistantClient', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => mockStates,
-      } as Response);
+        json: vi.fn().mockResolvedValue(mockStates),
+      } as any);
 
       const result = await client.getStates();
       expect(result.status).toBe(200);
@@ -126,8 +124,8 @@ describe('HomeAssistantClient', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => mockState,
-      } as Response);
+        json: vi.fn().mockResolvedValue(mockState),
+      } as any);
 
       const result = await client.getEntityState('light.living_room');
       expect(result.status).toBe(200);
@@ -146,8 +144,8 @@ describe('HomeAssistantClient', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => mockResponse,
-      } as Response);
+        json: vi.fn().mockResolvedValue(mockResponse),
+      } as any);
 
       const result = await client.callService('light', 'turn_on', { brightness: 255 });
       expect(result.status).toBe(200);
@@ -165,8 +163,8 @@ describe('HomeAssistantClient', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({}),
-      } as Response);
+        json: vi.fn().mockResolvedValue({}),
+      } as any);
 
       await client.callService(
         'light',
@@ -192,8 +190,8 @@ describe('HomeAssistantClient', () => {
       fetchMock.mockRejectedValueOnce(new Error('Network error')).mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ success: true }),
-      } as Response);
+        json: vi.fn().mockResolvedValue({ success: true }),
+      } as any);
 
       const result = await client.getStates();
       expect(result.status).toBe(200);
@@ -224,8 +222,8 @@ describe('HomeAssistantClient', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({}),
-      } as Response);
+        json: vi.fn().mockResolvedValue({}),
+      } as any);
 
       client.testConnection();
 

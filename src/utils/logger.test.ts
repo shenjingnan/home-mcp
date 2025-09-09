@@ -2,15 +2,16 @@
  * Tests for Logger
  */
 
+import { vi, describe, it, beforeEach, afterEach, expect } from 'vitest';
 import { Logger } from './logger';
 import { ConfigManager } from '@/config';
 
 describe('Logger', () => {
   let originalEnv: NodeJS.ProcessEnv;
   let consoleSpy: {
-    log: jest.SpyInstance;
-    warn: jest.SpyInstance;
-    error: jest.SpyInstance;
+    log: ReturnType<typeof vi.spyOn>;
+    warn: ReturnType<typeof vi.spyOn>;
+    error: ReturnType<typeof vi.spyOn>;
   };
 
   beforeEach(() => {
@@ -22,13 +23,13 @@ describe('Logger', () => {
 
     // Mock console methods
     consoleSpy = {
-      log: jest.spyOn(console, 'log').mockImplementation(),
-      warn: jest.spyOn(console, 'warn').mockImplementation(),
-      error: jest.spyOn(console, 'error').mockImplementation(),
+      log: vi.spyOn(console, 'log').mockImplementation(() => {}),
+      warn: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+      error: vi.spyOn(console, 'error').mockImplementation(() => {}),
     };
 
     // Clear all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
