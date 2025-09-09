@@ -9,7 +9,6 @@ import { vi, beforeAll, afterAll, afterEach } from 'vitest';
 process.env['NODE_ENV'] = 'test';
 process.env['HOME_ASSISTANT_URL'] = 'http://localhost:8123';
 process.env['HOME_ASSISTANT_TOKEN'] = 'test-token';
-process.env['LOG_LEVEL'] = 'error'; // 减少测试日志输出
 process.env['LOG_FORMAT'] = 'json';
 
 // 全局测试超时设置
@@ -18,23 +17,7 @@ vi.setConfig({
   hookTimeout: 10000
 });
 
-// Mock console 方法以减少测试噪音
-const originalConsole = console;
-
-beforeAll(() => {
-  global.console = {
-    ...originalConsole,
-    log: vi.fn(),
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  };
-});
-
-afterAll(() => {
-  global.console = originalConsole;
-});
+// Note: Console mocking is handled individually in each test file that needs it
 
 // 全局 fetch mock 设置
 Object.defineProperty(global, 'fetch', {
