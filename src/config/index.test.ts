@@ -40,26 +40,23 @@ describe('ConfigManager', () => {
 
       expect(appConfig.server.name).toBe('home-mcp');
       expect(appConfig.server.version).toBe('0.0.1');
-      expect(appConfig.server.port).toBe(3000);
       expect(appConfig.homeAssistant.baseUrl).toBe('http://test:8123');
       expect(appConfig.homeAssistant.accessToken).toBe('test-token');
     });
 
     it('should use environment variables', () => {
-      process.env['PORT'] = '4000';
-      process.env['HOST'] = '127.0.0.1';
       process.env['HOME_ASSISTANT_URL'] = 'http://ha:8123';
       process.env['HOME_ASSISTANT_TOKEN'] = 'secret-token';
       process.env['LOG_LEVEL'] = 'debug';
+      process.env['LOG_FILE'] = '/tmp/test-log.log';
 
       const config = ConfigManager.getInstance();
       const appConfig = config.getConfig();
 
-      expect(appConfig.server.port).toBe(4000);
-      expect(appConfig.server.host).toBe('127.0.0.1');
       expect(appConfig.homeAssistant.baseUrl).toBe('http://ha:8123');
       expect(appConfig.homeAssistant.accessToken).toBe('secret-token');
       expect(appConfig.logging.level).toBe('debug');
+      expect(appConfig.logging.file).toBe('/tmp/test-log.log');
     });
   });
 
@@ -82,15 +79,7 @@ describe('ConfigManager', () => {
       }).toThrow('HOME_ASSISTANT_TOKEN is required');
     });
 
-    it('should throw error for invalid port', () => {
-      process.env['PORT'] = '70000';
-      process.env['HOME_ASSISTANT_URL'] = 'http://test:8123';
-      process.env['HOME_ASSISTANT_TOKEN'] = 'test-token';
 
-      expect(() => {
-        ConfigManager.getInstance();
-      }).toThrow('Invalid port number');
-    });
   });
 
   describe('getter methods', () => {
@@ -105,8 +94,7 @@ describe('ConfigManager', () => {
 
       expect(serverConfig).toHaveProperty('name');
       expect(serverConfig).toHaveProperty('version');
-      expect(serverConfig).toHaveProperty('port');
-      expect(serverConfig).toHaveProperty('host');
+      expect(serverConfig).toHaveProperty('timeout');
     });
 
     it('should return Home Assistant config', () => {

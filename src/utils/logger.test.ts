@@ -5,6 +5,7 @@
 import { vi, describe, it, beforeEach, afterEach, expect } from 'vitest';
 import { Logger } from './logger';
 import { ConfigManager } from '@/config';
+import { existsSync, readFileSync, unlinkSync } from 'node:fs';
 
 describe('Logger', () => {
   let originalEnv: NodeJS.ProcessEnv;
@@ -157,6 +158,60 @@ describe('Logger', () => {
       logger.info('Test message');
 
       expect(consoleSpy.log).toHaveBeenCalledWith(expect.stringContaining('Test message'));
+    });
+  });
+
+  describe('file output', () => {
+    const testLogFile = '/tmp/test-logger.log';
+
+    afterEach(() => {
+      // Clean up test log file
+      if (existsSync(testLogFile)) {
+        unlinkSync(testLogFile);
+      }
+    });
+
+    it('should write logs to file when LOG_FILE is set', () => {
+      process.env['LOG_LEVEL'] = 'info';
+      process.env['LOG_FILE'] = testLogFile;
+      process.env['HOME_ASSISTANT_URL'] = 'http://test:8123';
+      process.env['HOME_ASSISTANT_TOKEN'] = 'test-token';
+
+      // Clear singletons to pick up new environment
+      (Logger as any).instance = undefined;
+      (ConfigManager as any).instance = undefined;
+
+      const logger = Logger.getInstance();
+      logger.info('Test file message', { key: 'value' });
+
+      // Check if file was created and contains the message
+      expect(existsSync(testLogFile)).toBe(true);
+      const logContent = readFileSync(testLogFile, 'utf-8');
+      expect(logContent).toContain('Test file message');
+      expect(logContent).toContain('key');
+      expect(logContent).toContain('value');
+    });
+
+    it('should fallback to stderr when file write fails', () => {
+      process.env['LOG_LEVEL'] = 'error';
+      process.env['LOG_FILE'] = '/invalid/path/test.log';
+      process.env['HOME_ASSISTANT_URL'] = 'http://test:8123';
+      process.env['HOME_ASSISTANT_TOKEN'] = 'test-token';
+
+      // Mock stderr.write
+      const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+      // Clear singletons to pick up new environment
+      (Logger as any).instance = undefined;
+      (ConfigManager as any).instance = undefined;
+
+      const logger = Logger.getInstance();
+      logger.error('Test error message');
+
+      // Should have written to stderr due to file write failure
+      expect(stderrSpy).toHaveBeenCalled();
+
+      stderrSpy.mockRestore();
     });
   });
 });
