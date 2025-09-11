@@ -4,6 +4,9 @@
   "description": "Home Assistant MCP Server - A Model Context Protocol server for smart home integration",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "home-mcp": "./dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "nodemon --exec ts-node src/index.ts",
@@ -30,14 +33,10 @@
   "license": "MIT",
   "packageManager": "pnpm@10.13.1",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.5",
-    "cors": "^2.8.5",
-    "express": "^5.0.1"
+    "@modelcontextprotocol/sdk": "^1.17.5"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.3",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
     "@types/node": "^22.0.2",
     "@vitest/coverage-v8": "^1.6.1",
     "happy-dom": "^14.12.3",

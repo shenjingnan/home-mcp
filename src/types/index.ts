@@ -5,8 +5,6 @@
 export interface ServerConfig {
   name: string;
   version: string;
-  port: number;
-  host: string;
   timeout: number;
 }
 
@@ -24,6 +22,7 @@ export interface AppConfig {
   logging: {
     level: string;
     format: string;
+    file?: string;
   };
   cache: {
     enabled: boolean;

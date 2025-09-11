@@ -24,8 +24,6 @@ export class ConfigManager {
       server: {
         name: 'home-mcp',
         version: '0.0.1',
-        port: parseInt(process.env['PORT'] || '3000', 10),
-        host: process.env['HOST'] || '0.0.0.0',
         timeout: parseInt(process.env['SERVER_TIMEOUT'] || '30000', 10),
       },
       homeAssistant: {
@@ -38,6 +36,7 @@ export class ConfigManager {
       logging: {
         level: process.env['LOG_LEVEL'] || 'info',
         format: process.env['LOG_FORMAT'] || 'json',
+        file: process.env['LOG_FILE'] || '/tmp/home-mcp.log',
       },
       cache: {
         enabled: process.env['CACHE_ENABLED'] !== 'false',
@@ -57,10 +56,6 @@ export class ConfigManager {
 
     if (!process.env['HOME_ASSISTANT_TOKEN']) {
       throw new Error('HOME_ASSISTANT_TOKEN is required');
-    }
-
-    if (config.server.port < 1 || config.server.port > 65535) {
-      throw new Error('Invalid port number');
     }
   }
 
