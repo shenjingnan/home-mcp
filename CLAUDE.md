@@ -41,6 +41,21 @@ pnpm format
 pnpm check:fix
 ```
 
+### 拼写检查
+```bash
+# 检查所有文件的拼写
+pnpm spellcheck
+
+# 仅检查源代码拼写
+pnpm spellcheck:src
+
+# 仅检查文档拼写
+pnpm spellcheck:docs
+
+# 导出拼写错误单词列表
+pnpm spellcheck:fix
+```
+
 ## 技术架构
 
 ### 核心组件

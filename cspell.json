@@ -1,0 +1,178 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "enableFiletypes": [
+    "typescript",
+    "javascript",
+    "json",
+    "markdown",
+    "yaml",
+    "toml"
+  ],
+  "files": [
+    "**/*.{ts,js,json,md,yml,yaml,toml}"
+  ],
+  "ignorePaths": [
+    "dist/**",
+    "node_modules/**",
+    "pnpm-lock.yaml",
+    "coverage/**",
+    "coverage.lcov/**",
+    "**/coverage/**",
+    "**/*.lcov",
+    "**/lcov-report/**"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "project-words",
+      "path": "./.cspell/project-words.txt",
+      "addWords": true
+    },
+    {
+      "name": "tech-terms",
+      "path": "./.cspell/tech-terms.txt",
+      "addWords": true
+    }
+  ],
+  "dictionaries": [
+    "project-words",
+    "tech-terms"
+  ],
+  "ignoreWords": [
+    "home-mcp",
+    "homeassistant",
+    "modelcontextprotocol",
+    "mcp",
+    "stdio",
+    "tsup",
+    "nodemon",
+    "ts-node",
+    "tsconfig-paths",
+    "vitest",
+    "biome",
+    "pnpm",
+    "npx",
+    "shebang",
+    "esbuild",
+    "sourcemap",
+    "minify",
+    "dts",
+    "CommonJS",
+    "ES2022",
+    "Node.js",
+    "AI",
+    "IoT",
+    "smart-home",
+    "CLI",
+    "API"
+  ],
+  "words": [
+    "shenjingnan",
+    "code",
+    "gmail",
+    "homeassistant",
+    "modelcontextprotocol",
+    "mcp",
+    "stdio",
+    "tsup",
+    "nodemon",
+    "tsconfig",
+    "vitest",
+    "biome",
+    "pnpm",
+    "npx",
+    "shebang",
+    "esbuild",
+    "sourcemap",
+    "minify",
+    "dts",
+    "CommonJS",
+    "ES2022",
+    "Node.js",
+    "AI",
+    "IoT",
+    "smart-home",
+    "CLI",
+    "API",
+    "home-mcp"
+  ],
+  "ignoreRegExpList": [
+    "/@\\w+/g",
+    "/#\\w+/g",
+    "/\\/\\/[\\s\\S]*?\\n/g",
+    "/\\/\\*[\\s\\S]*?\\*\\//g",
+    "/\\/[^\\n]*/g",
+    "/\"[^\"]*\"/g",
+    "/'[^']*'/g",
+    "/\\b[A-Z]{2,}\\b/g",
+    "/\\bhttps?:\\/\\/[^\\s]+/g"
+  ],
+  "overrides": [
+    {
+      "filename": "**/*.md",
+      "dictionaryDefinitions": [
+        {
+          "name": "markdown-words",
+          "path": "./.cspell/markdown-words.txt",
+          "addWords": true
+        }
+      ],
+      "dictionaries": [
+        "project-words",
+        "tech-terms",
+        "markdown-words"
+      ]
+    },
+    {
+      "filename": "**/*.json",
+      "ignoreRegExpList": [
+        "/\"[^\"]*\":/g"
+      ]
+    }
+  ],
+  "flagWords": [
+    "hte",
+    "teh",
+    "adn",
+    "taht",
+    "occurance",
+    "occurence",
+    "recieve",
+    "seperate",
+    "definately",
+    "existance",
+    "recieved",
+    "publically",
+    " independant"
+  ],
+  "patterns": [
+    {
+      "name": "camelCase",
+      "pattern": "\\b[a-z][a-zA-Z0-9]*\\b"
+    },
+    {
+      "name": "PascalCase",
+      "pattern": "\\b[A-Z][a-zA-Z0-9]*\\b"
+    },
+    {
+      "name": "kebab-case",
+      "pattern": "\\b[a-z][a-z0-9-]*[a-z0-9]\\b"
+    },
+    {
+      "name": "snake_case",
+      "pattern": "\\b[a-z][a-z0-9_]*[a-z0-9]\\b"
+    }
+  ],
+  "features": {
+    "allowCompoundWords": true,
+    "ignoreNonWords": true,
+    "caseSensitive": false
+  },
+  "minWordLength": 3,
+  "maxDuplicateProblems": 5,
+  "numSuggestions": 5,
+  "suggestionNumControls": {
+    "maxSuggestions": 5,
+    "minScore": 3
+  }
+}
