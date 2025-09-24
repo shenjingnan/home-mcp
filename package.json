@@ -39,7 +39,7 @@
     "@biomejs/biome": "^2.2.3",
     "@types/node": "^22.0.2",
     "@vitest/coverage-v8": "^1.6.1",
-    "happy-dom": "^14.12.3",
+    "happy-dom": "^15.10.2",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
