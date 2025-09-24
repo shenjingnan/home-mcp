@@ -9,9 +9,7 @@
     "yaml",
     "toml"
   ],
-  "files": [
-    "**/*.{ts,js,json,md,yml,yaml,toml}"
-  ],
+  "files": ["**/*.{ts,js,json,md,yml,yaml,toml}"],
   "ignorePaths": [
     "dist/**",
     "node_modules/**",
@@ -34,10 +32,7 @@
       "addWords": true
     }
   ],
-  "dictionaries": [
-    "project-words",
-    "tech-terms"
-  ],
+  "dictionaries": ["project-words", "tech-terms"],
   "ignoreWords": [
     "home-mcp",
     "homeassistant",
@@ -117,17 +112,11 @@
           "addWords": true
         }
       ],
-      "dictionaries": [
-        "project-words",
-        "tech-terms",
-        "markdown-words"
-      ]
+      "dictionaries": ["project-words", "tech-terms", "markdown-words"]
     },
     {
       "filename": "**/*.json",
-      "ignoreRegExpList": [
-        "/\"[^\"]*\":/g"
-      ]
+      "ignoreRegExpList": ["/\"[^\"]*\":/g"]
     }
   ],
   "flagWords": [

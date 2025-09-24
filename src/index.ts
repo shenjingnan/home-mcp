@@ -1,19 +1,22 @@
 #!/usr/bin/env node
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
 
 const server = new Server(
   {
-    name: 'home-mcp',
-    version: '0.0.1',
+    name: "home-mcp",
+    version: "0.0.1",
   },
   {
     capabilities: {
       tools: {},
     },
-  }
+  },
 );
 
 // 处理工具列表请求
@@ -21,39 +24,39 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: 'add',
-        description: '将两个数字相加并返回结果',
+        name: "add",
+        description: "将两个数字相加并返回结果",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
             a: {
-              type: 'number',
-              description: '第一个数字',
+              type: "number",
+              description: "第一个数字",
             },
             b: {
-              type: 'number',
-              description: '第二个数字',
+              type: "number",
+              description: "第二个数字",
             },
           },
-          required: ['a', 'b'],
+          required: ["a", "b"],
         },
       },
       {
-        name: 'subtract',
-        description: '从第一个数字中减去第二个数字并返回结果',
+        name: "subtract",
+        description: "从第一个数字中减去第二个数字并返回结果",
         inputSchema: {
-          type: 'object',
+          type: "object",
           properties: {
             a: {
-              type: 'number',
-              description: '被减数',
+              type: "number",
+              description: "被减数",
             },
             b: {
-              type: 'number',
-              description: '减数',
+              type: "number",
+              description: "减数",
             },
           },
-          required: ['a', 'b'],
+          required: ["a", "b"],
         },
       },
     ],
@@ -66,42 +69,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
-      case 'add': {
+      case "add": {
         const { a, b } = args as { a: number; b: number };
-        
-        if (typeof a !== 'number' || typeof b !== 'number') {
-          throw new Error('参数必须是数字');
+
+        if (typeof a !== "number" || typeof b !== "number") {
+          throw new Error("参数必须是数字");
         }
-        
+
         const result = a + b;
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `${a} + ${b} = ${result}`,
             },
           ],
         };
       }
-      
-      case 'subtract': {
+
+      case "subtract": {
         const { a, b } = args as { a: number; b: number };
-        
-        if (typeof a !== 'number' || typeof b !== 'number') {
-          throw new Error('参数必须是数字');
+
+        if (typeof a !== "number" || typeof b !== "number") {
+          throw new Error("参数必须是数字");
         }
-        
+
         const result = a - b;
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `${a} - ${b} = ${result}`,
             },
           ],
         };
       }
-      
+
       default:
         throw new Error(`未知工具: ${name}`);
     }
@@ -109,8 +112,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return {
       content: [
         {
-          type: 'text',
-          text: `错误: ${error instanceof Error ? error.message : '未知错误'}`,
+          type: "text",
+          text: `错误: ${error instanceof Error ? error.message : "未知错误"}`,
         },
       ],
       isError: true,
@@ -121,10 +124,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('MCP 服务器已启动');
+  console.error("MCP 服务器已启动");
 }
 
 main().catch((error) => {
-  console.error('服务器启动失败:', error);
+  console.error("服务器启动失败:", error);
   process.exit(1);
 });
