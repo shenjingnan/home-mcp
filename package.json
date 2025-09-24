@@ -20,7 +20,11 @@
     "format": "biome format --write src/",
     "format:check": "biome format src/",
     "check": "biome check src/",
-    "check:fix": "biome check --apply src/"
+    "check:fix": "biome check --apply src/",
+    "spellcheck": "cspell \"**/*.{ts,js,json,md,yml,yaml,toml}\"",
+    "spellcheck:fix": "cspell \"**/*.{ts,js,json,md,yml,yaml,toml}\" --words-only",
+    "spellcheck:src": "cspell \"src/**/*.{ts,js}\"",
+    "spellcheck:docs": "cspell \"**/*.md\""
   },
   "keywords": [
     "homeassistant",
@@ -39,6 +43,7 @@
     "@biomejs/biome": "^2.2.3",
     "@types/node": "^22.0.2",
     "@vitest/coverage-v8": "^1.6.1",
+    "cspell": "^9.2.1",
     "happy-dom": "^15.10.2",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",

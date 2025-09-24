@@ -1,0 +1,26 @@
+# 项目特定词汇
+home-mcp
+homeassistant
+modelcontextprotocol
+mcp
+stdio
+tsup
+nodemon
+tsconfig-paths
+vitest
+biome
+pnpm
+npx
+shebang
+esbuild
+sourcemap
+minify
+dts
+CommonJS
+ES2022
+Node.js
+AI
+IoT
+smart-home
+CLI
+API
