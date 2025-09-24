@@ -20,11 +20,10 @@
     "format": "biome format --write src/",
     "format:check": "biome format src/",
     "check": "biome check src/",
-    "check:fix": "biome check --apply src/",
-    "spellcheck": "cspell \"**/*.{ts,js,json,md,yml,yaml,toml}\"",
-    "spellcheck:fix": "cspell \"**/*.{ts,js,json,md,yml,yaml,toml}\" --words-only",
-    "spellcheck:src": "cspell \"src/**/*.{ts,js}\"",
-    "spellcheck:docs": "cspell \"**/*.md\""
+    "type:check": "tsc --project tsconfig.typecheck.json",
+    "spell:check": "cspell \"**/*.{ts,js,json,md,yaml}\"",
+    "check:fix": "biome check --write --unsafe .",
+    "check:all": "pnpm check && pnpm type:check && pnpm spell:check"
   },
   "keywords": [
     "homeassistant",
