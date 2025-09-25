@@ -1,10 +1,16 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import type { CallToolRequest } from "@modelcontextprotocol/sdk/types.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+type ConsoleError = typeof console.error;
+type MockCallToolHandler = (request: {
+  params: CallToolRequest["params"];
+}) => Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }>;
 
 // 直接测试 MCP 服务器核心功能
 describe("MCP Server", () => {
-  let originalConsoleError: any;
+  let originalConsoleError: ConsoleError;
 
   beforeEach(() => {
     // 保存原始 console.error
@@ -138,11 +144,11 @@ describe("MCP Server", () => {
   });
 
   describe("工具调用处理", () => {
-    let mockCallToolHandler: any;
+    let mockCallToolHandler: MockCallToolHandler;
 
     beforeEach(() => {
       // 模拟工具调用处理程序
-      mockCallToolHandler = vi.fn().mockImplementation(async (request: any) => {
+      mockCallToolHandler = vi.fn().mockImplementation(async (request: { params: CallToolRequest["params"] }) => {
         const { name, arguments: args } = request.params;
 
         try {
@@ -517,10 +523,10 @@ describe("MCP Server", () => {
   });
 
   describe("边界情况和特殊情况", () => {
-    let mockCallToolHandler: any;
+    let mockCallToolHandler: MockCallToolHandler;
 
     beforeEach(() => {
-      mockCallToolHandler = vi.fn().mockImplementation(async (request: any) => {
+      mockCallToolHandler = vi.fn().mockImplementation(async (request: { params: CallToolRequest["params"] }) => {
         const { name, arguments: args } = request.params;
 
         try {
@@ -619,10 +625,10 @@ describe("MCP Server", () => {
   });
 
   describe("数学运算精度测试", () => {
-    let mockCallToolHandler: any;
+    let mockCallToolHandler: MockCallToolHandler;
 
     beforeEach(() => {
-      mockCallToolHandler = vi.fn().mockImplementation(async (request: any) => {
+      mockCallToolHandler = vi.fn().mockImplementation(async (request: { params: CallToolRequest["params"] }) => {
         const { name, arguments: args } = request.params;
 
         try {
