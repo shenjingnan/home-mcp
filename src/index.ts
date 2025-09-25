@@ -12,8 +12,8 @@ interface EnvironmentConfig {
 
 // 验证和读取环境变量
 function validateEnvironment(): EnvironmentConfig {
-  const hassToken = process.env['HASS_TOKEN'] ?? '';
-  const hassUrl = process.env['HASS_URL'] ?? '';
+  const hassToken = process.env.HASS_TOKEN ?? "";
+  const hassUrl = process.env.HASS_URL ?? "";
 
   return {
     HASS_TOKEN: hassToken.trim(),
