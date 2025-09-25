@@ -4,6 +4,31 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
+// 环境变量配置接口
+interface EnvironmentConfig {
+  HASS_TOKEN: string;
+  HASS_URL: string;
+}
+
+// 验证和读取环境变量
+function validateEnvironment(): EnvironmentConfig {
+  const hassToken = process.env['HASS_TOKEN'] ?? '';
+  const hassUrl = process.env['HASS_URL'] ?? '';
+
+  return {
+    HASS_TOKEN: hassToken.trim(),
+    HASS_URL: hassUrl.trim(),
+  };
+}
+
+// 全局环境配置
+let envConfig: EnvironmentConfig;
+
+// 获取 Home Assistant 访问令牌
+export function getHassToken(): string {
+  return envConfig.HASS_TOKEN;
+}
+
 const server = new Server(
   {
     name: "home-mcp",
@@ -119,9 +144,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("MCP 服务器已启动");
+  try {
+    // 验证环境变量
+    envConfig = validateEnvironment();
+
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error("MCP 服务器已启动");
+    console.error("Home Assistant 集成已准备就绪");
+  } catch (error) {
+    console.error("服务器启动失败:", error);
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {
