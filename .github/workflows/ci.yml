@@ -70,29 +70,24 @@ jobs:
         retry_on: error
         command: pnpm run build
 
-    # - name: 运行测试并生成覆盖率报告
-    #   uses: nick-invision/retry@v3
-    #   with:
-    #     timeout_minutes: 10
-    #     max_attempts: 2
-    #     retry_on: error
-    #     command: pnpm run test:coverage
+    - name: 运行测试并生成覆盖率报告
+      uses: nick-invision/retry@v3
+      with:
+        timeout_minutes: 10
+        max_attempts: 2
+        retry_on: error
+        command: pnpm run test:coverage
 
-    # - name: 运行 Web 测试并生成覆盖率报告
-    #   run: |
-    #     cd web
-    #     pnpm run test:coverage
-
-    # - name: 上传根目录覆盖率报告 (仅在 Ubuntu + Node 20.19.2 环境)
-    #   uses: codecov/codecov-action@v4
-    #   if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.19.2'
-    #   with:
-    #     token: ${{ secrets.CODECOV_TOKEN }}
-    #     files: ./coverage/lcov.info
-    #     flags: cli-tests
-    #     name: codecov-cli
-    #     fail_ci_if_error: true
-    #     verbose: true
+    - name: 上传根目录覆盖率报告 
+      uses: codecov/codecov-action@v4
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.19.2'
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage/lcov.info
+        flags: cli-tests
+        name: codecov-cli
+        fail_ci_if_error: true
+        verbose: true
 
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
