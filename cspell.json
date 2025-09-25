@@ -1,14 +1,7 @@
 {
   "version": "0.2",
   "language": "en",
-  "enableFiletypes": [
-    "typescript",
-    "javascript",
-    "json",
-    "markdown",
-    "yaml",
-    "toml"
-  ],
+  "enableFiletypes": ["typescript", "javascript", "json", "markdown", "yaml", "toml"],
   "files": ["**/*.{ts,js,json,md,yml,yaml,toml}"],
   "ignorePaths": [
     "dist/**",
