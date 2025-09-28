@@ -81,6 +81,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["a", "b"],
         },
       },
+      {
+        name: "get_states",
+        description: "获取 Home Assistant 中所有实体的状态信息",
+        inputSchema: {
+          type: "object",
+          properties: {},
+          required: [],
+        },
+      },
     ],
   };
 });
@@ -125,6 +134,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             },
           ],
         };
+      }
+
+      case "get_states": {
+        if (!envConfig.HASS_TOKEN || !envConfig.HASS_URL) {
+          throw new Error("未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
+        }
+
+        try {
+          const response = await fetch(`${envConfig.HASS_URL}/api/states`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${envConfig.HASS_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP 错误: ${response.status} ${response.statusText}`);
+          }
+
+          const states = (await response.json()) as unknown[];
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(states, null, 2),
+              },
+            ],
+          };
+        } catch (error) {
+          if (error instanceof Error) {
+            throw new Error(`获取实体状态失败: ${error.message}`);
+          }
+          throw new Error("获取实体状态时发生未知错误");
+        }
       }
 
       default:

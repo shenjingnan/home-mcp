@@ -3,6 +3,17 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import type { CallToolRequest } from "@modelcontextprotocol/sdk/types.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// 环境变量配置接口
+interface EnvironmentConfig {
+  HASS_TOKEN: string;
+  HASS_URL: string;
+}
+
+// 扩展全局类型
+declare global {
+  var envConfig: EnvironmentConfig | undefined;
+}
+
 type ConsoleError = typeof console.error;
 type MockCallToolHandler = (request: {
   params: CallToolRequest["params"];
@@ -102,15 +113,25 @@ describe("MCP Server", () => {
                 required: ["a", "b"],
               },
             },
+            {
+              name: "get_states",
+              description: "获取 Home Assistant 中所有实体的状态信息",
+              inputSchema: {
+                type: "object",
+                properties: {},
+                required: [],
+              },
+            },
           ],
         };
       });
 
       const result = await mockHandler();
 
-      expect(result.tools).toHaveLength(2);
+      expect(result.tools).toHaveLength(3);
       expect(result.tools[0].name).toBe("add");
       expect(result.tools[1].name).toBe("subtract");
+      expect(result.tools[2].name).toBe("get_states");
       expect(result.tools[0].inputSchema.required).toEqual(["a", "b"]);
       expect(result.tools[1].inputSchema.required).toEqual(["a", "b"]);
     });
@@ -217,7 +238,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("5 + 3 = 8");
+        expect(result.content[0]?.text).toBe("5 + 3 = 8");
         expect(result.isError).toBeUndefined();
       });
 
@@ -231,7 +252,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("-5 + -3 = -8");
+        expect(result.content[0]?.text).toBe("-5 + -3 = -8");
         expect(result.isError).toBeUndefined();
       });
 
@@ -245,7 +266,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("10 + -7 = 3");
+        expect(result.content[0]?.text).toBe("10 + -7 = 3");
         expect(result.isError).toBeUndefined();
       });
 
@@ -259,7 +280,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("3.14 + 2.86 = 6");
+        expect(result.content[0]?.text).toBe("3.14 + 2.86 = 6");
         expect(result.isError).toBeUndefined();
       });
 
@@ -273,7 +294,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("0 + 5 = 5");
+        expect(result.content[0]?.text).toBe("0 + 5 = 5");
         expect(result.isError).toBeUndefined();
       });
 
@@ -287,7 +308,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("999999999 + 1 = 1000000000");
+        expect(result.content[0]?.text).toBe("999999999 + 1 = 1000000000");
         expect(result.isError).toBeUndefined();
       });
 
@@ -301,7 +322,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe(`${Number.MAX_SAFE_INTEGER} + 0 = ${Number.MAX_SAFE_INTEGER}`);
+        expect(result.content[0]?.text).toBe(`${Number.MAX_SAFE_INTEGER} + 0 = ${Number.MAX_SAFE_INTEGER}`);
         expect(result.isError).toBeUndefined();
       });
     });
@@ -317,7 +338,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("10 - 3 = 7");
+        expect(result.content[0]?.text).toBe("10 - 3 = 7");
         expect(result.isError).toBeUndefined();
       });
 
@@ -331,7 +352,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("-5 - -3 = -2");
+        expect(result.content[0]?.text).toBe("-5 - -3 = -2");
         expect(result.isError).toBeUndefined();
       });
 
@@ -345,7 +366,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("10 - -7 = 17");
+        expect(result.content[0]?.text).toBe("10 - -7 = 17");
         expect(result.isError).toBeUndefined();
       });
 
@@ -359,7 +380,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("5.5 - 2.5 = 3");
+        expect(result.content[0]?.text).toBe("5.5 - 2.5 = 3");
         expect(result.isError).toBeUndefined();
       });
 
@@ -373,7 +394,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("0 - 5 = -5");
+        expect(result.content[0]?.text).toBe("0 - 5 = -5");
         expect(result.isError).toBeUndefined();
       });
 
@@ -387,7 +408,7 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe("1000000000 - 1 = 999999999");
+        expect(result.content[0]?.text).toBe("1000000000 - 1 = 999999999");
         expect(result.isError).toBeUndefined();
       });
 
@@ -401,8 +422,138 @@ describe("MCP Server", () => {
 
         const result = await mockCallToolHandler(request);
 
-        expect(result.content[0].text).toBe(`${Number.MAX_SAFE_INTEGER} - 0 = ${Number.MAX_SAFE_INTEGER}`);
+        expect(result.content[0]?.text).toBe(`${Number.MAX_SAFE_INTEGER} - 0 = ${Number.MAX_SAFE_INTEGER}`);
         expect(result.isError).toBeUndefined();
+      });
+    });
+
+    describe("get_states 工具测试", () => {
+      let mockCallToolHandler: MockCallToolHandler;
+
+      beforeEach(() => {
+        // 模拟环境变量和 fetch
+        process.env["HASS_TOKEN"] = "test-token";
+        process.env["HASS_URL"] = "http://localhost:8123";
+
+        // 设置全局环境配置
+        global.envConfig = {
+          HASS_TOKEN: "test-token",
+          HASS_URL: "http://localhost:8123",
+        };
+
+        mockCallToolHandler = vi.fn().mockImplementation(async (request: { params: CallToolRequest["params"] }) => {
+          const { name } = request.params;
+
+          try {
+            switch (name) {
+              case "get_states": {
+                if (!global.envConfig?.HASS_TOKEN || !global.envConfig?.HASS_URL) {
+                  throw new Error("未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
+                }
+
+                // 模拟 fetch 响应
+                const mockStates = [
+                  {
+                    entity_id: "conversation.home_assistant",
+                    state: "unknown",
+                    attributes: {
+                      friendly_name: "Home Assistant",
+                      supported_features: 1,
+                    },
+                    last_changed: "2025-09-28T08:48:35.010318+00:00",
+                    last_reported: "2025-09-28T08:48:35.010318+00:00",
+                    last_updated: "2025-09-28T08:48:35.010318+00:00",
+                    context: {
+                      id: "01K67R4WP2JFBH0W5YGPHFAKR3",
+                      parent_id: null,
+                      user_id: null,
+                    },
+                  },
+                ];
+
+                return {
+                  content: [
+                    {
+                      type: "text",
+                      text: `成功获取 1 个实体的状态信息。前5个实体：\\n${JSON.stringify(mockStates.slice(0, 5), null, 2)}`,
+                    },
+                  ],
+                };
+              }
+              default:
+                throw new Error(`未知工具: ${name}`);
+            }
+          } catch (error) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `错误: ${error instanceof Error ? error.message : "未知错误"}`,
+                },
+              ],
+              isError: true,
+            };
+          }
+        });
+      });
+
+      afterEach(() => {
+        // 清理环境变量
+        delete process.env["HASS_TOKEN"];
+        delete process.env["HASS_URL"];
+      });
+
+      it("应该成功获取实体状态", async () => {
+        const request = {
+          params: {
+            name: "get_states",
+            arguments: {},
+          },
+        };
+
+        const result = await mockCallToolHandler(request);
+
+        expect(result.isError).toBeUndefined();
+        expect(result.content[0]?.text).toContain("成功获取 1 个实体的状态信息");
+        expect(result.content[0]?.text).toContain("conversation.home_assistant");
+      });
+
+      it("应该处理缺少环境变量的情况", async () => {
+        // 删除环境变量
+        delete process.env["HASS_TOKEN"];
+        delete process.env["HASS_URL"];
+        global.envConfig = {
+          HASS_TOKEN: "",
+          HASS_URL: "",
+        };
+
+        const request = {
+          params: {
+            name: "get_states",
+            arguments: {},
+          },
+        };
+
+        const result = await mockCallToolHandler(request);
+
+        expect(result.isError).toBe(true);
+        expect(result.content[0]?.text).toBe(
+          "错误: 未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量",
+        );
+      });
+
+      it("应该正确处理空参数对象", async () => {
+        const request = {
+          params: {
+            name: "get_states",
+            arguments: {},
+          },
+        };
+
+        const result = await mockCallToolHandler(request);
+
+        expect(result.isError).toBeUndefined();
+        expect(result.content[0]?.text).toContain("成功获取 1 个实体的状态信息");
       });
     });
 
@@ -418,7 +569,7 @@ describe("MCP Server", () => {
         const result = await mockCallToolHandler(request);
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toBe("错误: 参数必须是数字");
+        expect(result.content[0]?.text).toBe("错误: 参数必须是数字");
       });
 
       it("应该处理缺少必需参数错误", async () => {
@@ -432,7 +583,7 @@ describe("MCP Server", () => {
         const result = await mockCallToolHandler(request);
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toBe("错误: 参数必须是数字");
+        expect(result.content[0]?.text).toBe("错误: 参数必须是数字");
       });
 
       it("应该处理未知工具错误", async () => {
@@ -446,7 +597,7 @@ describe("MCP Server", () => {
         const result = await mockCallToolHandler(request);
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toBe("错误: 未知工具: unknown_tool");
+        expect(result.content[0]?.text).toBe("错误: 未知工具: unknown_tool");
       });
 
       it("应该处理空参数对象", async () => {
@@ -460,7 +611,7 @@ describe("MCP Server", () => {
         const result = await mockCallToolHandler(request);
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toBe("错误: 参数必须是数字");
+        expect(result.content[0]?.text).toBe("错误: 参数必须是数字");
       });
 
       it("应该处理 null 参数", async () => {
@@ -474,7 +625,7 @@ describe("MCP Server", () => {
         const result = await mockCallToolHandler(request);
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toBe("错误: 参数必须是数字");
+        expect(result.content[0]?.text).toBe("错误: 参数必须是数字");
       });
 
       it("应该处理 undefined 参数", async () => {
@@ -488,7 +639,7 @@ describe("MCP Server", () => {
         const result = await mockCallToolHandler(request);
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toBe("错误: 参数必须是数字");
+        expect(result.content[0]?.text).toBe("错误: 参数必须是数字");
       });
     });
   });
@@ -572,7 +723,7 @@ describe("MCP Server", () => {
       };
 
       const result = await mockCallToolHandler(request);
-      expect(result.content[0].text).toBe("Infinity + 5 = Infinity");
+      expect(result.content[0]?.text).toBe("Infinity + 5 = Infinity");
     });
 
     it("应该正确处理 -Infinity", async () => {
@@ -584,7 +735,7 @@ describe("MCP Server", () => {
       };
 
       const result = await mockCallToolHandler(request);
-      expect(result.content[0].text).toBe("-Infinity - 5 = -Infinity");
+      expect(result.content[0]?.text).toBe("-Infinity - 5 = -Infinity");
     });
 
     it("应该正确处理 NaN", async () => {
@@ -596,7 +747,7 @@ describe("MCP Server", () => {
       };
 
       const result = await mockCallToolHandler(request);
-      expect(result.content[0].text).toBe("NaN + 5 = NaN");
+      expect(result.content[0]?.text).toBe("NaN + 5 = NaN");
     });
 
     it("应该正确处理极小的小数", async () => {
@@ -608,7 +759,7 @@ describe("MCP Server", () => {
       };
 
       const result = await mockCallToolHandler(request);
-      expect(result.content[0].text).toBe("1e-10 + 2e-10 = 3e-10");
+      expect(result.content[0]?.text).toBe("1e-10 + 2e-10 = 3e-10");
     });
 
     it("应该正确处理极大的指数", async () => {
@@ -620,7 +771,7 @@ describe("MCP Server", () => {
       };
 
       const result = await mockCallToolHandler(request);
-      expect(result.content[0].text).toBe("100000000000000000000 + 100000000000000000000 = 200000000000000000000");
+      expect(result.content[0]?.text).toBe("100000000000000000000 + 100000000000000000000 = 200000000000000000000");
     });
   });
 
@@ -674,7 +825,7 @@ describe("MCP Server", () => {
       };
 
       const result = await mockCallToolHandler(request);
-      expect(result.content[0].text).toBe("0.1 + 0.2 = 0.30000000000000004");
+      expect(result.content[0]?.text).toBe("0.1 + 0.2 = 0.30000000000000004");
     });
 
     it("应该正确处理大数相减精度问题", async () => {
@@ -686,7 +837,7 @@ describe("MCP Server", () => {
       };
 
       const result = await mockCallToolHandler(request);
-      expect(result.content[0].text).toBe("10000000000000000 - 10000000000000000 = 0");
+      expect(result.content[0]?.text).toBe("10000000000000000 - 10000000000000000 = 0");
     });
 
     it("应该正确处理科学计数法", async () => {
@@ -698,7 +849,7 @@ describe("MCP Server", () => {
       };
 
       const result = await mockCallToolHandler(request);
-      expect(result.content[0].text).toBe("123000 + 4560 = 127560");
+      expect(result.content[0]?.text).toBe("123000 + 4560 = 127560");
     });
   });
 });
