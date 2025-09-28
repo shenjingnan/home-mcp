@@ -102,15 +102,25 @@ describe("MCP Server", () => {
                 required: ["a", "b"],
               },
             },
+            {
+              name: "get_states",
+              description: "获取 Home Assistant 中所有实体的状态信息",
+              inputSchema: {
+                type: "object",
+                properties: {},
+                required: [],
+              },
+            },
           ],
         };
       });
 
       const result = await mockHandler();
 
-      expect(result.tools).toHaveLength(2);
+      expect(result.tools).toHaveLength(3);
       expect(result.tools[0].name).toBe("add");
       expect(result.tools[1].name).toBe("subtract");
+      expect(result.tools[2].name).toBe("get_states");
       expect(result.tools[0].inputSchema.required).toEqual(["a", "b"]);
       expect(result.tools[1].inputSchema.required).toEqual(["a", "b"]);
     });
@@ -403,6 +413,134 @@ describe("MCP Server", () => {
 
         expect(result.content[0].text).toBe(`${Number.MAX_SAFE_INTEGER} - 0 = ${Number.MAX_SAFE_INTEGER}`);
         expect(result.isError).toBeUndefined();
+      });
+    });
+
+    describe("get_states 工具测试", () => {
+      let mockCallToolHandler: MockCallToolHandler;
+
+      beforeEach(() => {
+        // 模拟环境变量和 fetch
+        process.env.HASS_TOKEN = "test-token";
+        process.env.HASS_URL = "http://localhost:8123";
+
+        // 设置全局环境配置
+        global.envConfig = {
+          HASS_TOKEN: "test-token",
+          HASS_URL: "http://localhost:8123",
+        };
+
+        mockCallToolHandler = vi.fn().mockImplementation(async (request: { params: CallToolRequest["params"] }) => {
+          const { name } = request.params;
+
+          try {
+            switch (name) {
+              case "get_states": {
+                if (!envConfig.HASS_TOKEN || !envConfig.HASS_URL) {
+                  throw new Error("未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
+                }
+
+                // 模拟 fetch 响应
+                const mockStates = [
+                  {
+                    entity_id: "conversation.home_assistant",
+                    state: "unknown",
+                    attributes: {
+                      friendly_name: "Home Assistant",
+                      supported_features: 1,
+                    },
+                    last_changed: "2025-09-28T08:48:35.010318+00:00",
+                    last_reported: "2025-09-28T08:48:35.010318+00:00",
+                    last_updated: "2025-09-28T08:48:35.010318+00:00",
+                    context: {
+                      id: "01K67R4WP2JFBH0W5YGPHFAKR3",
+                      parent_id: null,
+                      user_id: null,
+                    },
+                  },
+                ];
+
+                return {
+                  content: [
+                    {
+                      type: "text",
+                      text: `成功获取 1 个实体的状态信息。前5个实体：\\n${JSON.stringify(mockStates.slice(0, 5), null, 2)}`,
+                    },
+                  ],
+                };
+              }
+              default:
+                throw new Error(`未知工具: ${name}`);
+            }
+          } catch (error) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `错误: ${error instanceof Error ? error.message : "未知错误"}`,
+                },
+              ],
+              isError: true,
+            };
+          }
+        });
+      });
+
+      afterEach(() => {
+        // 清理环境变量
+        delete process.env.HASS_TOKEN;
+        delete process.env.HASS_URL;
+      });
+
+      it("应该成功获取实体状态", async () => {
+        const request = {
+          params: {
+            name: "get_states",
+            arguments: {},
+          },
+        };
+
+        const result = await mockCallToolHandler(request);
+
+        expect(result.isError).toBeUndefined();
+        expect(result.content[0].text).toContain("成功获取 1 个实体的状态信息");
+        expect(result.content[0].text).toContain("conversation.home_assistant");
+      });
+
+      it("应该处理缺少环境变量的情况", async () => {
+        // 删除环境变量
+        delete process.env.HASS_TOKEN;
+        delete process.env.HASS_URL;
+        global.envConfig = {
+          HASS_TOKEN: "",
+          HASS_URL: "",
+        };
+
+        const request = {
+          params: {
+            name: "get_states",
+            arguments: {},
+          },
+        };
+
+        const result = await mockCallToolHandler(request);
+
+        expect(result.isError).toBe(true);
+        expect(result.content[0].text).toBe("错误: 未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
+      });
+
+      it("应该正确处理空参数对象", async () => {
+        const request = {
+          params: {
+            name: "get_states",
+            arguments: {},
+          },
+        };
+
+        const result = await mockCallToolHandler(request);
+
+        expect(result.isError).toBeUndefined();
+        expect(result.content[0].text).toContain("成功获取 1 个实体的状态信息");
       });
     });
 
