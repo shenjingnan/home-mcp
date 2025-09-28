@@ -1,0 +1,13 @@
+{
+  "name": "bestmcp",
+  "version": "0.0.1",
+  "description": "Best MCP - A Model Context Protocol server for typescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["mcp"],
+  "author": "shenjingnan(sjn.code@gmail.com)",
+  "license": "MIT",
+  "packageManager": "pnpm@10.13.1"
+}
