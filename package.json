@@ -8,8 +8,7 @@
     "home-mcp": "./dist/index.js"
   },
   "scripts": {
-    "dev": "nodemon --exec ts-node src/index.ts",
-    "start": "node dist/index.js",
+    "dev": "tsup --watch --onSuccess \"node dist/index.js\"",
     "build": "tsup",
     "test": "vitest run",
     "test:silent": "vitest run --silent",
@@ -31,8 +30,12 @@
   "author": "shenjingnan(sjn.code@gmail.com)",
   "license": "MIT",
   "packageManager": "pnpm@10.13.1",
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.5"
+    "@modelcontextprotocol/sdk": "^1.17.5",
+    "bestmcp": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.3",

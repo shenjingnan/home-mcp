@@ -1,13 +1,36 @@
 {
   "name": "bestmcp",
-  "version": "0.0.1",
-  "description": "Best MCP - A Model Context Protocol server for typescript",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "version": "0.1.0",
+  "description": "Best MCP - A simplified Model Context Protocol server framework for TypeScript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
-  "keywords": ["mcp"],
-  "author": "shenjingnan(sjn.code@gmail.com)",
+  "files": ["dist/**/*"],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "typescript",
+    "decorators",
+    "server"
+  ],
+  "author": "shenjingnan <sjn.code@gmail.com>",
   "license": "MIT",
-  "packageManager": "pnpm@10.13.1"
+  "dependencies": {
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.2",
+    "typescript": "^5.5.4"
+  }
 }
