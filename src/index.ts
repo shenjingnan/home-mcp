@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import "reflect-metadata";
 import { BestMCP, param, tool } from "bestmcp";
 
 class HassMCPService {
