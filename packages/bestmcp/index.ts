@@ -21,17 +21,6 @@ interface ToolMetadata {
   };
 }
 
-interface ResourceMetadata {
-  uri: string;
-  description: string;
-  mimeType?: string;
-}
-
-interface PromptMetadata {
-  name: string;
-  description: string;
-  arguments?: Record<string, any>;
-}
 
 // 参数类型定义
 interface ParamTypeMetadata {
@@ -64,8 +53,6 @@ interface JsonSchema {
 
 // 元数据存储
 const TOOLS_METADATA = Symbol("tools");
-const RESOURCES_METADATA = Symbol("resources");
-const PROMPTS_METADATA = Symbol("prompts");
 
 // 工具装饰器
 export function tool(options?: { name?: string; description?: string }) {
@@ -155,68 +142,11 @@ export function param(
   };
 }
 
-// 资源装饰器
-export function resource(uri: string, options?: { mimeType?: string; description?: string }) {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-    if (!descriptor || !target) {
-      console.warn(`Resource decorator: descriptor or target is undefined for ${propertyKey}`);
-      return;
-    }
-
-    const existingResources = Reflect.getMetadata(RESOURCES_METADATA, target.constructor) || [];
-
-    const funcString = descriptor.value ? descriptor.value.toString() : "";
-    const resourceMetadata: ResourceMetadata = {
-      uri,
-      description: options?.description || extractDescription(funcString),
-      mimeType: options?.mimeType,
-    };
-
-    existingResources.push({
-      metadata: resourceMetadata,
-      method: descriptor.value,
-      propertyKey,
-    });
-
-    Reflect.defineMetadata(RESOURCES_METADATA, existingResources, target.constructor);
-  };
-}
-
-// 提示装饰器
-export function prompt(options?: { name?: string; description?: string }) {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-    if (!descriptor || !target) {
-      console.warn(`Prompt decorator: descriptor or target is undefined for ${propertyKey}`);
-      return;
-    }
-
-    const existingPrompts = Reflect.getMetadata(PROMPTS_METADATA, target.constructor) || [];
-
-    const funcString = descriptor.value ? descriptor.value.toString() : "";
-    const params = extractParameters(funcString);
-
-    const promptMetadata: PromptMetadata = {
-      name: options?.name || propertyKey,
-      description: options?.description || extractDescription(funcString),
-      arguments: params.properties,
-    };
-
-    existingPrompts.push({
-      metadata: promptMetadata,
-      method: descriptor.value,
-      propertyKey,
-    });
-
-    Reflect.defineMetadata(PROMPTS_METADATA, existingPrompts, target.constructor);
-  };
-}
 
 export class BestMCP {
   private name: string;
   private version: string;
   private tools: Map<string, any> = new Map();
-  private resources: Map<string, any> = new Map();
-  private prompts: Map<string, any> = new Map();
   private server?: Server;
   private transport?: StdioServerTransport;
 
@@ -319,23 +249,6 @@ export class BestMCP {
       });
     });
 
-    // 注册资源
-    const resources = Reflect.getMetadata(RESOURCES_METADATA, serviceClass) || [];
-    resources.forEach((resource: any) => {
-      this.resources.set(resource.metadata.uri, {
-        metadata: resource.metadata,
-        handler: resource.method.bind(instance),
-      });
-    });
-
-    // 注册提示
-    const prompts = Reflect.getMetadata(PROMPTS_METADATA, serviceClass) || [];
-    prompts.forEach((prompt: any) => {
-      this.prompts.set(prompt.metadata.name, {
-        metadata: prompt.metadata,
-        handler: prompt.method.bind(instance),
-      });
-    });
   }
 
   // 获取所有工具定义
@@ -505,23 +418,6 @@ export class BestMCP {
     };
   }
 
-  // 获取资源
-  async getResource(uri: string) {
-    const resource = this.resources.get(uri);
-    if (!resource) {
-      throw new Error(`Resource ${uri} not found`);
-    }
-    return await resource.handler();
-  }
-
-  // 获取提示
-  async getPrompt(name: string, args?: any) {
-    const prompt = this.prompts.get(name);
-    if (!prompt) {
-      throw new Error(`Prompt ${name} not found`);
-    }
-    return await prompt.handler(args);
-  }
 
   // 启动 stdio MCP 服务器
   async startStdioServer() {
@@ -558,8 +454,6 @@ export class BestMCP {
     // 保持原有的兼容性模式
     console.log(`Starting ${this.name} v${this.version} in compatibility mode`);
     console.log(`Registered ${this.tools.size} tools`);
-    console.log(`Registered ${this.resources.size} resources`);
-    console.log(`Registered ${this.prompts.size} prompts`);
     console.log('Use run({ transport: "stdio" }) for MCP protocol communication');
     this.setupToolRequestHandlers();
     await this.startStdioServer();
