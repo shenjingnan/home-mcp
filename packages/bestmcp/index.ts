@@ -71,10 +71,7 @@ export function tool(options?: { name?: string; description?: string }) {
     const _paramTypes =
       Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
 
-    // 从函数签名和 JSDoc 提取参数信息，优先使用 @param 装饰器元数据
-    const funcString = descriptor.value ? descriptor.value.toString() : "";
     const params = extractParameters(
-      funcString,
       target,
       propertyKey,
       _paramTypes
@@ -82,7 +79,7 @@ export function tool(options?: { name?: string; description?: string }) {
 
     const toolMetadata: ToolMetadata = {
       name: options?.name || propertyKey,
-      description: options?.description || extractDescription(funcString),
+      description: options?.description || '',
       parameters: {
         type: "object",
         properties: params.properties,
@@ -101,12 +98,11 @@ export function tool(options?: { name?: string; description?: string }) {
 }
 
 // 参数装饰器
-export function param(
-  options: {
-    name?: string;
-    required: boolean;
-    description?: string;
-  } = { required: true }
+export function param(options: {
+  name?: string,
+  required: boolean,
+  description?: string
+} = { required: true }
 ) {
   return (
     target: any,
@@ -114,6 +110,7 @@ export function param(
     parameterIndex: number
   ) => {
     const { name, required, description } = options;
+
     const existingParams =
       Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
 
@@ -126,9 +123,9 @@ export function param(
       name,
       required,
       index: parameterIndex,
-      type: paramType.type,
+      type: paramType?.type,
       schema: paramType,
-      description: description,
+      description,
     };
 
     Reflect.defineMetadata(TOOL_PARAM_METADATA, existingParams, target, propertyKey);
@@ -537,91 +534,8 @@ function inferTypeSchema(type: any): JsonSchema {
   return { type: "string" };
 }
 
-// 辅助函数：从装饰器元数据中提取参数信息
-function extractParametersFromMetadata(
-  target: any,
-  propertyKey: string,
-  paramTypes: any[]
-): {
-  properties: Record<string, any>;
-  required: string[];
-} {
-  const properties: Record<string, any> = {};
-  const required: string[] = [];
-
-  // 获取 @param 装饰器存储的参数元数据
-  const paramMetadata =
-    Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
-
-  // 如果有 @param 装饰器元数据，优先使用它
-  if (paramMetadata.length > 0) {
-    paramMetadata.forEach((param: ParamTypeMetadata, index: number) => {
-      if (param) {
-        // 尝试从函数签名中获取参数名作为后备
-        let paramName = param.name;
-        if (!paramName) {
-          // 从目标对象的函数签名中获取参数名
-          const descriptor = Object.getOwnPropertyDescriptor(
-            target,
-            propertyKey
-          );
-          if (descriptor?.value) {
-            const funcString = descriptor.value.toString();
-            const paramMatch = funcString.match(/\(([^)]*)\)/);
-            if (paramMatch) {
-              const params = paramMatch[1]
-                .split(",")
-                .map((p: string) => p.trim())
-                .filter((p: string) => p);
-
-              if (params[index]) {
-                const paramParts = params[index].split(":");
-                const namePart = paramParts[0].trim();
-                paramName = namePart
-                  .replace(/@param\([^)]*\)\s*/g, "")
-                  .replace(/\?/g, "")
-                  .replace(/=.*/, "")
-                  .trim();
-              }
-            }
-          }
-        }
-
-        // 如果仍然没有获取到参数名，使用默认名称
-        if (!paramName) {
-          paramName = `param${index}`;
-        }
-
-        // 优先使用装饰器提供的 schema，否则从运行时类型推断
-        let schema: JsonSchema;
-        if (param.schema) {
-          schema = param.schema;
-        } else {
-          const paramType = paramTypes[index];
-          schema = inferTypeSchema(paramType);
-        }
-
-        // 添加描述信息
-        if (param.description) {
-          schema.description = param.description;
-        }
-
-        properties[paramName] = schema;
-
-        // 如果参数标记为必需，则添加到 required 数组
-        if (param.required !== false) {
-          required.push(paramName);
-        }
-      }
-    });
-  }
-
-  return { properties, required };
-}
-
-// 辅助函数：提取参数信息
+// 简化的参数提取函数：只从 @param 装饰器元数据中提取参数信息
 function extractParameters(
-  funcString: string,
   target?: any,
   propertyKey?: string,
   paramTypes?: any[]
@@ -629,75 +543,46 @@ function extractParameters(
   properties: Record<string, any>;
   required: string[];
 } {
-  // 优先尝试从 @param 装饰器元数据中提取参数信息
-  if (target && propertyKey && paramTypes) {
-    const metadataResult = extractParametersFromMetadata(
-      target,
-      propertyKey,
-      paramTypes
-    );
-    if (Object.keys(metadataResult.properties).length > 0) {
-      return metadataResult;
-    }
-  }
-
-  // 回退到原有的函数签名解析逻辑
   const properties: Record<string, any> = {};
   const required: string[] = [];
 
-  // 改进的参数提取逻辑，从函数签名中解析参数
-  const paramMatch = funcString.match(/\(([^)]*)\)/);
-  if (paramMatch) {
-    const params = paramMatch[1]
-      .split(",")
-      .map((p) => p.trim())
-      .filter((p) => p);
-
-    params.forEach((param, _index) => {
-      // 提取参数名和类型
-      const paramParts = param.split(":");
-      const namePart = paramParts[0].trim();
-      const typePart = paramParts[1] ? paramParts[1].trim() : "any";
-
-      // 处理参数名（移除装饰器语法和可选标记）
-      const cleanName = namePart
-        .replace(/@param\([^)]*\)\s*/g, "") // 移除 @param 装饰器
-        .replace(/\?/g, "") // 移除可选标记
-        .replace(/=.*/, "") // 移除默认值
-        .trim();
-
-      // 处理类型
-      const cleanType = typePart
-        .replace(/=.*/, "") // 移除默认值
-        .trim();
-
-      const isOptional = namePart.includes("?") || param.includes("=");
-
-      if (cleanName) {
-        properties[cleanName] = {
-          type: mapTypeScriptTypeToJsonSchema(cleanType),
-        };
-
-        if (!isOptional) {
-          required.push(cleanName);
-        }
-      }
-    });
+  // 如果没有提供必要参数，返回空结果
+  if (!target || !propertyKey || !paramTypes) {
+    return { properties, required };
   }
 
+  // 获取 @param 装饰器存储的参数元数据
+  const paramMetadata =
+    Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
+
+  // 处理每个装饰器提供的参数信息
+  paramMetadata.forEach((param: ParamTypeMetadata, index: number) => {
+    if (param) {
+      // 使用装饰器提供的参数名，如果没有则使用默认名称
+      const paramName = param.name || `param${index}`;
+
+      // 优先使用装饰器提供的 schema，否则从运行时类型推断
+      let schema: JsonSchema;
+      if (param.schema) {
+        schema = param.schema;
+      } else {
+        const paramType = paramTypes[index];
+        schema = inferTypeSchema(paramType);
+      }
+
+      // 添加描述信息
+      if (param.description) {
+        schema.description = param.description;
+      }
+
+      properties[paramName] = schema;
+
+      // 如果参数标记为必需，则添加到 required 数组
+      if (param.required !== false) {
+        required.push(paramName);
+      }
+    }
+  });
+
   return { properties, required };
-}
-
-// 类型映射
-function mapTypeScriptTypeToJsonSchema(tsType: string): string {
-  const typeMap: Record<string, string> = {
-    string: "string",
-    number: "number",
-    boolean: "boolean",
-    object: "object",
-    array: "array",
-    any: "any",
-  };
-
-  return typeMap[tsType.toLowerCase()] || "string";
 }

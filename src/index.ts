@@ -3,9 +3,9 @@
 import "reflect-metadata";
 import { BestMCP, param, tool } from "bestmcp";
 
-class HassMCPServer {
+class HassMCPService {
   @tool({ description: "Add two numbers together" })
-  addNumbers(@param() value1: number, @param('value2') value2: number): number {
+  addNumbers(@param() value1: number, @param() value2: number): number {
     /**
      * Add two numbers together
      * @param args Object containing a and b
@@ -38,7 +38,7 @@ class HassMCPServer {
 const mcp = new BestMCP("Home Assistant MCP Server", "1.0.0");
 
 // 注册服务类
-mcp.register(HassMCPServer);
+mcp.register(HassMCPService);
 
 // 启动服务器
 mcp.run().catch((error: Error) => {
