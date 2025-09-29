@@ -1,29 +1,50 @@
 #!/usr/bin/env node
 
-// import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-// import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-// import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { BestMCP, tool } from 'bestmcp';
+import 'reflect-metadata';
+import { BestMCP, param, tool } from "bestmcp";
 
 class HassMCPServer {
-  @tool({ description: 'Add two numbers together' })
-  addNumbers(a: number, b: number): number {
+  @tool({ description: "Add two numbers together" })
+  addNumbers(@param('value1') value1: number, @param('value2') value2: number): number {
     /**
      * Add two numbers together
-     * @param a First number
-     * @param b Second number
+     * @param args Object containing a and b
      * @returns The sum of a and b
      */
-    return a + b;
+    return value1 + value2;
+  }
+
+  @tool({ description: "Subtract two numbers" })
+  subtract(@param() a: number, @param() b: number): number {
+    /**
+     * Subtract the second number from the first number
+     * @param args Object containing a and b
+     * @returns The difference between a and b
+     */
+    return a - b;
+  }
+
+  @tool({ description: "Get the current time" })
+  getCurrentTime(): string {
+    /**
+     * Get the current time in ISO format
+     * @returns Current time as ISO string
+     */
+    return new Date().toISOString();
   }
 }
 
-// 使用示例
-const mcp = new BestMCP('My TypeScript MCP Server', '1.0.0');
+// 创建 MCP 服务器实例
+const mcp = new BestMCP("Home Assistant MCP Server", "1.0.0");
+
+// 注册服务类
 mcp.register(HassMCPServer);
 
 // 启动服务器
-mcp.run();
+mcp.run().catch((error: Error) => {
+  console.error("Failed to start MCP server:", error);
+  process.exit(1);
+});
 
 // // 环境变量配置接口
 // interface EnvironmentConfig {

@@ -1,0 +1,28 @@
+{
+  "tool": {
+    "metadata": {
+      "name": "addNumbers",
+      "description": "Add two numbers together",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "value1": {
+            "type": "string"
+          },
+          "value2": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value1",
+          "value2"
+        ]
+      }
+    }
+  },
+  "name": "addNumbers",
+  "args": {
+    "value1": "1",
+    "value2": "3"
+  }
+}
