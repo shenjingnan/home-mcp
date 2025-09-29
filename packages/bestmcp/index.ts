@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import fs from "node:fs";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -146,7 +145,6 @@ export class BestMCP {
   }
 
   private initializeMCPServer() {
-    console.log("initializeMCPServer");
     this.server = new Server(
       {
         name: this.name,
@@ -162,10 +160,6 @@ export class BestMCP {
 
   private setupToolRequestHandlers() {
     if (!this.server) return;
-    fs.writeFileSync(
-      "/Users/nemo/github/shenjingnan/home-mcp/list-tools-request.json",
-      JSON.stringify(this.getTools().map(this.convertToMCPTool), null, 2)
-    );
 
     // 工具列表请求处理器
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -303,11 +297,6 @@ export class BestMCP {
   // 执行工具
   async executeTool(name: string, args: any) {
     const tool = this.tools.get(name);
-    fs.writeFileSync(
-      "/Users/nemo/github/shenjingnan/home-mcp/execute-tool-request.json",
-      JSON.stringify({ tool, name, args }, null, 2)
-    );
-    console.log("call tool", tool, name, args);
     if (!tool) {
       throw new Error(`Tool ${name} not found`);
     }
