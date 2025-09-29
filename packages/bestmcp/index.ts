@@ -79,7 +79,6 @@ export function tool(options?: { name?: string; description?: string }) {
 
     // 获取参数类型信息
     const _paramTypes = Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
-    console.log('_paramTypes', _paramTypes);
     const _returnType = Reflect.getMetadata("design:returntype", target, propertyKey);
 
     // 从函数签名和 JSDoc 提取参数信息，优先使用 @param 装饰器元数据
@@ -106,7 +105,7 @@ export function tool(options?: { name?: string; description?: string }) {
   };
 }
 
-// 参数装饰器 - 增强版本，支持类型信息
+// 参数装饰器
 export function param(
   nameOrType?: string | JsonSchema,
   requiredOrDescription?: boolean | string,
@@ -137,7 +136,6 @@ export function param(
     // 获取参数的运行时类型信息
     const paramTypes = Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
     const paramType = paramTypes[parameterIndex];
-    console.log('param paramType', paramType, nameOrType, name, required);
     
     // 如果没有提供类型schema，则从运行时类型推断
     if (!typeSchema) {
@@ -155,54 +153,6 @@ export function param(
     
     Reflect.defineMetadata("tool:params", existingParams, target, propertyKey);
   };
-}
-
-// 便捷的类型装饰器工厂函数
-export function paramType<T>(type: JsonSchema) {
-  return param(type);
-}
-
-// 字符串参数装饰器
-export function paramString(name?: string, required?: boolean, description?: string) {
-  return param({ ...inferTypeSchema(String), description }, required, name);
-}
-
-// 数字参数装饰器
-export function paramNumber(name?: string, required?: boolean, description?: string) {
-  return param({ ...inferTypeSchema(Number), description }, required, name);
-}
-
-// 布尔参数装饰器
-export function paramBoolean(name?: string, required?: boolean, description?: string) {
-  return param({ ...inferTypeSchema(Boolean), description }, required, name);
-}
-
-// 对象参数装饰器
-export function paramObject(name?: string, required?: boolean, properties?: Record<string, JsonSchema>, description?: string) {
-  return param({ 
-    type: "object", 
-    properties, 
-    required: properties ? Object.keys(properties) : [],
-    description 
-  }, required, name);
-}
-
-// 数组参数装饰器
-export function paramArray(name?: string, required?: boolean, items?: JsonSchema, description?: string) {
-  return param({ 
-    type: "array", 
-    items: items || { type: "string" }, 
-    description 
-  }, required, name);
-}
-
-// 枚举参数装饰器
-export function paramEnum<T>(name: string, values: T[], required?: boolean, description?: string) {
-  return param({ 
-    type: "string", 
-    enum: values, 
-    description 
-  }, required, name);
 }
 
 // 资源装饰器

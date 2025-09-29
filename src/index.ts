@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import 'reflect-metadata';
+import "reflect-metadata";
 import { BestMCP, param, tool } from "bestmcp";
 
 class HassMCPServer {
   @tool({ description: "Add two numbers together" })
-  addNumbers(@param('value1') value1: number, @param('value2') value2: number): number {
+  addNumbers(@param() value1: number, @param('value2') value2: number): number {
     /**
      * Add two numbers together
      * @param args Object containing a and b

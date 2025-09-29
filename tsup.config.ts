@@ -13,4 +13,5 @@ export default defineConfig({
   platform: "node",
   target: "node18",
   external: [],
+  tsconfig: "tsconfig.json",
 });
