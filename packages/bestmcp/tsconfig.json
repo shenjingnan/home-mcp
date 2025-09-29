@@ -14,7 +14,10 @@
     "rootDir": "./",
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true
   },
   "include": ["index.ts"],
   "exclude": ["node_modules", "dist"]

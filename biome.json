@@ -20,6 +20,12 @@
       "recommended": true,
       "complexity": {
         "useLiteralKeys": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "error"
+      },
+      "style": {
+        "noImplicitBoolean": "error"
       }
     }
   },
