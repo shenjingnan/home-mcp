@@ -1,29 +1,38 @@
 #!/usr/bin/env node
 
-import { BestMCP, param, tool } from "bestmcp";
+import { BestMCP, Param, Tool } from "bestmcp";
+import { z } from "zod";
 
 class HassMCPService {
-  @tool({ description: "Add two numbers together" })
-  addNumbers(@param() value1: number, @param() value2: number): number {
+  @Tool("Add two numbers together")
+  addNumbers(
+    @Param(z.number(), "The first number to add") value1: number,
+    @Param(z.number().optional(), "The second number to add (optional, defaults to 1)") value2?: number,
+  ): number {
     /**
      * Add two numbers together
-     * @param args Object containing a and b
-     * @returns The sum of a and b
+     * @param value1 The first number to add
+     * @param value2 The second number to add (optional, defaults to 1)
+     * @returns The sum of value1 and value2
      */
-    return value1 + value2;
+    return value1 + (value2 || 1);
   }
 
-  @tool({ description: "Subtract two numbers" })
-  subtract(@param() a: number, @param() b: number): number {
+  @Tool("Subtract two numbers")
+  subtract(
+    @Param(z.number(), "The number to subtract from") a: number,
+    @Param(z.number(), "The number to subtract") b: number,
+  ): number {
     /**
      * Subtract the second number from the first number
-     * @param args Object containing a and b
+     * @param a The number to subtract from
+     * @param b The number to subtract
      * @returns The difference between a and b
      */
     return a - b;
   }
 
-  @tool({ description: "Get the current time" })
+  @Tool("Get the current time")
   getCurrentTime(): string {
     /**
      * Get the current time in ISO format

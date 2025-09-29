@@ -1,3 +1,4 @@
+import { z } from "zod";
 import "reflect-metadata";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -6,7 +7,7 @@ import {
   CallToolRequestSchema,
   type CallToolResult,
   ListToolsRequestSchema,
-  type Tool,
+  type Tool as MCPSDKTool,
 } from "@modelcontextprotocol/sdk/types.js";
 
 // 类型定义
@@ -20,6 +21,43 @@ interface ToolMetadata {
   };
 }
 
+// 工具执行器的类型定义
+interface ToolExecutor {
+  metadata: ToolMetadata;
+  handler: Function;
+  paramZodSchemas?: Record<string, z.ZodType<any>>;
+}
+
+// 自定义错误类型
+class ToolValidationError extends Error {
+  constructor(
+    public toolName: string,
+    public parameterName?: string,
+    message?: string,
+  ) {
+    super(message || `Validation failed for tool ${toolName}`);
+    this.name = "ToolValidationError";
+  }
+}
+
+class ToolNotFoundError extends Error {
+  constructor(public toolName: string) {
+    super(`Tool ${toolName} not found`);
+    this.name = "ToolNotFoundError";
+  }
+}
+
+class ZodValidationError extends Error {
+  constructor(
+    public parameterName: string,
+    public zodErrors: z.ZodError,
+  ) {
+    const errorMessage = zodErrors.errors.map((err) => `Parameter ${parameterName}: ${err.message}`).join("; ");
+    super(errorMessage);
+    this.name = "ZodValidationError";
+  }
+}
+
 // 参数类型定义
 interface ParamTypeMetadata {
   name?: string;
@@ -27,6 +65,7 @@ interface ParamTypeMetadata {
   index: number;
   type?: string;
   schema?: any;
+  zodSchema?: z.ZodType<any>;
   description?: string;
   enum?: any[];
   items?: any;
@@ -54,31 +93,23 @@ const TOOLS_METADATA = Symbol("tools");
 const TOOL_PARAM_METADATA = Symbol("tool:params");
 
 // 工具装饰器
-export function tool(options?: { name?: string; description?: string }) {
+export function Tool(description?: string) {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
     if (!descriptor || !target) {
-      console.warn(
-        `Tool decorator: descriptor or target is undefined for ${propertyKey}`
-      );
+      console.warn(`Tool decorator: descriptor or target is undefined for ${propertyKey}`);
       return;
     }
 
-    const existingTools =
-      Reflect.getMetadata(TOOLS_METADATA, target.constructor) || [];
+    const existingTools = Reflect.getMetadata(TOOLS_METADATA, target.constructor) || [];
 
     // 获取参数类型信息
-    const _paramTypes =
-      Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
+    const _paramTypes = Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
 
-    const params = extractParameters(
-      target,
-      propertyKey,
-      _paramTypes
-    );
+    const params = extractParameters(target, propertyKey, _paramTypes);
 
     const toolMetadata: ToolMetadata = {
-      name: options?.name || propertyKey,
-      description: options?.description || '',
+      name: propertyKey,
+      description: description || "",
       parameters: {
         type: "object",
         properties: params.properties,
@@ -96,34 +127,37 @@ export function tool(options?: { name?: string; description?: string }) {
   };
 }
 
-// 参数装饰器
-export function param(options: {
-  name?: string,
-  required: boolean,
-  description?: string
-} = { required: true }
-) {
-  return (
-    target: any,
-    propertyKey: string | symbol,
-    parameterIndex: number
-  ) => {
-    const { name, required, description } = options;
+function getParamNames(func: Function): string[] {
+  const funcStr = func.toString();
+  const match = funcStr.match(/\(([^)]*)\)/);
+  if (!match || !match[1]) return [];
+  
+  return match[1]
+    .split(',')
+    .map(param => param.trim().split(/\s+/)[0].split(':')[0])
+    .filter(name => name && name !== '');
+}
 
-    const existingParams =
-      Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
+// 参数装饰器
+export function Param(zodSchema: z.ZodType<any>, description?: string): any {
+  return (target: any, propertyKey: string | symbol, parameterIndex: number) => {
+    const existingParams = Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
 
     // 获取参数的运行时类型信息
-    const paramTypes =
-      Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
+    const paramTypes = Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
     const paramType = paramTypes[parameterIndex];
+
+    const name = getParamNames(target[propertyKey])[parameterIndex];
+
+    const required: boolean = true;
 
     existingParams[parameterIndex] = {
       name,
       required,
       index: parameterIndex,
-      type: paramType?.type,
+      type: paramType?.name || paramType?.type,
       schema: paramType,
+      zodSchema,
       description,
     };
 
@@ -134,7 +168,7 @@ export function param(options: {
 export class BestMCP {
   private name: string;
   private version: string;
-  private tools: Map<string, any> = new Map();
+  private tools: Map<string, ToolExecutor> = new Map();
   private server?: Server;
   private transport?: StdioServerTransport;
 
@@ -154,7 +188,7 @@ export class BestMCP {
         capabilities: {
           tools: {},
         },
-      }
+      },
     );
   }
 
@@ -162,6 +196,7 @@ export class BestMCP {
     if (!this.server) return;
 
     // 工具列表请求处理器
+    console.log(JSON.stringify(this.getTools().map(this.convertToMCPTool), null, 2));
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
         tools: this.getTools().map(this.convertToMCPTool),
@@ -174,7 +209,7 @@ export class BestMCP {
     });
   }
 
-  private convertToMCPTool(tool: any): Tool {
+  private convertToMCPTool(tool: any): MCPSDKTool {
     return {
       name: tool.name,
       description: tool.description,
@@ -186,9 +221,7 @@ export class BestMCP {
     };
   }
 
-  private async handleToolCall(
-    request: CallToolRequest
-  ): Promise<CallToolResult> {
+  private async handleToolCall(request: CallToolRequest): Promise<CallToolResult> {
     try {
       const { name, arguments: args } = request.params;
 
@@ -213,9 +246,7 @@ export class BestMCP {
         content: [
           {
             type: "text",
-            text: `Error: ${
-              error instanceof Error ? error.message : "Unknown error"
-            }`,
+            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -230,11 +261,29 @@ export class BestMCP {
     // 注册工具
     const tools = Reflect.getMetadata(TOOLS_METADATA, serviceClass) || [];
     tools.forEach((tool: any) => {
+      // 获取参数的 Zod schema 信息
+      const paramZodSchemas = this.extractParamZodSchemas(serviceClass, tool.propertyKey);
+
       this.tools.set(tool.metadata.name, {
         metadata: tool.metadata,
         handler: tool.method.bind(instance),
+        paramZodSchemas,
       });
     });
+  }
+
+  // 提取参数的 Zod schema 信息
+  private extractParamZodSchemas(serviceClass: any, propertyKey: string): Record<string, z.ZodType<any>> {
+    const paramMetadata = Reflect.getMetadata(TOOL_PARAM_METADATA, serviceClass.prototype, propertyKey) || [];
+    const paramZodSchemas: Record<string, z.ZodType<any>> = {};
+
+    paramMetadata.forEach((param: ParamTypeMetadata) => {
+      if (param.zodSchema && param.name) {
+        paramZodSchemas[param.name] = param.zodSchema;
+      }
+    });
+
+    return paramZodSchemas;
   }
 
   // 获取所有工具定义
@@ -243,10 +292,7 @@ export class BestMCP {
   }
 
   // 验证工具参数
-  private validateToolArguments(
-    toolName: string,
-    args: any
-  ): { isValid: boolean; errors: string[] } {
+  private validateToolArguments(toolName: string, args: any): { isValid: boolean; errors: string[] } {
     const tool = this.tools.get(toolName);
     if (!tool) {
       return { isValid: false, errors: [`Tool ${toolName} not found`] };
@@ -263,25 +309,6 @@ export class BestMCP {
       }
     }
 
-    // 检查参数类型
-    for (const [paramName, paramSchema] of Object.entries(properties)) {
-      if (args[paramName] !== undefined && args[paramName] !== null) {
-        const expectedType = (paramSchema as any).type;
-        const actualType = typeof args[paramName];
-
-        // 如果类型是 'any'，则跳过类型检查
-        if (
-          expectedType &&
-          expectedType !== "any" &&
-          actualType !== expectedType
-        ) {
-          errors.push(
-            `Parameter ${paramName} should be ${expectedType}, got ${actualType}`
-          );
-        }
-      }
-    }
-
     // 检查未知参数
     const knownParams = Object.keys(properties);
     const providedParams = Object.keys(args);
@@ -291,24 +318,90 @@ export class BestMCP {
       }
     }
 
+    // 使用 Zod 进行参数验证
+    const zodValidation = this.validateWithZodSchema(toolName, args);
+    if (!zodValidation.isValid) {
+      errors.push(...zodValidation.errors);
+    }
+
     return { isValid: errors.length === 0, errors };
+  }
+
+  // 使用 Zod schema 进行参数验证
+  private validateWithZodSchema(toolName: string, args: any): { isValid: boolean; errors: string[] } {
+    const tool = this.tools.get(toolName);
+    if (!tool) {
+      return { isValid: false, errors: [`Tool ${toolName} not found`] };
+    }
+
+    const errors: string[] = [];
+
+    // 获取工具的参数 Zod schema 信息
+    const paramMetadata = this.getParamZodSchemas(toolName);
+
+    for (const [paramName, paramInfo] of Object.entries(paramMetadata)) {
+      if (args[paramName] !== undefined && args[paramName] !== null && paramInfo.zodSchema) {
+        try {
+          // 使用 Zod schema 验证参数
+          const result = paramInfo.zodSchema.safeParse(args[paramName]);
+          if (!result.success) {
+            // 抛出 Zod 验证错误
+            throw new ZodValidationError(paramName, result.error);
+          }
+        } catch (error) {
+          if (error instanceof ZodValidationError) {
+            errors.push(error.message);
+          } else {
+            errors.push(
+              `Parameter ${paramName}: Zod validation failed - ${error instanceof Error ? error.message : "Unknown error"}`,
+            );
+          }
+        }
+      }
+    }
+
+    return { isValid: errors.length === 0, errors };
+  }
+
+  // 获取工具参数的 Zod schema 信息
+  private getParamZodSchemas(toolName: string): Record<string, { zodSchema?: z.ZodType<any>; required: boolean }> {
+    const tool = this.tools.get(toolName);
+    if (!tool) {
+      return {};
+    }
+
+    const paramSchemas: Record<string, { zodSchema?: z.ZodType<any>; required: boolean }> = {};
+
+    // 从存储的 Zod schema 信息中获取
+    const storedZodSchemas = (tool as any).paramZodSchemas || {};
+
+    // 从工具元数据中获取参数定义
+    const { required, properties } = tool.metadata.parameters;
+
+    for (const [paramName, _paramSchema] of Object.entries(properties)) {
+      const isRequired = required.includes(paramName);
+      paramSchemas[paramName] = {
+        required: isRequired,
+        zodSchema: storedZodSchemas[paramName],
+      };
+    }
+
+    return paramSchemas;
   }
 
   // 执行工具
   async executeTool(name: string, args: any) {
     const tool = this.tools.get(name);
     if (!tool) {
-      throw new Error(`Tool ${name} not found`);
+      throw new ToolNotFoundError(name);
     }
 
     // 参数验证
     const validation = this.validateToolArguments(name, args);
     if (!validation.isValid) {
-      const errorMsg = `Invalid arguments for tool ${name}: ${validation.errors.join(
-        ", "
-      )}`;
+      const errorMsg = `Invalid arguments for tool ${name}: ${validation.errors.join(", ")}`;
       console.error(errorMsg);
-      throw new Error(errorMsg);
+      throw new ToolValidationError(name, undefined, errorMsg);
     }
 
     // 智能参数映射：将对象参数转换为多参数调用
@@ -398,10 +491,7 @@ export class BestMCP {
   }
 
   // 验证工具参数（公开方法，用于调试）
-  validateTool(
-    toolName: string,
-    args: any
-  ): { isValid: boolean; errors: string[] } {
+  validateTool(toolName: string, args: any): { isValid: boolean; errors: string[] } {
     return this.validateToolArguments(toolName, args);
   }
 
@@ -448,9 +538,7 @@ export class BestMCP {
     // 保持原有的兼容性模式
     console.log(`Starting ${this.name} v${this.version} in compatibility mode`);
     console.log(`Registered ${this.tools.size} tools`);
-    console.log(
-      'Use run({ transport: "stdio" }) for MCP protocol communication'
-    );
+    console.log('Use run({ transport: "stdio" }) for MCP protocol communication');
     this.setupToolRequestHandlers();
     await this.startStdioServer();
   }
@@ -472,20 +560,6 @@ export class BestMCP {
 
     throw new Error(`[${context}] ${message}`);
   }
-}
-
-// 辅助函数：提取函数描述
-function extractDescription(funcString: string): string {
-  const match = funcString.match(/\/\*\*([\s\S]*?)\*\//);
-  if (match) {
-    return match[1]
-      .split("\n")
-      .map((line) => line.replace(/^\s*\*\s?/, "").trim())
-      .filter((line) => line && !line.startsWith("@"))
-      .join(" ")
-      .trim();
-  }
-  return "";
 }
 
 // 类型推断函数：从运行时类型推断 JSON Schema
@@ -523,11 +597,105 @@ function inferTypeSchema(type: any): JsonSchema {
   return { type: "string" };
 }
 
+// Zod Schema 转 JSON Schema 的函数
+function zodSchemaToJsonSchema(zodSchema: z.ZodType<any>): JsonSchema {
+  // 处理基本类型
+  if (zodSchema instanceof z.ZodString) {
+    const schema: JsonSchema = { type: "string" };
+
+    // 获取字符串约束
+    const checks = (zodSchema as any)._def.checks || [];
+    checks.forEach((check: any) => {
+      switch (check.kind) {
+        case "min":
+          schema.minLength = check.value;
+          break;
+        case "max":
+          schema.maxLength = check.value;
+          break;
+        case "regex":
+          schema.pattern = check.regex.source;
+          break;
+      }
+    });
+
+    return schema;
+  }
+
+  if (zodSchema instanceof z.ZodNumber) {
+    const schema: JsonSchema = { type: "number" };
+
+    // 获取数字约束
+    const checks = (zodSchema as any)._def.checks || [];
+    checks.forEach((check: any) => {
+      switch (check.kind) {
+        case "min":
+          schema.minimum = check.value;
+          break;
+        case "max":
+          schema.maximum = check.value;
+          break;
+      }
+    });
+
+    return schema;
+  }
+
+  if (zodSchema instanceof z.ZodBoolean) {
+    return { type: "boolean" };
+  }
+
+  if (zodSchema instanceof z.ZodArray) {
+    const itemType = zodSchemaToJsonSchema(zodSchema.element);
+    return { type: "array", items: itemType };
+  }
+
+  if (zodSchema instanceof z.ZodObject) {
+    const shape = zodSchema.shape;
+    const properties: Record<string, JsonSchema> = {};
+    const required: string[] = [];
+
+    Object.entries(shape).forEach(([key, field]: [string, any]) => {
+      properties[key] = zodSchemaToJsonSchema(field);
+
+      // 检查是否为必填字段
+      try {
+        if (!field.isOptional()) {
+          required.push(key);
+        }
+      } catch (_e) {
+        // 如果无法检查可选性，默认为必填
+        required.push(key);
+      }
+    });
+
+    return { type: "object", properties, required };
+  }
+
+  if (zodSchema instanceof z.ZodEnum) {
+    return { type: "string", enum: (zodSchema as any)._def.values };
+  }
+
+  if (zodSchema instanceof z.ZodUnion) {
+    // 处理联合类型，返回第一个选项的类型
+    const firstOption = (zodSchema as any)._def.options[0];
+    return zodSchemaToJsonSchema(firstOption);
+  }
+
+  if (zodSchema instanceof z.ZodOptional) {
+    // 可选类型返回内部类型
+    return zodSchemaToJsonSchema((zodSchema as any)._def.type);
+  }
+
+  // 默认返回字符串类型
+  return { type: "string" };
+}
+
 // 简化的参数提取函数：只从 @param 装饰器元数据中提取参数信息
 function extractParameters(
   target?: any,
   propertyKey?: string,
-  paramTypes?: any[]
+  paramTypes?: any[],
 ): {
   properties: Record<string, any>;
   required: string[];
@@ -541,8 +709,7 @@ function extractParameters(
   }
 
   // 获取 @param 装饰器存储的参数元数据
-  const paramMetadata =
-    Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
+  const paramMetadata = Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
 
   // 处理每个装饰器提供的参数信息
   paramMetadata.forEach((param: ParamTypeMetadata, index: number) => {
@@ -550,9 +717,11 @@ function extractParameters(
       // 使用装饰器提供的参数名，如果没有则使用默认名称
       const paramName = param.name || `param${index}`;
 
-      // 优先使用装饰器提供的 schema，否则从运行时类型推断
+      // 优先使用 Zod schema 生成 JSON Schema
       let schema: JsonSchema;
-      if (param.schema) {
+      if (param.zodSchema) {
+        schema = zodSchemaToJsonSchema(param.zodSchema);
+      } else if (param.schema) {
         schema = param.schema;
       } else {
         const paramType = paramTypes[index];
@@ -566,8 +735,24 @@ function extractParameters(
 
       properties[paramName] = schema;
 
-      // 如果参数标记为必需，则添加到 required 数组
-      if (param.required !== false) {
+      // 自动推断参数必传性
+      let isRequired = true; // 默认为必传
+
+      // 1. 优先使用装饰器显式设置
+      if (param.required !== undefined) {
+        isRequired = param.required;
+      } else {
+        // 2. 如果是 Zod schema，检查是否为可选类型
+        if (param.zodSchema?.isOptional?.()) {
+          isRequired = false;
+        } else {
+          // 3. 如果装饰器没有设置，默认为必传
+          isRequired = true;
+        }
+      }
+
+      // 如果参数为必传，则添加到 required 数组
+      if (isRequired) {
         required.push(paramName);
       }
     }

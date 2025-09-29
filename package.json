@@ -36,7 +36,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
     "bestmcp": "workspace:*",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.3",
