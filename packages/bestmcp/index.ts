@@ -16,7 +16,7 @@ interface ToolMetadata {
   description: string;
   parameters: {
     type: "object";
-    properties: Record<string, any>;
+    properties: Record<string, JsonSchema>;
     required: string[];
   };
 }
@@ -24,8 +24,8 @@ interface ToolMetadata {
 // 工具执行器的类型定义
 interface ToolExecutor {
   metadata: ToolMetadata;
-  handler: Function;
-  paramZodSchemas?: Record<string, z.ZodType<any>>;
+  handler: (...args: unknown[]) => unknown;
+  paramZodSchemas?: Record<string, z.ZodType<unknown>>;
 }
 
 // 自定义错误类型
@@ -64,19 +64,19 @@ interface ParamTypeMetadata {
   required: boolean;
   index: number;
   type?: string;
-  schema?: any;
-  zodSchema?: z.ZodType<any>;
+  schema?: JsonSchema;
+  zodSchema?: z.ZodType<unknown>;
   description?: string;
-  enum?: any[];
-  items?: any;
-  properties?: Record<string, any>;
+  enum?: unknown[];
+  items?: JsonSchema;
+  properties?: Record<string, JsonSchema>;
 }
 
 // JSON Schema 类型定义
 interface JsonSchema {
   type: string;
   description?: string;
-  enum?: any[];
+  enum?: unknown[];
   items?: JsonSchema;
   properties?: Record<string, JsonSchema>;
   required?: string[];
@@ -85,7 +85,7 @@ interface JsonSchema {
   minLength?: number;
   maxLength?: number;
   pattern?: string;
-  default?: any;
+  default?: unknown;
 }
 
 // 元数据存储
@@ -93,22 +93,22 @@ const TOOLS_METADATA = Symbol("tools");
 const TOOL_PARAM_METADATA = Symbol("tool:params");
 
 // 工具装饰器
-export function Tool(description?: string) {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+export function Tool(description?: string): MethodDecorator {
+  return (target: object, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
     if (!descriptor || !target) {
-      console.warn(`Tool decorator: descriptor or target is undefined for ${propertyKey}`);
+      console.warn(`Tool decorator: descriptor or target is undefined for ${String(propertyKey)}`);
       return;
     }
 
     const existingTools = Reflect.getMetadata(TOOLS_METADATA, target.constructor) || [];
 
     // 获取参数类型信息
-    const _paramTypes = Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
+    const _paramTypes = (Reflect.getMetadata("design:paramtypes", target, propertyKey) as unknown[]) || [];
 
-    const params = extractParameters(target, propertyKey, _paramTypes);
+    const params = extractParameters(target, propertyKey as string | undefined, _paramTypes);
 
     const toolMetadata: ToolMetadata = {
-      name: propertyKey,
+      name: String(propertyKey),
       description: description || "",
       parameters: {
         type: "object",
@@ -127,7 +127,7 @@ export function Tool(description?: string) {
   };
 }
 
-function getParamNames(func: Function): string[] {
+function getParamNames(func: (...args: unknown[]) => unknown): string[] {
   const funcStr = func.toString();
   const match = funcStr.match(/\(([^)]*)\)/);
   if (!match || !match[1]) return [];
@@ -139,15 +139,24 @@ function getParamNames(func: Function): string[] {
 }
 
 // 参数装饰器
-export function Param(zodSchema: z.ZodType<any>, description?: string): any {
-  return (target: any, propertyKey: string | symbol, parameterIndex: number) => {
-    const existingParams = Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
+export function Param(zodSchema: z.ZodType<unknown>, description?: string): ParameterDecorator {
+  return (target: object, propertyKey: string | symbol | undefined, parameterIndex: number) => {
+    // Type guard to ensure propertyKey is string | symbol (excluding undefined)
+    if (propertyKey === undefined) {
+      return;
+    }
+
+    const actualPropertyKey = propertyKey as string | symbol;
+
+    const existingParams = Reflect.getMetadata(TOOL_PARAM_METADATA, target, actualPropertyKey) || [];
 
     // 获取参数的运行时类型信息
-    const paramTypes = Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
+    const paramTypes = Reflect.getMetadata("design:paramtypes", target, actualPropertyKey) || [];
     const paramType = paramTypes[parameterIndex];
 
-    const name = getParamNames(target[propertyKey])[parameterIndex];
+    const name = getParamNames((target as Record<string | symbol, (...args: unknown[]) => unknown>)[actualPropertyKey])[
+      parameterIndex
+    ];
 
     // 根据 zodSchema 自动判断参数是否为必传
     const required: boolean = !isZodSchemaOptional(zodSchema);
@@ -162,12 +171,12 @@ export function Param(zodSchema: z.ZodType<any>, description?: string): any {
       description,
     };
 
-    Reflect.defineMetadata(TOOL_PARAM_METADATA, existingParams, target, propertyKey);
+    Reflect.defineMetadata(TOOL_PARAM_METADATA, existingParams, target, actualPropertyKey);
   };
 }
 
 // 检查 Zod Schema 是否为可选的
-function isZodSchemaOptional(zodSchema: z.ZodType<any>): boolean {
+function isZodSchemaOptional(zodSchema: z.ZodType<unknown>): boolean {
   try {
     // 检查是否为 ZodOptional 类型
     if (zodSchema instanceof z.ZodOptional) {
@@ -180,7 +189,7 @@ function isZodSchemaOptional(zodSchema: z.ZodType<any>): boolean {
     }
 
     // 检查 _def 结构判断是否为可选
-    const def = (zodSchema as any)._def;
+    const def = (zodSchema as z.ZodType<unknown> & { _def?: { typeName?: string } })._def;
     if (def && def.typeName === "ZodOptional") {
       return true;
     }
@@ -237,7 +246,7 @@ export class BestMCP {
     });
   }
 
-  private convertToMCPTool(tool: any): MCPSDKTool {
+  private convertToMCPTool(tool: ToolMetadata): MCPSDKTool {
     return {
       name: tool.name,
       description: tool.description,
@@ -283,12 +292,12 @@ export class BestMCP {
   }
 
   // 注册服务类
-  register(serviceClass: new () => any) {
+  register<T>(serviceClass: new () => T) {
     const instance = new serviceClass();
 
     // 注册工具
     const tools = Reflect.getMetadata(TOOLS_METADATA, serviceClass) || [];
-    tools.forEach((tool: any) => {
+    tools.forEach((tool: { metadata: ToolMetadata; method: (...args: unknown[]) => unknown; propertyKey: string }) => {
       // 获取参数的 Zod schema 信息
       const paramZodSchemas = this.extractParamZodSchemas(serviceClass, tool.propertyKey);
 
@@ -301,9 +310,12 @@ export class BestMCP {
   }
 
   // 提取参数的 Zod schema 信息
-  private extractParamZodSchemas(serviceClass: any, propertyKey: string): Record<string, z.ZodType<any>> {
+  private extractParamZodSchemas<T>(
+    serviceClass: new () => T,
+    propertyKey: string,
+  ): Record<string, z.ZodType<unknown>> {
     const paramMetadata = Reflect.getMetadata(TOOL_PARAM_METADATA, serviceClass.prototype, propertyKey) || [];
-    const paramZodSchemas: Record<string, z.ZodType<any>> = {};
+    const paramZodSchemas: Record<string, z.ZodType<unknown>> = {};
 
     paramMetadata.forEach((param: ParamTypeMetadata) => {
       if (param.zodSchema && param.name) {
@@ -320,7 +332,10 @@ export class BestMCP {
   }
 
   // 验证工具参数
-  private validateToolArguments(toolName: string, args: any): { isValid: boolean; errors: string[] } {
+  private validateToolArguments(
+    toolName: string,
+    args: Record<string, unknown>,
+  ): { isValid: boolean; errors: string[] } {
     const tool = this.tools.get(toolName);
     if (!tool) {
       return { isValid: false, errors: [`Tool ${toolName} not found`] };
@@ -356,7 +371,10 @@ export class BestMCP {
   }
 
   // 使用 Zod schema 进行参数验证
-  private validateWithZodSchema(toolName: string, args: any): { isValid: boolean; errors: string[] } {
+  private validateWithZodSchema(
+    toolName: string,
+    args: Record<string, unknown>,
+  ): { isValid: boolean; errors: string[] } {
     const tool = this.tools.get(toolName);
     if (!tool) {
       return { isValid: false, errors: [`Tool ${toolName} not found`] };
@@ -392,16 +410,16 @@ export class BestMCP {
   }
 
   // 获取工具参数的 Zod schema 信息
-  private getParamZodSchemas(toolName: string): Record<string, { zodSchema?: z.ZodType<any>; required: boolean }> {
+  private getParamZodSchemas(toolName: string): Record<string, { zodSchema?: z.ZodType<unknown>; required: boolean }> {
     const tool = this.tools.get(toolName);
     if (!tool) {
       return {};
     }
 
-    const paramSchemas: Record<string, { zodSchema?: z.ZodType<any>; required: boolean }> = {};
+    const paramSchemas: Record<string, { zodSchema?: z.ZodType<unknown>; required: boolean }> = {};
 
     // 从存储的 Zod schema 信息中获取
-    const storedZodSchemas = (tool as any).paramZodSchemas || {};
+    const storedZodSchemas = tool.paramZodSchemas || {};
 
     // 从工具元数据中获取参数定义
     const { required, properties } = tool.metadata.parameters;
@@ -418,7 +436,7 @@ export class BestMCP {
   }
 
   // 执行工具
-  async executeTool(name: string, args: any) {
+  async executeTool(name: string, args: Record<string, unknown>) {
     const tool = this.tools.get(name);
     if (!tool) {
       throw new ToolNotFoundError(name);
@@ -444,7 +462,7 @@ export class BestMCP {
   }
 
   // 参数映射：将 MCP 协议的对象参数映射到方法的多参数形式
-  private mapArgumentsToObject(tool: any, args: any): any {
+  private mapArgumentsToObject(tool: ToolExecutor, args: Record<string, unknown>): unknown[] | Record<string, unknown> {
     // 如果方法期望单个对象参数，直接返回
     if (this.expectsSingleObjectParameter(tool)) {
       return args;
@@ -455,7 +473,7 @@ export class BestMCP {
   }
 
   // 检查方法是否期望单个对象参数
-  private expectsSingleObjectParameter(tool: any): boolean {
+  private expectsSingleObjectParameter(tool: ToolExecutor): boolean {
     // 检查工具的参数定义
     const parameters = tool.metadata.parameters;
     if (!parameters || !parameters.properties) {
@@ -465,7 +483,7 @@ export class BestMCP {
     // 如果只有一个参数且类型为 object，则认为是单个对象参数
     const paramCount = Object.keys(parameters.properties).length;
     if (paramCount === 1) {
-      const onlyParam = Object.values(parameters.properties)[0] as any;
+      const onlyParam = Object.values(parameters.properties)[0] as JsonSchema;
       return onlyParam.type === "object";
     }
 
@@ -473,13 +491,13 @@ export class BestMCP {
   }
 
   // 将对象参数转换为按顺序的参数数组
-  private convertObjectToOrderedArguments(tool: any, args: any): any[] {
+  private convertObjectToOrderedArguments(tool: ToolExecutor, args: Record<string, unknown>): unknown[] {
     const parameters = tool.metadata.parameters;
     if (!parameters || !parameters.properties) {
       return [args]; // 没有参数定义，返回原始对象
     }
 
-    const orderedArgs: any[] = [];
+    const orderedArgs: unknown[] = [];
     const paramNames = Object.keys(parameters.properties);
 
     // 按照参数定义的顺序构建参数数组
@@ -488,7 +506,7 @@ export class BestMCP {
         orderedArgs.push(args[paramName]);
       } else {
         // 处理可选参数，使用默认值或 undefined
-        const paramSchema = parameters.properties[paramName] as any;
+        const paramSchema = parameters.properties[paramName] as JsonSchema;
         if (paramSchema.default !== undefined) {
           orderedArgs.push(paramSchema.default);
         } else if (!parameters.required.includes(paramName)) {
@@ -503,7 +521,7 @@ export class BestMCP {
   }
 
   // 使用展开运算符调用函数的方法
-  private invokeMethodWithArguments(handler: Function, args: any[]): any {
+  private invokeMethodWithArguments(handler: (...args: unknown[]) => unknown, args: unknown[]): unknown {
     return handler.apply(handler, args);
   }
 
@@ -519,7 +537,7 @@ export class BestMCP {
   }
 
   // 验证工具参数（公开方法，用于调试）
-  validateTool(toolName: string, args: any): { isValid: boolean; errors: string[] } {
+  validateTool(toolName: string, args: Record<string, unknown>): { isValid: boolean; errors: string[] } {
     return this.validateToolArguments(toolName, args);
   }
 
@@ -591,7 +609,7 @@ export class BestMCP {
 }
 
 // 类型推断函数：从运行时类型推断 JSON Schema
-function inferTypeSchema(type: any): JsonSchema {
+function inferTypeSchema(type: unknown): JsonSchema {
   if (!type) {
     return { type: "string" };
   }
@@ -604,7 +622,7 @@ function inferTypeSchema(type: any): JsonSchema {
   if (type === Array) return { type: "array", items: { type: "string" } };
 
   // 特殊对象类型检查
-  if (type.name) {
+  if (type && typeof type === "function" && type.name) {
     switch (type.name) {
       case "String":
         return { type: "string" };
@@ -626,14 +644,16 @@ function inferTypeSchema(type: any): JsonSchema {
 }
 
 // Zod Schema 转 JSON Schema 的函数
-function zodSchemaToJsonSchema(zodSchema: z.ZodType<any>): JsonSchema {
+function zodSchemaToJsonSchema(zodSchema: z.ZodType<unknown>): JsonSchema {
   // 处理基本类型
   if (zodSchema instanceof z.ZodString) {
     const schema: JsonSchema = { type: "string" };
 
     // 获取字符串约束
-    const checks = (zodSchema as any)._def.checks || [];
-    checks.forEach((check: any) => {
+    const checks =
+      (zodSchema as z.ZodString & { _def?: { checks?: Array<{ kind: string; value?: unknown; regex?: RegExp }> } })._def
+        ?.checks || [];
+    checks.forEach((check) => {
       switch (check.kind) {
         case "min":
           schema.minLength = check.value;
@@ -654,8 +674,9 @@ function zodSchemaToJsonSchema(zodSchema: z.ZodType<any>): JsonSchema {
     const schema: JsonSchema = { type: "number" };
 
     // 获取数字约束
-    const checks = (zodSchema as any)._def.checks || [];
-    checks.forEach((check: any) => {
+    const checks =
+      (zodSchema as z.ZodNumber & { _def?: { checks?: Array<{ kind: string; value?: unknown }> } })._def?.checks || [];
+    checks.forEach((check) => {
       switch (check.kind) {
         case "min":
           schema.minimum = check.value;
@@ -683,12 +704,12 @@ function zodSchemaToJsonSchema(zodSchema: z.ZodType<any>): JsonSchema {
     const properties: Record<string, JsonSchema> = {};
     const required: string[] = [];
 
-    Object.entries(shape).forEach(([key, field]: [string, any]) => {
-      properties[key] = zodSchemaToJsonSchema(field);
+    Object.entries(shape).forEach(([key, field]: [string, unknown]) => {
+      properties[key] = zodSchemaToJsonSchema(field as z.ZodType<unknown>);
 
       // 检查是否为必填字段
       try {
-        if (!field.isOptional()) {
+        if (!(field as z.ZodType<unknown>).isOptional?.()) {
           required.push(key);
         }
       } catch (_e) {
@@ -701,18 +722,38 @@ function zodSchemaToJsonSchema(zodSchema: z.ZodType<any>): JsonSchema {
   }
 
   if (zodSchema instanceof z.ZodEnum) {
-    return { type: "string", enum: (zodSchema as any)._def.values };
+    // 使用类型断言来绕过 ZodEnum 的复杂类型约束
+    const enumSchema = zodSchema as z.ZodEnum<[string, ...string[]]> & { _def?: { values?: unknown[] } };
+    const enumValues = enumSchema._def?.values || [];
+    // 确保至少有一个元素
+    const validEnumValues =
+      Array.isArray(enumValues) && enumValues.length > 0 ? ([...enumValues] as [string, ...string[]]) : ["default"];
+    return {
+      type: "string",
+      enum: validEnumValues,
+    };
   }
 
   if (zodSchema instanceof z.ZodUnion) {
     // 处理联合类型，返回第一个选项的类型
-    const firstOption = (zodSchema as any)._def.options[0];
-    return zodSchemaToJsonSchema(firstOption);
+    const firstOption = (
+      zodSchema as z.ZodUnion<[z.ZodType<unknown>, ...z.ZodType<unknown>[]]> & {
+        _def?: { options?: z.ZodType<unknown>[] };
+      }
+    )._def?.options?.[0];
+    if (firstOption) {
+      return zodSchemaToJsonSchema(firstOption);
+    }
+    return { type: "string" }; // 默认返回字符串类型
   }
 
   if (zodSchema instanceof z.ZodOptional) {
     // 可选类型返回内部类型
-    return zodSchemaToJsonSchema((zodSchema as any)._def.type);
+    const innerSchema = (zodSchema as z.ZodOptional<z.ZodType<unknown>>)._def;
+    if (innerSchema && typeof innerSchema === "object" && "type" in innerSchema) {
+      return zodSchemaToJsonSchema(innerSchema.type as z.ZodType<unknown>);
+    }
+    return { type: "string" };
   }
 
   // 默认返回字符串类型
@@ -721,14 +762,14 @@ function zodSchemaToJsonSchema(zodSchema: z.ZodType<any>): JsonSchema {
 
 // 简化的参数提取函数：只从 @param 装饰器元数据中提取参数信息
 function extractParameters(
-  target?: any,
+  target?: object,
   propertyKey?: string,
-  paramTypes?: any[],
+  paramTypes?: unknown[],
 ): {
-  properties: Record<string, any>;
+  properties: Record<string, JsonSchema>;
   required: string[];
 } {
-  const properties: Record<string, any> = {};
+  const properties: Record<string, JsonSchema> = {};
   const required: string[] = [];
 
   // 如果没有提供必要参数，返回空结果
@@ -753,7 +794,7 @@ function extractParameters(
         schema = param.schema;
       } else {
         const paramType = paramTypes[index];
-        schema = inferTypeSchema(paramType);
+        schema = inferTypeSchema(paramType as unknown);
       }
 
       // 添加描述信息
