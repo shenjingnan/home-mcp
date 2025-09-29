@@ -131,11 +131,11 @@ function getParamNames(func: Function): string[] {
   const funcStr = func.toString();
   const match = funcStr.match(/\(([^)]*)\)/);
   if (!match || !match[1]) return [];
-  
+
   return match[1]
-    .split(',')
-    .map(param => param.trim().split(/\s+/)[0].split(':')[0])
-    .filter(name => name && name !== '');
+    .split(",")
+    .map((param) => param.trim().split(/\s+/)[0].split(":")[0])
+    .filter((name) => name && name !== "");
 }
 
 // 参数装饰器
@@ -149,7 +149,8 @@ export function Param(zodSchema: z.ZodType<any>, description?: string): any {
 
     const name = getParamNames(target[propertyKey])[parameterIndex];
 
-    const required: boolean = true;
+    // 根据 zodSchema 自动判断参数是否为必传
+    const required: boolean = !isZodSchemaOptional(zodSchema);
 
     existingParams[parameterIndex] = {
       name,
@@ -163,6 +164,33 @@ export function Param(zodSchema: z.ZodType<any>, description?: string): any {
 
     Reflect.defineMetadata(TOOL_PARAM_METADATA, existingParams, target, propertyKey);
   };
+}
+
+// 检查 Zod Schema 是否为可选的
+function isZodSchemaOptional(zodSchema: z.ZodType<any>): boolean {
+  try {
+    // 检查是否为 ZodOptional 类型
+    if (zodSchema instanceof z.ZodOptional) {
+      return true;
+    }
+
+    // 检查是否有 isOptional 方法
+    if (typeof zodSchema.isOptional === "function") {
+      return zodSchema.isOptional();
+    }
+
+    // 检查 _def 结构判断是否为可选
+    const def = (zodSchema as any)._def;
+    if (def && def.typeName === "ZodOptional") {
+      return true;
+    }
+
+    // 默认情况下，假设为必传
+    return false;
+  } catch (_error) {
+    // 如果检查过程中出现错误，默认为必传以确保安全性
+    return false;
+  }
 }
 
 export class BestMCP {
