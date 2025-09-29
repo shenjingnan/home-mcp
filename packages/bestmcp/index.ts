@@ -21,7 +21,6 @@ interface ToolMetadata {
   };
 }
 
-
 // 参数类型定义
 interface ParamTypeMetadata {
   name?: string;
@@ -53,24 +52,33 @@ interface JsonSchema {
 
 // 元数据存储
 const TOOLS_METADATA = Symbol("tools");
+const TOOL_PARAM_METADATA = Symbol("tool:params");
 
 // 工具装饰器
 export function tool(options?: { name?: string; description?: string }) {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
     if (!descriptor || !target) {
-      console.warn(`Tool decorator: descriptor or target is undefined for ${propertyKey}`);
+      console.warn(
+        `Tool decorator: descriptor or target is undefined for ${propertyKey}`
+      );
       return;
     }
 
-    const existingTools = Reflect.getMetadata(TOOLS_METADATA, target.constructor) || [];
+    const existingTools =
+      Reflect.getMetadata(TOOLS_METADATA, target.constructor) || [];
 
     // 获取参数类型信息
-    const _paramTypes = Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
-    const _returnType = Reflect.getMetadata("design:returntype", target, propertyKey);
+    const _paramTypes =
+      Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
 
     // 从函数签名和 JSDoc 提取参数信息，优先使用 @param 装饰器元数据
     const funcString = descriptor.value ? descriptor.value.toString() : "";
-    const params = extractParameters(funcString, target, propertyKey, _paramTypes);
+    const params = extractParameters(
+      funcString,
+      target,
+      propertyKey,
+      _paramTypes
+    );
 
     const toolMetadata: ToolMetadata = {
       name: options?.name || propertyKey,
@@ -94,54 +102,38 @@ export function tool(options?: { name?: string; description?: string }) {
 
 // 参数装饰器
 export function param(
-  nameOrType?: string | JsonSchema,
-  requiredOrDescription?: boolean | string,
-  description?: string
+  options: {
+    name?: string;
+    required: boolean;
+    description?: string;
+  } = { required: true }
 ) {
-  return (target: any, propertyKey: string | symbol, parameterIndex: number) => {
-    const existingParams = Reflect.getMetadata("tool:params", target, propertyKey) || [];
-    
-    // 解析参数
-    let name: string | undefined;
-    let required = true;
-    let typeSchema: JsonSchema | undefined;
-    let paramDescription: string | undefined;
-    
-    if (typeof nameOrType === 'string') {
-      name = nameOrType;
-      required = typeof requiredOrDescription === 'boolean' ? requiredOrDescription : true;
-      paramDescription = typeof requiredOrDescription === 'string' ? requiredOrDescription : description;
-    } else if (typeof nameOrType === 'object') {
-      typeSchema = nameOrType;
-      required = typeof requiredOrDescription === 'boolean' ? requiredOrDescription : true;
-      paramDescription = description;
-    } else {
-      required = typeof requiredOrDescription === 'boolean' ? requiredOrDescription : true;
-      paramDescription = description;
-    }
-    
+  return (
+    target: any,
+    propertyKey: string | symbol,
+    parameterIndex: number
+  ) => {
+    const { name, required, description } = options;
+    const existingParams =
+      Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
+
     // 获取参数的运行时类型信息
-    const paramTypes = Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
+    const paramTypes =
+      Reflect.getMetadata("design:paramtypes", target, propertyKey) || [];
     const paramType = paramTypes[parameterIndex];
-    
-    // 如果没有提供类型schema，则从运行时类型推断
-    if (!typeSchema) {
-      typeSchema = inferTypeSchema(paramType);
-    }
-    
+
     existingParams[parameterIndex] = {
       name,
       required,
       index: parameterIndex,
-      type: typeSchema.type,
-      schema: typeSchema,
-      description: paramDescription,
+      type: paramType.type,
+      schema: paramType,
+      description: description,
     };
-    
-    Reflect.defineMetadata("tool:params", existingParams, target, propertyKey);
+
+    Reflect.defineMetadata(TOOL_PARAM_METADATA, existingParams, target, propertyKey);
   };
 }
-
 
 export class BestMCP {
   private name: string;
@@ -167,7 +159,7 @@ export class BestMCP {
         capabilities: {
           tools: {},
         },
-      },
+      }
     );
   }
 
@@ -175,7 +167,7 @@ export class BestMCP {
     if (!this.server) return;
     fs.writeFileSync(
       "/Users/nemo/github/shenjingnan/home-mcp/list-tools-request.json",
-      JSON.stringify(this.getTools().map(this.convertToMCPTool), null, 2),
+      JSON.stringify(this.getTools().map(this.convertToMCPTool), null, 2)
     );
 
     // 工具列表请求处理器
@@ -203,7 +195,9 @@ export class BestMCP {
     };
   }
 
-  private async handleToolCall(request: CallToolRequest): Promise<CallToolResult> {
+  private async handleToolCall(
+    request: CallToolRequest
+  ): Promise<CallToolResult> {
     try {
       const { name, arguments: args } = request.params;
 
@@ -228,7 +222,9 @@ export class BestMCP {
         content: [
           {
             type: "text",
-            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+            text: `Error: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`,
           },
         ],
         isError: true,
@@ -248,7 +244,6 @@ export class BestMCP {
         handler: tool.method.bind(instance),
       });
     });
-
   }
 
   // 获取所有工具定义
@@ -257,7 +252,10 @@ export class BestMCP {
   }
 
   // 验证工具参数
-  private validateToolArguments(toolName: string, args: any): { isValid: boolean; errors: string[] } {
+  private validateToolArguments(
+    toolName: string,
+    args: any
+  ): { isValid: boolean; errors: string[] } {
     const tool = this.tools.get(toolName);
     if (!tool) {
       return { isValid: false, errors: [`Tool ${toolName} not found`] };
@@ -281,8 +279,14 @@ export class BestMCP {
         const actualType = typeof args[paramName];
 
         // 如果类型是 'any'，则跳过类型检查
-        if (expectedType && expectedType !== "any" && actualType !== expectedType) {
-          errors.push(`Parameter ${paramName} should be ${expectedType}, got ${actualType}`);
+        if (
+          expectedType &&
+          expectedType !== "any" &&
+          actualType !== expectedType
+        ) {
+          errors.push(
+            `Parameter ${paramName} should be ${expectedType}, got ${actualType}`
+          );
         }
       }
     }
@@ -304,7 +308,7 @@ export class BestMCP {
     const tool = this.tools.get(name);
     fs.writeFileSync(
       "/Users/nemo/github/shenjingnan/home-mcp/execute-tool-request.json",
-      JSON.stringify({ tool, name, args }, null, 2),
+      JSON.stringify({ tool, name, args }, null, 2)
     );
     console.log("call tool", tool, name, args);
     if (!tool) {
@@ -314,7 +318,9 @@ export class BestMCP {
     // 参数验证
     const validation = this.validateToolArguments(name, args);
     if (!validation.isValid) {
-      const errorMsg = `Invalid arguments for tool ${name}: ${validation.errors.join(", ")}`;
+      const errorMsg = `Invalid arguments for tool ${name}: ${validation.errors.join(
+        ", "
+      )}`;
       console.error(errorMsg);
       throw new Error(errorMsg);
     }
@@ -406,7 +412,10 @@ export class BestMCP {
   }
 
   // 验证工具参数（公开方法，用于调试）
-  validateTool(toolName: string, args: any): { isValid: boolean; errors: string[] } {
+  validateTool(
+    toolName: string,
+    args: any
+  ): { isValid: boolean; errors: string[] } {
     return this.validateToolArguments(toolName, args);
   }
 
@@ -417,7 +426,6 @@ export class BestMCP {
       toolNames: this.getToolList(),
     };
   }
-
 
   // 启动 stdio MCP 服务器
   async startStdioServer() {
@@ -454,7 +462,9 @@ export class BestMCP {
     // 保持原有的兼容性模式
     console.log(`Starting ${this.name} v${this.version} in compatibility mode`);
     console.log(`Registered ${this.tools.size} tools`);
-    console.log('Use run({ transport: "stdio" }) for MCP protocol communication');
+    console.log(
+      'Use run({ transport: "stdio" }) for MCP protocol communication'
+    );
     this.setupToolRequestHandlers();
     await this.startStdioServer();
   }
@@ -531,7 +541,7 @@ function inferTypeSchema(type: any): JsonSchema {
 function extractParametersFromMetadata(
   target: any,
   propertyKey: string,
-  paramTypes: any[],
+  paramTypes: any[]
 ): {
   properties: Record<string, any>;
   required: string[];
@@ -540,7 +550,8 @@ function extractParametersFromMetadata(
   const required: string[] = [];
 
   // 获取 @param 装饰器存储的参数元数据
-  const paramMetadata = Reflect.getMetadata("tool:params", target, propertyKey) || [];
+  const paramMetadata =
+    Reflect.getMetadata(TOOL_PARAM_METADATA, target, propertyKey) || [];
 
   // 如果有 @param 装饰器元数据，优先使用它
   if (paramMetadata.length > 0) {
@@ -550,7 +561,10 @@ function extractParametersFromMetadata(
         let paramName = param.name;
         if (!paramName) {
           // 从目标对象的函数签名中获取参数名
-          const descriptor = Object.getOwnPropertyDescriptor(target, propertyKey);
+          const descriptor = Object.getOwnPropertyDescriptor(
+            target,
+            propertyKey
+          );
           if (descriptor?.value) {
             const funcString = descriptor.value.toString();
             const paramMatch = funcString.match(/\(([^)]*)\)/);
@@ -610,14 +624,18 @@ function extractParameters(
   funcString: string,
   target?: any,
   propertyKey?: string,
-  paramTypes?: any[],
+  paramTypes?: any[]
 ): {
   properties: Record<string, any>;
   required: string[];
 } {
   // 优先尝试从 @param 装饰器元数据中提取参数信息
   if (target && propertyKey && paramTypes) {
-    const metadataResult = extractParametersFromMetadata(target, propertyKey, paramTypes);
+    const metadataResult = extractParametersFromMetadata(
+      target,
+      propertyKey,
+      paramTypes
+    );
     if (Object.keys(metadataResult.properties).length > 0) {
       return metadataResult;
     }
