@@ -1,6 +1,7 @@
 # 项目特定词汇
 AI
 API
+bestmcp
 biome
 CLI
 CommonJS
@@ -12,6 +13,7 @@ home-mcp
 homeassistant
 IoT
 mcp
+MCPSDK
 minify
 modelcontextprotocol
 Node.js
