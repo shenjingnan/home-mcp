@@ -31,6 +31,10 @@
   ],
   "author": "shenjingnan <sjn.code@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shenjingnan/home-mcp.git"
+  },
   "packageManager": "pnpm@10.13.1",
   "workspaces": [
     "packages/*"

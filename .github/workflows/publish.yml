@@ -25,6 +25,7 @@ on:
         type: boolean
 
 permissions:
+  id-token: write
   contents: read
 
 jobs:
@@ -115,10 +116,6 @@ jobs:
           pnpm audit --audit-level moderate
 
       - name: 发布
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           RELEASE_CMD="npx release-it"
 
