@@ -1,6 +1,6 @@
 {
   "name": "bestmcp",
-  "version": "0.1.0",
+  "version": "0.0.2",
   "description": "Best MCP - A simplified Model Context Protocol server framework for TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,7 +15,6 @@
     "dist/**/*"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "dev": "tsc --watch",
     "type:check": "tsc --noEmit"
