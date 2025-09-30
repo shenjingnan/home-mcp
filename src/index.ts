@@ -17,12 +17,10 @@ class HassService {
   private async makeHassRequest<T>(
     endpoint: string,
     method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
-    body?: unknown
+    body?: unknown,
   ): Promise<T> {
     if (!this.hassToken || !this.hassUrl) {
-      throw new Error(
-        "未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量"
-      );
+      throw new Error("未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
     }
 
     try {
@@ -51,11 +49,8 @@ class HassService {
   @Tool("Add two numbers together")
   addNumbers(
     @Param(z.number(), "The first number to add") value1: number,
-    @Param(
-      z.number().optional(),
-      "The second number to add (optional, defaults to 1)"
-    )
-    value2?: number
+    @Param(z.number().optional(), "The second number to add (optional, defaults to 1)")
+    value2?: number,
   ): number {
     /**
      * Add two numbers together
@@ -69,7 +64,7 @@ class HassService {
   @Tool("Subtract two numbers")
   subtract(
     @Param(z.number(), "The number to subtract from") a: number,
-    @Param(z.number(), "The number to subtract") b: number
+    @Param(z.number(), "The number to subtract") b: number,
   ): number {
     /**
      * Subtract the second number from the first number
