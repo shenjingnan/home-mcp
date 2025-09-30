@@ -53,8 +53,8 @@ jobs:
         command: pnpm install --frozen-lockfile
 
     # 根目录代码质量检查
-    - name: TypeScript 类型检查
-      run: pnpm run type:check
+    - name: 类型检查
+      run: pnpm run type:check:all
 
     - name: Biome 代码检查
       run: pnpm run check

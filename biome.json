@@ -6,7 +6,7 @@
     "useIgnoreFile": false
   },
   "files": {
-    "includes": ["**", "!coverage", "!dist", "!node_modules"]
+    "includes": ["**", "!coverage", "!dist", "!node_modules", "!packages/bestmcp/dist"]
   },
   "formatter": {
     "enabled": true,
@@ -17,13 +17,23 @@
   "linter": {
     "enabled": true,
     "rules": {
+      "recommended": true,
       "complexity": {
         "useLiteralKeys": "off"
       },
-      "recommended": true
+      "suspicious": {
+        "noExplicitAny": "error"
+      },
+      "style": {
+        "noImplicitBoolean": "error",
+        "noNonNullAssertion": "off"
+      }
     }
   },
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "quoteStyle": "double"
     }
