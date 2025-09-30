@@ -25,7 +25,8 @@
         "noExplicitAny": "error"
       },
       "style": {
-        "noImplicitBoolean": "error"
+        "noImplicitBoolean": "error",
+        "noNonNullAssertion": "off"
       }
     }
   },
