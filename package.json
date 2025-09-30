@@ -31,6 +31,10 @@
   ],
   "author": "shenjingnan <sjn.code@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shenjingnan/home-mcp.git"
+  },
   "packageManager": "pnpm@10.13.1",
   "workspaces": [
     "packages/*"
@@ -41,6 +45,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@release-it/conventional-changelog": "^10.0.1",
+    "release-it": "^19.0.4",
     "@biomejs/biome": "^2.2.3",
     "@types/node": "^22.0.2",
     "@vitest/coverage-v8": "^1.6.1",
