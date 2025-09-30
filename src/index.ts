@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-import { BestMCP, Param, Tool } from "bestmcp";
-import { z } from "zod";
+import { BestMCP, Tool } from "bestmcp";
 
 interface HassState {
   attributes: Record<string, unknown>;
@@ -46,52 +45,27 @@ class HassService {
     }
   }
 
-  @Tool("Add two numbers together")
-  addNumbers(
-    @Param(z.number(), "The first number to add") value1: number,
-    @Param(z.number().optional(), "The second number to add (optional, defaults to 1)")
-    value2?: number,
-  ): number {
+  @Tool("检查 Home Assistant API 服务")
+  checkHassAPIService() {
     /**
-     * Add two numbers together
-     * @param value1 The first number to add
-     * @param value2 The second number to add (optional, defaults to 1)
-     * @returns The sum of value1 and value2
+     * 检查 Home Assistant API 服务
+     * @returns 如果 API 正常运行，则返回一条消息。
      */
-    return value1 + (value2 || 1);
-  }
-
-  @Tool("Subtract two numbers")
-  subtract(
-    @Param(z.number(), "The number to subtract from") a: number,
-    @Param(z.number(), "The number to subtract") b: number,
-  ): number {
-    /**
-     * Subtract the second number from the first number
-     * @param a The number to subtract from
-     * @param b The number to subtract
-     * @returns The difference between a and b
-     */
-    return a - b;
-  }
-
-  @Tool("Get the current time")
-  getCurrentTime(): string {
-    /**
-     * Get the current time in ISO format
-     * @returns Current time as ISO string
-     */
-    return new Date().toISOString();
+    return this.makeHassRequest<{ message: string }>("/api/");
   }
 
   @Tool("获取 Home Assistant 中所有实体的状态信息")
   async getStates() {
+    /**
+     * 获取 Home Assistant 中所有实体的状态信息
+     * @returns 返回一个状态对象数组。每个状态对象包含以下属性：entity_id、state、last_changed 和 attributes。
+     */
     return this.makeHassRequest<HassState[]>("/api/states");
   }
 }
 
 // 创建 MCP 服务器实例
-const mcp = new BestMCP("Home Assistant MCP Server", "0.0.3");
+const mcp = new BestMCP("智能家居 MCP 服务", "0.0.3");
 
 // 注册服务类
 mcp.register(HassService);
