@@ -10,11 +10,10 @@
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "outDir": "./dist",
-    "rootDir": "./",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
@@ -22,7 +21,8 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "rootDir": "./"
   },
   "include": ["index.ts"],
   "exclude": ["node_modules", "dist"]

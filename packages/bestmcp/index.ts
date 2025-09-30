@@ -134,8 +134,8 @@ function getParamNames(func: (...args: unknown[]) => unknown): string[] {
 
   return match[1]
     .split(",")
-    .map((param) => param.trim().split(/\s+/)[0].split(":")[0])
-    .filter((name) => name && name !== "");
+    .map((param) => param.trim().split(/\s+/)[0]?.split(":")[0])
+    .filter((name): name is string => !!name && name !== "");
 }
 
 // 参数装饰器
@@ -154,9 +154,12 @@ export function Param(zodSchema: z.ZodType<unknown>, description?: string): Para
     const paramTypes = Reflect.getMetadata("design:paramtypes", target, actualPropertyKey) || [];
     const paramType = paramTypes[parameterIndex];
 
-    const name = getParamNames((target as Record<string | symbol, (...args: unknown[]) => unknown>)[actualPropertyKey])[
-      parameterIndex
-    ];
+    const method = (target as Record<string | symbol, (...args: unknown[]) => unknown>)[actualPropertyKey];
+    if (!method) {
+      throw new Error(`Method ${String(actualPropertyKey)} not found on target`);
+    }
+
+    const name = getParamNames(method)[parameterIndex];
 
     // 根据 zodSchema 自动判断参数是否为必传
     const required: boolean = !isZodSchemaOptional(zodSchema);
@@ -207,7 +210,7 @@ export class BestMCP {
   private version: string;
   private tools: Map<string, ToolExecutor> = new Map();
   private server?: Server;
-  private transport?: StdioServerTransport;
+  private transport: StdioServerTransport | undefined;
 
   constructor(name: string, version: string = "1.0.0") {
     this.name = name;
@@ -428,7 +431,7 @@ export class BestMCP {
       const isRequired = required.includes(paramName);
       paramSchemas[paramName] = {
         required: isRequired,
-        zodSchema: storedZodSchemas[paramName],
+        zodSchema: storedZodSchemas[paramName]!,
       };
     }
 

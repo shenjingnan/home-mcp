@@ -54,7 +54,7 @@ jobs:
 
     # 根目录代码质量检查
     - name: 类型检查
-      run: pnpm run type:check
+      run: pnpm run type:check:all
 
     - name: Biome 代码检查
       run: pnpm run check
