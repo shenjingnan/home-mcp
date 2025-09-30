@@ -1,6 +1,20 @@
 #!/usr/bin/env node
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { BestMCP, Tool } from "bestmcp";
+
+// 动态读取 package.json 中的版本号
+function getPackageVersion(): string {
+  try {
+    const packageJsonPath = join(__dirname, "..", "package.json");
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+    return packageJson.version || "0.0.1";
+  } catch (_error) {
+    console.warn("无法读取 package.json 中的版本号，使用默认版本 0.0.1");
+    return "0.0.1";
+  }
+}
 
 interface HassState {
   attributes: Record<string, unknown>;
@@ -65,7 +79,7 @@ class HassService {
 }
 
 // 创建 MCP 服务器实例
-const mcp = new BestMCP("智能家居 MCP 服务", "0.0.3");
+const mcp = new BestMCP("智能家居 MCP 服务", getPackageVersion());
 
 // 注册服务类
 mcp.register(HassService);
