@@ -32,6 +32,7 @@ jobs:
   npm-release:
     name: NPM 发布
     runs-on: ubuntu-latest
+    environment: npm  # 🔥 关键修复：指定环境
     concurrency:
       group: npm-release-${{ github.ref }}
       cancel-in-progress: false
@@ -114,6 +115,15 @@ jobs:
       - name: 🔒 安全审计检查
         run: |
           pnpm audit --audit-level moderate
+
+      - name: 🐛 调试 npm 认证状态
+        run: |
+          echo "=== NPM 配置信息 ==="
+          npm config list
+          echo "=== 认证状态检查 ==="
+          npm whoami || echo "未认证"
+          echo "=== 环境变量检查 ==="
+          env | grep -E "(NPM|NODE)" || echo "无相关环境变量"
 
       - name: 发布
         run: |
