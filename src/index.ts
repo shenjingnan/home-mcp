@@ -3,9 +3,48 @@
 import { BestMCP, Param, Tool } from "bestmcp";
 import { z } from "zod";
 
+interface HassState {
+  attributes: Record<string, unknown>;
+  entity_id: string;
+  last_changed: string;
+  state: string;
+}
+
 class HassService {
   hassToken = (process.env["HASS_TOKEN"] ?? "").trim();
   hassUrl = (process.env["HASS_URL"] ?? "").trim();
+
+  private async makeHassRequest<T>(
+    endpoint: string,
+    method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+    body?: unknown,
+  ): Promise<T> {
+    if (!this.hassToken || !this.hassUrl) {
+      throw new Error("未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
+    }
+
+    try {
+      const response = await fetch(`${this.hassUrl}${endpoint}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${this.hassToken}`,
+          "Content-Type": "application/json",
+        },
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP 错误: ${response.status} ${response.statusText}`);
+      }
+
+      return (await response.json()) as T;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Home Assistant API 请求失败: ${error.message}`);
+      }
+      throw new Error("Home Assistant API 请求时发生未知错误");
+    }
+  }
 
   @Tool("Add two numbers together")
   addNumbers(
@@ -47,33 +86,7 @@ class HassService {
 
   @Tool("获取 Home Assistant 中所有实体的状态信息")
   async getStates() {
-    const { hassToken, hassUrl } = this;
-    if (!hassToken || !hassUrl) {
-      throw new Error("未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
-    }
-
-    try {
-      const response = await fetch(`${hassUrl}/api/states`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${hassToken}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP 错误: ${response.status} ${response.statusText}`);
-      }
-
-      const states = (await response.json()) as unknown[];
-
-      return states;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`获取实体状态失败: ${error.message}`);
-      }
-      throw new Error("获取实体状态时发生未知错误");
-    }
+    return this.makeHassRequest<HassState[]>("/api/states");
   }
 }
 
