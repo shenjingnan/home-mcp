@@ -9,10 +9,7 @@
     "dark": "#0F172A"
   },
   "navigation": {
-    "pages": [
-      "getting-started/intro",
-      "getting-started/quickstart"
-    ]
+    "pages": ["getting-started/intro", "getting-started/quickstart"]
   },
   "navbar": {
     "links": [
