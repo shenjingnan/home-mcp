@@ -123,7 +123,9 @@ jobs:
 
       - name: 发布
         run: |
-          RELEASE_CMD="npx release-it"
+          npm install -g npm@latest
+          npm ci
+          RELEASE_CMD="npx release-it --ci"
 
           if [ "${{ steps.parse-release.outputs.version_type }}" = "release" ]; then
             # 正式版发布
