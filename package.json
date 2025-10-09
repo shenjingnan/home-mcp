@@ -20,7 +20,8 @@
     "spell:check": "cspell \"**/*.{ts,js,json,md,yaml}\"",
     "check": "biome check .",
     "check:fix": "biome check --write --unsafe .",
-    "check:all": "pnpm check && pnpm type:check && pnpm spell:check"
+    "check:all": "pnpm check && pnpm type:check && pnpm spell:check",
+    "docs:dev": "cd docs && mintlify dev"
   },
   "keywords": [
     "homeassistant",
@@ -51,14 +52,15 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@release-it/conventional-changelog": "^10.0.1",
-    "release-it": "^19.0.4",
     "@biomejs/biome": "^2.2.3",
+    "@release-it/conventional-changelog": "^10.0.1",
     "@types/node": "^22.0.2",
     "@vitest/coverage-v8": "^1.6.1",
     "cspell": "^9.2.1",
     "happy-dom": "^15.10.2",
+    "mintlify": "^4.2.158",
     "nodemon": "^3.1.7",
+    "release-it": "^19.0.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsup": "^8.5.0",
