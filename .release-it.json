@@ -16,7 +16,7 @@
   },
   "npm": {
     "publish": true,
-    "publishArgs": ["--access", "public"],
+    "publishArgs": ["--access", "public", "--provenance"],
     "skipChecks": true
   },
   "plugins": {
