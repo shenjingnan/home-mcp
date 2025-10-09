@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.0.3-beta.0](https://github.com/shenjingnan/home-mcp/compare/v0.0.2-beta.0...v0.0.3-beta.0) (2025-10-09)
+
 ## 0.0.2-beta.0 (2025-10-09)
 
 ### Features
