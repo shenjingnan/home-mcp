@@ -73,7 +73,9 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: 安装依赖
-        run: pnpm install --frozen-lockfile
+        run: |
+          npm install -g npm@latest
+          pnpm install --frozen-lockfile
 
       - name: 配置 Git 用户
         run: |
@@ -117,7 +119,7 @@ jobs:
 
       - name: 发布
         run: |
-          RELEASE_CMD="npx release-it"
+          RELEASE_CMD="npx release-it --ci"
 
           if [ "${{ steps.parse-release.outputs.version_type }}" = "release" ]; then
             # 正式版发布
