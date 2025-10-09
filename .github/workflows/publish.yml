@@ -111,6 +111,12 @@ jobs:
           echo "version_increment=$VERSION_INCREMENT" >> $GITHUB_OUTPUT
           echo "prerelease_id=$PRERELEASE_ID" >> $GITHUB_OUTPUT
 
+      - name: Debug npm info
+        run: |
+          npm whoami || echo "Not logged in"
+          npm config list
+          cat package.json | grep name
+
       - name: 🔒 安全审计检查
         run: |
           pnpm audit --audit-level moderate
