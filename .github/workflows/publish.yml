@@ -75,8 +75,7 @@ jobs:
       - name: 安装依赖
         run: |
           npm install -g npm@latest
-          npm ci
-          pnpm install --frozen-lockfile
+          pnpm ci
 
       - name: 配置 Git 用户
         run: |
