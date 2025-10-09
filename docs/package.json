@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "postbuild": "pagefind --site .next/server/app --output-path out/_pagefind"
   },
   "keywords": [],
   "author": "",
