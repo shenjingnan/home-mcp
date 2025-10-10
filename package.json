@@ -57,7 +57,7 @@
     "@types/node": "^22.0.2",
     "@vitest/coverage-v8": "^1.6.1",
     "cspell": "^9.2.1",
-    "happy-dom": "^15.10.2",
+    "happy-dom": "^20.0.0",
     "mintlify": "^4.2.158",
     "nodemon": "^3.1.7",
     "release-it": "^19.0.4",
