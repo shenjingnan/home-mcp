@@ -1,5 +1,14 @@
 {
-  "buildCommand": "cd docs && pnpm build",
-  "outputDirectory": "docs/out",
-  "installCommand": "cd docs && pnpm install"
+  "version": 2,
+  "builds": [
+    {
+      "src": "docs/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "installCommand": "pnpm install",
+        "buildCommand": "pnpm build"
+      }
+    }
+  ],
+  "outputDirectory": "docs/out"
 }
