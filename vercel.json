@@ -5,8 +5,8 @@
       "src": "docs/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "installCommand": "pnpm install --frozen-lockfile",
-        "buildCommand": "pnpm build"
+        "installCommand": "pnpm install --filter=docs",
+        "buildCommand": "pnpm build --filter=docs"
       }
     }
   ],
