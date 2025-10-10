@@ -3,13 +3,10 @@
   "builds": [
     {
       "src": "docs/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/docs/$1"
+      "use": "@vercel/next",
+      "config": {
+        "installCommand": "pnpm install --filter=docs"
+      }
     }
   ]
 }
