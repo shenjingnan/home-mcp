@@ -647,7 +647,7 @@ function inferTypeSchema(type: unknown): JsonSchema {
 }
 
 // Zod Schema 转 JSON Schema 的函数
-function zodSchemaToJsonSchema(zodSchema: z.ZodType<unknown>): JsonSchema {
+export function zodSchemaToJsonSchema(zodSchema: z.ZodType<unknown>): JsonSchema {
   // 处理基本类型
   if (zodSchema instanceof z.ZodString) {
     const schema: JsonSchema = { type: "string" };
@@ -708,7 +708,19 @@ function zodSchemaToJsonSchema(zodSchema: z.ZodType<unknown>): JsonSchema {
     const required: string[] = [];
 
     Object.entries(shape).forEach(([key, field]: [string, unknown]) => {
-      properties[key] = zodSchemaToJsonSchema(field as z.ZodType<unknown>);
+      const fieldSchema = zodSchemaToJsonSchema(field as z.ZodType<unknown>);
+
+      // 提取 Zod 字段中的描述信息
+      try {
+        const zodField = field as z.ZodType<unknown> & { _def?: { description?: string } };
+        if (zodField._def?.description) {
+          fieldSchema.description = zodField._def.description;
+        }
+      } catch (_e) {
+        // 如果无法提取描述信息，忽略错误
+      }
+
+      properties[key] = fieldSchema;
 
       // 检查是否为必填字段
       try {
