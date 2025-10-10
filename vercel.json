@@ -1,15 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "docs/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/docs/$1"
-    }
-  ]
+  "buildCommand": "cd docs && npm run build",
+  "outputDirectory": "docs/out",
+  "installCommand": "cd docs && npm install"
 }
