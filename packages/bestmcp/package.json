@@ -17,7 +17,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "type:check": "tsc --noEmit"
+    "type:check": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "keywords": [
     "mcp",
@@ -35,6 +37,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vitest": "^1.6.1"
   }
 }
