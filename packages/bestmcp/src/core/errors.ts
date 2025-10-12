@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 
 // 自定义错误类型
 export class ToolValidationError extends Error {

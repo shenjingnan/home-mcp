@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 import "reflect-metadata";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -11,10 +11,10 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 import {
-  ToolMetadata,
-  ToolExecutor,
-  ParamTypeMetadata,
-  JsonSchema,
+  type ToolMetadata,
+  type ToolExecutor,
+  type ParamTypeMetadata,
+  type JsonSchema,
   TOOLS_METADATA,
   TOOL_PARAM_METADATA,
 } from "./types.js";
@@ -23,13 +23,6 @@ import {
   ToolNotFoundError,
   ZodValidationError,
 } from "./errors.js";
-import {
-  extractParameters,
-  isZodSchemaOptional,
-  getParamNames,
-  zodSchemaToJsonSchema,
-  inferTypeSchema,
-} from "./validation.js";
 
 export class BestMCP {
   private name: string;
@@ -54,7 +47,7 @@ export class BestMCP {
         capabilities: {
           tools: {},
         },
-      },
+      }
     );
   }
 
@@ -62,7 +55,9 @@ export class BestMCP {
     if (!this.server) return;
 
     // 工具列表请求处理器
-    console.log(JSON.stringify(this.getTools().map(this.convertToMCPTool), null, 2));
+    console.log(
+      JSON.stringify(this.getTools().map(this.convertToMCPTool), null, 2)
+    );
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
         tools: this.getTools().map(this.convertToMCPTool),
@@ -87,7 +82,9 @@ export class BestMCP {
     };
   }
 
-  private async handleToolCall(request: CallToolRequest): Promise<CallToolResult> {
+  private async handleToolCall(
+    request: CallToolRequest
+  ): Promise<CallToolResult> {
     try {
       const { name, arguments: args } = request.params;
 
@@ -112,7 +109,9 @@ export class BestMCP {
         content: [
           {
             type: "text",
-            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+            text: `Error: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`,
           },
         ],
         isError: true,
@@ -126,24 +125,38 @@ export class BestMCP {
 
     // 注册工具
     const tools = Reflect.getMetadata(TOOLS_METADATA, serviceClass) || [];
-    tools.forEach((tool: { metadata: ToolMetadata; method: (...args: unknown[]) => unknown; propertyKey: string }) => {
-      // 获取参数的 Zod schema 信息
-      const paramZodSchemas = this.extractParamZodSchemas(serviceClass, tool.propertyKey);
+    tools.forEach(
+      (tool: {
+        metadata: ToolMetadata;
+        method: (...args: unknown[]) => unknown;
+        propertyKey: string;
+      }) => {
+        // 获取参数的 Zod schema 信息
+        const paramZodSchemas = this.extractParamZodSchemas(
+          serviceClass,
+          tool.propertyKey
+        );
 
-      this.tools.set(tool.metadata.name, {
-        metadata: tool.metadata,
-        handler: tool.method.bind(instance),
-        paramZodSchemas,
-      });
-    });
+        this.tools.set(tool.metadata.name, {
+          metadata: tool.metadata,
+          handler: tool.method.bind(instance),
+          paramZodSchemas,
+        });
+      }
+    );
   }
 
   // 提取参数的 Zod schema 信息
   private extractParamZodSchemas<T>(
     serviceClass: new () => T,
-    propertyKey: string,
+    propertyKey: string
   ): Record<string, z.ZodType<unknown>> {
-    const paramMetadata = Reflect.getMetadata(TOOL_PARAM_METADATA, serviceClass.prototype, propertyKey) || [];
+    const paramMetadata =
+      Reflect.getMetadata(
+        TOOL_PARAM_METADATA,
+        serviceClass.prototype,
+        propertyKey
+      ) || [];
     const paramZodSchemas: Record<string, z.ZodType<unknown>> = {};
 
     paramMetadata.forEach((param: ParamTypeMetadata) => {
@@ -163,7 +176,7 @@ export class BestMCP {
   // 验证工具参数
   private validateToolArguments(
     toolName: string,
-    args: Record<string, unknown>,
+    args: Record<string, unknown>
   ): { isValid: boolean; errors: string[] } {
     const tool = this.tools.get(toolName);
     if (!tool) {
@@ -202,7 +215,7 @@ export class BestMCP {
   // 使用 Zod schema 进行参数验证
   private validateWithZodSchema(
     toolName: string,
-    args: Record<string, unknown>,
+    args: Record<string, unknown>
   ): { isValid: boolean; errors: string[] } {
     const tool = this.tools.get(toolName);
     if (!tool) {
@@ -215,7 +228,11 @@ export class BestMCP {
     const paramMetadata = this.getParamZodSchemas(toolName);
 
     for (const [paramName, paramInfo] of Object.entries(paramMetadata)) {
-      if (args[paramName] !== undefined && args[paramName] !== null && paramInfo.zodSchema) {
+      if (
+        args[paramName] !== undefined &&
+        args[paramName] !== null &&
+        paramInfo.zodSchema
+      ) {
         try {
           // 使用 Zod schema 验证参数
           const result = paramInfo.zodSchema.safeParse(args[paramName]);
@@ -228,7 +245,9 @@ export class BestMCP {
             errors.push(error.message);
           } else {
             errors.push(
-              `Parameter ${paramName}: Zod validation failed - ${error instanceof Error ? error.message : "Unknown error"}`,
+              `Parameter ${paramName}: Zod validation failed - ${
+                error instanceof Error ? error.message : "Unknown error"
+              }`
             );
           }
         }
@@ -239,13 +258,18 @@ export class BestMCP {
   }
 
   // 获取工具参数的 Zod schema 信息
-  private getParamZodSchemas(toolName: string): Record<string, { zodSchema?: z.ZodType<unknown>; required: boolean }> {
+  private getParamZodSchemas(
+    toolName: string
+  ): Record<string, { zodSchema?: z.ZodType<unknown>; required: boolean }> {
     const tool = this.tools.get(toolName);
     if (!tool) {
       return {};
     }
 
-    const paramSchemas: Record<string, { zodSchema?: z.ZodType<unknown>; required: boolean }> = {};
+    const paramSchemas: Record<
+      string,
+      { zodSchema?: z.ZodType<unknown>; required: boolean }
+    > = {};
 
     // 从存储的 Zod schema 信息中获取
     const storedZodSchemas = tool.paramZodSchemas || {};
@@ -274,7 +298,9 @@ export class BestMCP {
     // 参数验证
     const validation = this.validateToolArguments(name, args);
     if (!validation.isValid) {
-      const errorMsg = `Invalid arguments for tool ${name}: ${validation.errors.join(", ")}`;
+      const errorMsg = `Invalid arguments for tool ${name}: ${validation.errors.join(
+        ", "
+      )}`;
       console.error(errorMsg);
       throw new ToolValidationError(name, undefined, errorMsg);
     }
@@ -291,7 +317,10 @@ export class BestMCP {
   }
 
   // 参数映射：将 MCP 协议的对象参数映射到方法的多参数形式
-  private mapArgumentsToObject(tool: ToolExecutor, args: Record<string, unknown>): unknown[] | Record<string, unknown> {
+  private mapArgumentsToObject(
+    tool: ToolExecutor,
+    args: Record<string, unknown>
+  ): unknown[] | Record<string, unknown> {
     // 如果方法期望单个对象参数，直接返回
     if (this.expectsSingleObjectParameter(tool)) {
       return args;
@@ -320,7 +349,10 @@ export class BestMCP {
   }
 
   // 将对象参数转换为按顺序的参数数组
-  private convertObjectToOrderedArguments(tool: ToolExecutor, args: Record<string, unknown>): unknown[] {
+  private convertObjectToOrderedArguments(
+    tool: ToolExecutor,
+    args: Record<string, unknown>
+  ): unknown[] {
     const parameters = tool.metadata.parameters;
     if (!parameters || !parameters.properties) {
       return [args]; // 没有参数定义，返回原始对象
@@ -350,7 +382,10 @@ export class BestMCP {
   }
 
   // 使用展开运算符调用函数的方法
-  private invokeMethodWithArguments(handler: (...args: unknown[]) => unknown, args: unknown[]): unknown {
+  private invokeMethodWithArguments(
+    handler: (...args: unknown[]) => unknown,
+    args: unknown[]
+  ): unknown {
     return handler.apply(handler, args);
   }
 
@@ -366,7 +401,10 @@ export class BestMCP {
   }
 
   // 验证工具参数（公开方法，用于调试）
-  validateTool(toolName: string, args: Record<string, unknown>): { isValid: boolean; errors: string[] } {
+  validateTool(
+    toolName: string,
+    args: Record<string, unknown>
+  ): { isValid: boolean; errors: string[] } {
     return this.validateToolArguments(toolName, args);
   }
 
@@ -413,7 +451,9 @@ export class BestMCP {
     // 保持原有的兼容性模式
     console.log(`Starting ${this.name} v${this.version} in compatibility mode`);
     console.log(`Registered ${this.tools.size} tools`);
-    console.log('Use run({ transport: "stdio" }) for MCP protocol communication');
+    console.log(
+      'Use run({ transport: "stdio" }) for MCP protocol communication'
+    );
     this.setupToolRequestHandlers();
     await this.startStdioServer();
   }

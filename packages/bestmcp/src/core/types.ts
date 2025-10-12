@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 
 // 类型定义
 export interface ToolMetadata {

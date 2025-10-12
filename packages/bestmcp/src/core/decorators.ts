@@ -1,7 +1,7 @@
-import { z } from "zod";
+import type { z } from "zod";
 import "reflect-metadata";
 import {
-  ToolMetadata,
+  type ToolMetadata,
   TOOLS_METADATA,
   TOOL_PARAM_METADATA
 } from './types';

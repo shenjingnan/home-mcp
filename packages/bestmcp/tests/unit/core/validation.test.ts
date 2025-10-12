@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import "reflect-metadata";
 import { z } from "zod";
 import {
@@ -8,7 +8,6 @@ import {
   extractParameters,
   inferTypeSchema
 } from "../../../src/core/validation";
-import { TOOL_PARAM_METADATA } from "../../../src/core/types";
 
 describe("getParamNames", () => {
   it("should extract parameter names from a simple function", () => {
