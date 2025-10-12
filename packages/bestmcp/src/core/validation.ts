@@ -2,7 +2,8 @@ import { z } from "zod";
 import { type JsonSchema, type ParamTypeMetadata, TOOL_PARAM_METADATA } from "./types";
 
 // 参数名提取函数
-export function getParamNames(func: (...args: unknown[]) => unknown): string[] {
+// biome-ignore lint/complexity/noBannedTypes: 需要接受任何函数类型以提取参数名
+export function getParamNames(func: Function): string[] {
   const funcStr = func.toString();
   const match = funcStr.match(/\(([^)]*)\)/);
   if (!match || !match[1]) return [];

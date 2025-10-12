@@ -89,7 +89,7 @@ describe("isZodSchemaOptional", () => {
         throw new Error("Test error");
       },
     };
-    expect(isZodSchemaOptional(mockSchema as any)).toBe(false);
+    expect(isZodSchemaOptional(mockSchema as unknown as z.ZodTypeAny)).toBe(false);
   });
 });
 
@@ -280,14 +280,14 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("应该优雅地处理空枚举", () => {
-      const schema = z.enum(["red"] as any);
-      const jsonSchema = zodSchemaToJsonSchema(schema);
-      expect(jsonSchema).toEqual({
-        type: "string",
-        enum: ["red"],
-      });
+  it("应该优雅地处理单值枚举", () => {
+    const schema = z.enum(["red"]);
+    const jsonSchema = zodSchemaToJsonSchema(schema);
+    expect(jsonSchema).toEqual({
+      type: "string",
+      enum: ["red"],
     });
+  });
   });
 
   describe("联合类型", () => {
@@ -312,7 +312,7 @@ describe("zodSchemaToJsonSchema", () => {
 
   describe("回退处理", () => {
     it("应该为未知模式返回字符串类型", () => {
-      const unknownSchema = {} as any;
+      const unknownSchema = {} as unknown as z.ZodTypeAny;
       const jsonSchema = zodSchemaToJsonSchema(unknownSchema);
       expect(jsonSchema).toEqual({
         type: "string",
