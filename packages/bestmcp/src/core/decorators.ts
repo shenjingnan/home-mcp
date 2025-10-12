@@ -15,7 +15,7 @@ import {
 export function Tool(description?: string): MethodDecorator {
   return (target: object, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
     if (!descriptor || !target) {
-      console.warn(`Tool decorator: descriptor or target is undefined for ${String(propertyKey)}`);
+      console.warn(`工具装饰器: 描述符或目标对象对于 ${String(propertyKey)} 未定义`);
       return;
     }
 
@@ -64,7 +64,7 @@ export function Param(zodSchema: z.ZodType<unknown>, description?: string): Para
 
     const method = (target as Record<string | symbol, (...args: unknown[]) => unknown>)[actualPropertyKey];
     if (!method) {
-      throw new Error(`Method ${String(actualPropertyKey)} not found on target`);
+      throw new Error(`在目标对象上未找到方法 ${String(actualPropertyKey)}`);
     }
 
     const name = getParamNames(method)[parameterIndex];

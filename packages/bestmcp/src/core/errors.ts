@@ -7,14 +7,14 @@ export class ToolValidationError extends Error {
     public parameterName?: string,
     message?: string,
   ) {
-    super(message || `Validation failed for tool ${toolName}`);
+    super(message || `工具 ${toolName} 验证失败`);
     this.name = "ToolValidationError";
   }
 }
 
 export class ToolNotFoundError extends Error {
   constructor(public toolName: string) {
-    super(`Tool ${toolName} not found`);
+    super(`未找到工具 ${toolName}`);
     this.name = "ToolNotFoundError";
   }
 }
@@ -24,7 +24,7 @@ export class ZodValidationError extends Error {
     public parameterName: string,
     public zodErrors: z.ZodError,
   ) {
-    const errorMessage = zodErrors.errors.map((err) => `Parameter ${parameterName}: ${err.message}`).join("; ");
+    const errorMessage = zodErrors.errors.map((err) => `参数 ${parameterName}: ${err.message}`).join("; ");
     super(errorMessage);
     this.name = "ZodValidationError";
   }

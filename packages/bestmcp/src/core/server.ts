@@ -90,7 +90,7 @@ export class BestMCP {
 
       // 参数验证
       if (!args) {
-        throw new Error("Missing required arguments");
+        throw new Error("缺少必需的参数");
       }
 
       // 执行工具
@@ -109,8 +109,8 @@ export class BestMCP {
         content: [
           {
             type: "text",
-            text: `Error: ${
-              error instanceof Error ? error.message : "Unknown error"
+            text: `错误: ${
+              error instanceof Error ? error.message : "未知错误"
             }`,
           },
         ],
@@ -180,7 +180,7 @@ export class BestMCP {
   ): { isValid: boolean; errors: string[] } {
     const tool = this.tools.get(toolName);
     if (!tool) {
-      return { isValid: false, errors: [`Tool ${toolName} not found`] };
+      return { isValid: false, errors: [`未找到工具 ${toolName}`] };
     }
 
     const errors: string[] = [];
@@ -190,7 +190,7 @@ export class BestMCP {
     // 检查必需参数
     for (const paramName of required) {
       if (args[paramName] === undefined || args[paramName] === null) {
-        errors.push(`Missing required parameter: ${paramName}`);
+        errors.push(`缺少必需参数: ${paramName}`);
       }
     }
 
@@ -199,7 +199,7 @@ export class BestMCP {
     const providedParams = Object.keys(args);
     for (const paramName of providedParams) {
       if (!knownParams.includes(paramName)) {
-        errors.push(`Unknown parameter: ${paramName}`);
+        errors.push(`未知参数: ${paramName}`);
       }
     }
 
@@ -219,7 +219,7 @@ export class BestMCP {
   ): { isValid: boolean; errors: string[] } {
     const tool = this.tools.get(toolName);
     if (!tool) {
-      return { isValid: false, errors: [`Tool ${toolName} not found`] };
+      return { isValid: false, errors: [`未找到工具 ${toolName}`] };
     }
 
     const errors: string[] = [];
@@ -245,8 +245,8 @@ export class BestMCP {
             errors.push(error.message);
           } else {
             errors.push(
-              `Parameter ${paramName}: Zod validation failed - ${
-                error instanceof Error ? error.message : "Unknown error"
+              `参数 ${paramName}: Zod 验证失败 - ${
+                error instanceof Error ? error.message : "未知错误"
               }`
             );
           }
@@ -298,7 +298,7 @@ export class BestMCP {
     // 参数验证
     const validation = this.validateToolArguments(name, args);
     if (!validation.isValid) {
-      const errorMsg = `Invalid arguments for tool ${name}: ${validation.errors.join(
+      const errorMsg = `工具 ${name} 的参数无效: ${validation.errors.join(
         ", "
       )}`;
       console.error(errorMsg);
@@ -373,7 +373,7 @@ export class BestMCP {
         } else if (!parameters.required.includes(paramName)) {
           orderedArgs.push(undefined);
         } else {
-          throw new Error(`Missing required parameter: ${paramName}`);
+          throw new Error(`缺少必需参数: ${paramName}`);
         }
       }
     }
@@ -419,7 +419,7 @@ export class BestMCP {
   // 启动 stdio MCP 服务器
   async startStdioServer() {
     if (!this.server) {
-      throw new Error("MCP Server not initialized");
+      throw new Error("MCP 服务器未初始化");
     }
 
     try {
@@ -429,11 +429,11 @@ export class BestMCP {
       // 连接服务器到传输层
       await this.server.connect(this.transport);
 
-      console.log(`${this.name} v${this.version} started with stdio transport`);
-      console.log(`Registered ${this.tools.size} tools`);
-      console.log("MCP server is ready to accept requests");
+      console.log(`${this.name} v${this.version} 已启动，使用 stdio 传输`);
+      console.log(`已注册 ${this.tools.size} 个工具`);
+      console.log("MCP 服务器已准备就绪，可以接受请求");
     } catch (error) {
-      this.handleError(error, "Failed to start stdio server");
+      this.handleError(error, "启动 stdio 服务器失败");
     }
   }
 
@@ -442,17 +442,17 @@ export class BestMCP {
     if (this.transport) {
       // MCP SDK 会自动处理连接关闭
       this.transport = undefined;
-      console.log("MCP server stopped");
+      console.log("MCP 服务器已停止");
     }
   }
 
   // 增强的 run 方法，支持 stdio 传输
   async run() {
     // 保持原有的兼容性模式
-    console.log(`Starting ${this.name} v${this.version} in compatibility mode`);
-    console.log(`Registered ${this.tools.size} tools`);
+    console.log(`正在以兼容模式启动 ${this.name} v${this.version}`);
+    console.log(`已注册 ${this.tools.size} 个工具`);
     console.log(
-      'Use run({ transport: "stdio" }) for MCP protocol communication'
+      '使用 run({ transport: "stdio" }) 进行 MCP 协议通信'
     );
     this.setupToolRequestHandlers();
     await this.startStdioServer();
@@ -464,13 +464,13 @@ export class BestMCP {
   }
 
   private handleError(error: unknown, context: string): never {
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = error instanceof Error ? error.message : "未知错误";
     const timestamp = new Date().toISOString();
 
-    console.error(`[${timestamp}] [${context}] Error: ${message}`);
+    console.error(`[${timestamp}] [${context}] 错误: ${message}`);
 
     if (error instanceof Error) {
-      console.error(`Stack: ${error.stack}`);
+      console.error(`堆栈: ${error.stack}`);
     }
 
     throw new Error(`[${context}] ${message}`);
