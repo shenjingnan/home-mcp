@@ -9,8 +9,8 @@ import {
   zodSchemaToJsonSchema,
 } from "../../../src/core/validation";
 
-describe("getParamNames", () => {
-  it("should extract parameter names from a simple function", () => {
+describe("获取参数名称", () => {
+  it("应该从简单函数中提取参数名称", () => {
     function testFunc(a: string, b: number) {
       return a + b;
     }
@@ -19,7 +19,7 @@ describe("getParamNames", () => {
     expect(paramNames).toEqual(["a", "b"]);
   });
 
-  it("should handle functions with no parameters", () => {
+  it("应该处理没有参数的函数", () => {
     function testFunc() {
       return "test";
     }
@@ -28,7 +28,7 @@ describe("getParamNames", () => {
     expect(paramNames).toEqual([]);
   });
 
-  it("should handle functions with default parameters", () => {
+  it("应该处理带有默认参数的函数", () => {
     function testFunc(a: string, b: number = 10) {
       return a + b;
     }
@@ -37,19 +37,19 @@ describe("getParamNames", () => {
     expect(paramNames).toEqual(["a", "b"]);
   });
 
-  it("should handle arrow functions", () => {
+  it("应该处理箭头函数", () => {
     const arrowFunc = (a: string, b: number) => a + b;
     const paramNames = getParamNames(arrowFunc);
     expect(paramNames).toEqual(["a", "b"]);
   });
 
-  it("should handle arrow functions with default parameters", () => {
+  it("应该处理带有默认参数的箭头函数", () => {
     const arrowFunc = (a: string, b: number = 10) => a + b;
     const paramNames = getParamNames(arrowFunc);
     expect(paramNames).toEqual(["a", "b"]);
   });
 
-  it("should return empty array for invalid function strings", () => {
+  it("应该为无效的函数字符串返回空数组", () => {
     const invalidFunc = new Function("return function() { }")();
     const paramNames = getParamNames(invalidFunc);
     expect(paramNames).toEqual([]);
@@ -57,22 +57,22 @@ describe("getParamNames", () => {
 });
 
 describe("isZodSchemaOptional", () => {
-  it("should return true for ZodOptional schemas", () => {
+  it("应该为 ZodOptional 模式返回 true", () => {
     const optionalSchema = z.string().optional();
     expect(isZodSchemaOptional(optionalSchema)).toBe(true);
   });
 
-  it("should return false for required schemas", () => {
+  it("应该为必需模式返回 false", () => {
     const requiredSchema = z.string();
     expect(isZodSchemaOptional(requiredSchema)).toBe(false);
   });
 
-  it("should return false for nullable schemas", () => {
+  it("应该为可空模式返回 false", () => {
     const nullableSchema = z.string().nullable();
     expect(isZodSchemaOptional(nullableSchema)).toBe(false);
   });
 
-  it("should return false for complex schemas", () => {
+  it("应该为复杂模式返回 false", () => {
     const complexSchema = z.object({
       name: z.string(),
       age: z.number(),
@@ -80,7 +80,7 @@ describe("isZodSchemaOptional", () => {
     expect(isZodSchemaOptional(complexSchema)).toBe(false);
   });
 
-  it("should handle errors gracefully", () => {
+  it("应该优雅地处理错误", () => {
     const schema = z.string();
     // Mock the schema to throw an error
     const mockSchema = {
@@ -94,28 +94,28 @@ describe("isZodSchemaOptional", () => {
 });
 
 describe("zodSchemaToJsonSchema", () => {
-  describe("Basic types", () => {
-    it("should convert ZodString to JSON Schema", () => {
+  describe("基本类型", () => {
+    it("应该将 ZodString 转换为 JSON Schema", () => {
       const schema = z.string();
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({ type: "string" });
     });
 
-    it("should convert ZodNumber to JSON Schema", () => {
+    it("应该将 ZodNumber 转换为 JSON Schema", () => {
       const schema = z.number();
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({ type: "number" });
     });
 
-    it("should convert ZodBoolean to JSON Schema", () => {
+    it("应该将 ZodBoolean 转换为 JSON Schema", () => {
       const schema = z.boolean();
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({ type: "boolean" });
     });
   });
 
-  describe("String constraints", () => {
-    it("should handle minLength constraint", () => {
+  describe("字符串约束", () => {
+    it("应该处理 minLength 约束", () => {
       const schema = z.string().min(5);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -124,7 +124,7 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("should handle maxLength constraint", () => {
+    it("应该处理 maxLength 约束", () => {
       const schema = z.string().max(10);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -133,7 +133,7 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("should handle regex constraint", () => {
+    it("应该处理正则表达式约束", () => {
       const schema = z.string().regex(/^[a-zA-Z]+$/);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -142,7 +142,7 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("should handle multiple string constraints", () => {
+    it("应该处理多个字符串约束", () => {
       const schema = z
         .string()
         .min(3)
@@ -158,8 +158,8 @@ describe("zodSchemaToJsonSchema", () => {
     });
   });
 
-  describe("Number constraints", () => {
-    it("should handle minimum constraint", () => {
+  describe("数字约束", () => {
+    it("应该处理最小值约束", () => {
       const schema = z.number().min(0);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -168,7 +168,7 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("should handle maximum constraint", () => {
+    it("应该处理最大值约束", () => {
       const schema = z.number().max(100);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -177,7 +177,7 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("should handle multiple number constraints", () => {
+    it("应该处理多个数字约束", () => {
       const schema = z.number().min(0).max(100);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -188,8 +188,8 @@ describe("zodSchemaToJsonSchema", () => {
     });
   });
 
-  describe("Array types", () => {
-    it("should convert ZodArray to JSON Schema", () => {
+  describe("数组类型", () => {
+    it("应该将 ZodArray 转换为 JSON Schema", () => {
       const schema = z.array(z.string());
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -198,7 +198,7 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("should handle array of complex types", () => {
+    it("应该处理复杂类型的数组", () => {
       const schema = z.array(
         z.object({
           name: z.string(),
@@ -220,8 +220,8 @@ describe("zodSchemaToJsonSchema", () => {
     });
   });
 
-  describe("Object types", () => {
-    it("should convert ZodObject to JSON Schema", () => {
+  describe("对象类型", () => {
+    it("应该将 ZodObject 转换为 JSON Schema", () => {
       const schema = z.object({
         name: z.string(),
         age: z.number(),
@@ -237,7 +237,7 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("should handle optional fields", () => {
+    it("应该处理可选字段", () => {
       const schema = z.object({
         name: z.string(),
         age: z.number().optional(),
@@ -253,7 +253,7 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("should extract description from Zod fields", () => {
+    it("应该从 Zod 字段中提取描述", () => {
       const schema = z.object({
         name: z.string().describe("User's full name"),
         age: z.number().describe("User's age in years"),
@@ -270,8 +270,8 @@ describe("zodSchemaToJsonSchema", () => {
     });
   });
 
-  describe("Enum types", () => {
-    it("should convert ZodEnum to JSON Schema", () => {
+  describe("枚举类型", () => {
+    it("应该将 ZodEnum 转换为 JSON Schema", () => {
       const schema = z.enum(["red", "green", "blue"]);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -280,7 +280,7 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-    it("should handle empty enum gracefully", () => {
+    it("应该优雅地处理空枚举", () => {
       const schema = z.enum(["red"] as any);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -290,8 +290,8 @@ describe("zodSchemaToJsonSchema", () => {
     });
   });
 
-  describe("Union types", () => {
-    it("should handle ZodUnion by using first option", () => {
+  describe("联合类型", () => {
+    it("应该通过使用第一个选项来处理 ZodUnion", () => {
       const schema = z.union([z.string(), z.number()]);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -300,8 +300,8 @@ describe("zodSchemaToJsonSchema", () => {
     });
   });
 
-  describe("Optional types", () => {
-    it("should unwrap ZodOptional", () => {
+  describe("可选类型", () => {
+    it("应该展开 ZodOptional", () => {
       const schema = z.string().optional();
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
@@ -310,8 +310,8 @@ describe("zodSchemaToJsonSchema", () => {
     });
   });
 
-  describe("Fallback handling", () => {
-    it("should return string type for unknown schemas", () => {
+  describe("回退处理", () => {
+    it("应该为未知模式返回字符串类型", () => {
       const unknownSchema = {} as any;
       const jsonSchema = zodSchemaToJsonSchema(unknownSchema);
       expect(jsonSchema).toEqual({
@@ -321,49 +321,49 @@ describe("zodSchemaToJsonSchema", () => {
   });
 });
 
-describe("inferTypeSchema", () => {
-  it("should infer string type", () => {
+describe("推断类型模式", () => {
+  it("应该推断字符串类型", () => {
     expect(inferTypeSchema(String)).toEqual({ type: "string" });
     expect(inferTypeSchema("string")).toEqual({ type: "string" });
   });
 
-  it("should infer number type", () => {
+  it("应该推断数字类型", () => {
     expect(inferTypeSchema(Number)).toEqual({ type: "number" });
   });
 
-  it("should infer boolean type", () => {
+  it("应该推断布尔类型", () => {
     expect(inferTypeSchema(Boolean)).toEqual({ type: "boolean" });
   });
 
-  it("should infer object type", () => {
+  it("应该推断对象类型", () => {
     expect(inferTypeSchema(Object)).toEqual({ type: "object" });
   });
 
-  it("should infer array type", () => {
+  it("应该推断数组类型", () => {
     expect(inferTypeSchema(Array)).toEqual({
       type: "array",
       items: { type: "string" },
     });
   });
 
-  it("should handle null/undefined input", () => {
+  it("应该处理 null/undefined 输入", () => {
     expect(inferTypeSchema(null)).toEqual({ type: "string" });
     expect(inferTypeSchema(undefined)).toEqual({ type: "string" });
   });
 
-  it("should handle function constructors", () => {
+  it("应该处理函数构造器", () => {
     function CustomType() {}
     expect(inferTypeSchema(CustomType)).toEqual({ type: "string" });
   });
 
-  it("should return string type as fallback", () => {
+  it("应该返回字符串类型作为回退", () => {
     expect(inferTypeSchema({})).toEqual({ type: "string" });
     expect(inferTypeSchema(new Date())).toEqual({ type: "string" });
   });
 });
 
-describe("extractParameters", () => {
-  it("should return empty result for missing inputs", () => {
+describe("提取参数", () => {
+  it("应该为缺失的输入返回空结果", () => {
     const result = extractParameters();
     expect(result).toEqual({
       properties: {},
@@ -371,7 +371,7 @@ describe("extractParameters", () => {
     });
   });
 
-  it("should return empty result for partial inputs", () => {
+  it("应该为部分输入返回空结果", () => {
     const result = extractParameters({}, "testMethod");
     expect(result).toEqual({
       properties: {},
@@ -379,7 +379,7 @@ describe("extractParameters", () => {
     });
   });
 
-  it("should handle empty metadata gracefully", () => {
+  it("应该优雅地处理空元数据", () => {
     // Mock empty metadata - in a real scenario this would be handled by reflect-metadata
     const result = extractParameters({}, "testMethod", [String, Number]);
     expect(result).toEqual({

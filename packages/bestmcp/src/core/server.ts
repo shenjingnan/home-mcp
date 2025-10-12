@@ -50,7 +50,6 @@ export class BestMCP {
     if (!this.server) return;
 
     // 工具列表请求处理器
-    console.log(JSON.stringify(this.getTools().map(this.convertToMCPTool), null, 2));
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
         tools: this.getTools().map(this.convertToMCPTool),
@@ -280,6 +279,14 @@ export class BestMCP {
   private mapArgumentsToObject(tool: ToolExecutor, args: Record<string, unknown>): unknown[] | Record<string, unknown> {
     // 如果方法期望单个对象参数，直接返回
     if (this.expectsSingleObjectParameter(tool)) {
+      // 对于单个对象参数，需要提取实际的对象值
+      const parameters = tool.metadata.parameters;
+      if (parameters && parameters.properties && Object.keys(parameters.properties).length === 1) {
+        const paramName = Object.keys(parameters.properties)[0];
+        if (paramName) {
+          return args[paramName] as Record<string, unknown>;
+        }
+      }
       return args;
     }
 

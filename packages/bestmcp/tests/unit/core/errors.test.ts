@@ -3,7 +3,7 @@ import { z } from "zod";
 import { ToolNotFoundError, ToolValidationError, ZodValidationError } from "../../../src/core/errors";
 
 describe("ToolValidationError", () => {
-  it("should create error with tool name and default message", () => {
+  it("应该使用工具名称和默认消息创建错误", () => {
     const error = new ToolValidationError("testTool");
 
     expect(error).toBeInstanceOf(Error);
@@ -11,10 +11,10 @@ describe("ToolValidationError", () => {
     expect(error.name).toBe("ToolValidationError");
     expect(error.toolName).toBe("testTool");
     expect(error.parameterName).toBeUndefined();
-    expect(error.message).toBe("Validation failed for tool testTool");
+    expect(error.message).toBe("工具 testTool 验证失败");
   });
 
-  it("should create error with tool name, parameter name and custom message", () => {
+  it("应该使用工具名称、参数名称和自定义消息创建错误", () => {
     const error = new ToolValidationError("testTool", "param1", "Custom validation error");
 
     expect(error.toolName).toBe("testTool");
@@ -22,29 +22,29 @@ describe("ToolValidationError", () => {
     expect(error.message).toBe("Custom validation error");
   });
 
-  it("should create error with tool name and parameter name using default message", () => {
+  it("应该使用工具名称和参数名称并使用默认消息创建错误", () => {
     const error = new ToolValidationError("testTool", "param1");
 
     expect(error.toolName).toBe("testTool");
     expect(error.parameterName).toBe("param1");
-    expect(error.message).toBe("Validation failed for tool testTool");
+    expect(error.message).toBe("工具 testTool 验证失败");
   });
 });
 
 describe("ToolNotFoundError", () => {
-  it("should create error with tool name", () => {
+  it("应该使用工具名称创建错误", () => {
     const error = new ToolNotFoundError("missingTool");
 
     expect(error).toBeInstanceOf(Error);
     expect(error).toBeInstanceOf(ToolNotFoundError);
     expect(error.name).toBe("ToolNotFoundError");
     expect(error.toolName).toBe("missingTool");
-    expect(error.message).toBe("Tool missingTool not found");
+    expect(error.message).toBe("未找到工具 missingTool");
   });
 });
 
 describe("ZodValidationError", () => {
-  it("should create error with parameter name and Zod errors", () => {
+  it("应该使用参数名称和 Zod 错误创建错误", () => {
     const schema = z.string().min(5);
     const result = schema.safeParse("abc");
 
@@ -56,12 +56,12 @@ describe("ZodValidationError", () => {
       expect(error.name).toBe("ZodValidationError");
       expect(error.parameterName).toBe("testParam");
       expect(error.zodErrors).toBe(result.error);
-      expect(error.message).toContain("Parameter testParam:");
+      expect(error.message).toContain("参数 testParam:");
       expect(error.message).toContain("at least 5 character(s)");
     }
   });
 
-  it("should handle multiple Zod validation errors", () => {
+  it("应该处理多个 Zod 验证错误", () => {
     const schema = z.string().min(5).email();
     const result = schema.safeParse("abc");
 
@@ -69,7 +69,7 @@ describe("ZodValidationError", () => {
       const error = new ZodValidationError("emailParam", result.error);
 
       expect(error.parameterName).toBe("emailParam");
-      expect(error.message).toContain("Parameter emailParam:");
+      expect(error.message).toContain("参数 emailParam:");
       // Should contain multiple error messages separated by "; "
       expect(error.message.split("; ").length).toBeGreaterThan(0);
     }

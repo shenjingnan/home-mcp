@@ -4,13 +4,13 @@ import { z } from "zod";
 import { Param, Tool } from "../../../src/core/decorators";
 import { TOOL_PARAM_METADATA, TOOLS_METADATA } from "../../../src/core/types";
 
-describe("Tool decorator", () => {
+describe("工具装饰器", () => {
   beforeEach(() => {
     // 清除任何现有的元数据
     Reflect.deleteMetadata(TOOLS_METADATA, {}, "testMethod");
   });
 
-  it("should store tool metadata correctly", () => {
+  it("应该正确存储工具元数据", () => {
     class TestService {
       @Tool("测试加法")
       add(a: number, b: number): number {
@@ -29,7 +29,7 @@ describe("Tool decorator", () => {
     expect(typeof tool.method).toBe("function");
   });
 
-  it("should work without description", () => {
+  it("应该在没有描述时工作", () => {
     class TestService {
       @Tool()
       multiply(a: number, b: number): number {
@@ -44,7 +44,7 @@ describe("Tool decorator", () => {
     expect(tool.metadata.description).toBe("");
   });
 
-  it("should handle invalid inputs gracefully", () => {
+  it("应该优雅地处理无效输入", () => {
     // 测试无效的装饰器参数
     const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -53,12 +53,12 @@ describe("Tool decorator", () => {
     // 模拟无效的装饰器调用
     const _invalidDecorator = Tool("test")(null as any, "invalidMethod", null as any);
 
-    expect(consoleSpy).toHaveBeenCalledWith("Tool decorator: descriptor or target is undefined for invalidMethod");
+    expect(consoleSpy).toHaveBeenCalledWith("工具装饰器: 描述符或目标对象对于 invalidMethod 未定义");
 
     consoleSpy.mockRestore();
   });
 
-  it("should handle methods with no parameters", () => {
+  it("应该处理没有参数的方法", () => {
     class TestService {
       @Tool("无参数方法")
       noParams(): string {
@@ -76,13 +76,13 @@ describe("Tool decorator", () => {
   });
 });
 
-describe("Param decorator", () => {
+describe("参数装饰器", () => {
   beforeEach(() => {
     // 清除任何现有的元数据
     Reflect.deleteMetadata(TOOL_PARAM_METADATA, {}, "testMethod");
   });
 
-  it("should store parameter metadata correctly", () => {
+  it("应该正确存储参数元数据", () => {
     class TestService {
       testMethod(@Param(z.string(), "字符串参数") str: string): string {
         return str;
@@ -100,7 +100,7 @@ describe("Param decorator", () => {
     expect(param.zodSchema).toBeDefined();
   });
 
-  it("should handle optional parameters", () => {
+  it("应该处理可选参数", () => {
     class TestService {
       testMethod(@Param(z.string().optional(), "可选参数") str?: string): string {
         return str || "default";
@@ -114,7 +114,7 @@ describe("Param decorator", () => {
     expect(param.required).toBe(false);
   });
 
-  it("should work without description", () => {
+  it("应该在没有描述时工作", () => {
     class TestService {
       testMethod(@Param(z.number()) num: number): number {
         return num;
@@ -128,7 +128,7 @@ describe("Param decorator", () => {
     expect(param.description).toBeUndefined();
   });
 
-  it("should handle undefined propertyKey gracefully", () => {
+  it("应该优雅地处理 undefined propertyKey", () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     class TestService {}
@@ -143,7 +143,7 @@ describe("Param decorator", () => {
     consoleSpy.mockRestore();
   });
 
-  it("should handle invalid method names", () => {
+  it("应该处理无效的方法名称", () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     class TestService {}
@@ -154,12 +154,12 @@ describe("Param decorator", () => {
     // 尝试在不存在的属性上应用装饰器
     expect(() => {
       decorator(TestService.prototype, "nonExistentMethod" as any, 0);
-    }).toThrow("Method nonExistentMethod not found on target");
+    }).toThrow("在目标对象上未找到方法 nonExistentMethod");
 
     consoleSpy.mockRestore();
   });
 
-  it("should handle multiple parameters", () => {
+  it("应该处理多个参数", () => {
     class TestService {
       testMethod(@Param(z.string(), "第一个参数") str: string, @Param(z.number(), "第二个参数") num: number): string {
         return `${str}:${num}`;
@@ -178,7 +178,7 @@ describe("Param decorator", () => {
     expect(params[1].description).toBe("第二个参数");
   });
 
-  it("should extract parameter type information", () => {
+  it("应该提取参数类型信息", () => {
     class TestService {
       testMethod(@Param(z.string()) str: string): string {
         return str;
@@ -196,8 +196,8 @@ describe("Param decorator", () => {
   });
 });
 
-describe("Decorator integration", () => {
-  it("should work together with Tool and Param decorators", () => {
+describe("装饰器集成", () => {
+  it("应该让工具和参数装饰器一起工作", () => {
     class MathService {
       @Tool("加法运算")
       add(@Param(z.number(), "第一个数字") a: number, @Param(z.number(), "第二个数字") b: number): number {
@@ -237,7 +237,7 @@ describe("Decorator integration", () => {
     expect(concatParams[1].name).toBe("b");
   });
 
-  it("should handle mixed required and optional parameters", () => {
+  it("应该处理混合必需和可选参数", () => {
     class TestService {
       @Tool("混合参数测试")
       mixed(
@@ -252,13 +252,13 @@ describe("Decorator integration", () => {
     const params = Reflect.getMetadata(TOOL_PARAM_METADATA, TestService.prototype, "mixed") || [];
     expect(params).toHaveLength(3);
 
-    expect(params[0].name).toBe("required");
+    expect(params[0].name).toBe("_required");
     expect(params[0].required).toBe(true);
 
-    expect(params[1].name).toBe("optional");
+    expect(params[1].name).toBe("_optional");
     expect(params[1].required).toBe(false);
 
-    expect(params[2].name).toBe("requiredBool");
+    expect(params[2].name).toBe("_requiredBool");
     expect(params[2].required).toBe(true);
   });
 });
