@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "reflect-metadata";
 import { z } from "zod";
+import { Param, Tool } from "../../../src/core/decorators";
+import { ToolNotFoundError, ToolValidationError } from "../../../src/core/errors";
 import { BestMCP } from "../../../src/core/server";
-import { Tool, Param } from "../../../src/core/decorators";
-import { ToolValidationError, ToolNotFoundError } from "../../../src/core/errors";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -59,7 +59,7 @@ describe("BestMCP", () => {
         @Tool("测试可选参数")
         test(
           @Param(z.string(), "必填参数") required: string,
-          @Param(z.number().optional(), "可选参数") optional?: number
+          @Param(z.number().optional(), "可选参数") optional?: number,
         ): string {
           return `${required}:${optional || "default"}`;
         }
@@ -109,11 +109,11 @@ describe("BestMCP", () => {
           properties: {
             param: {
               type: "string",
-              description: "测试参数"
-            }
+              description: "测试参数",
+            },
           },
-          required: ["param"]
-        }
+          required: ["param"],
+        },
       });
     });
   });
@@ -132,10 +132,16 @@ describe("BestMCP", () => {
         }
 
         @Tool("对象参数测试")
-        withObject(@Param(z.object({
-          name: z.string(),
-          age: z.number()
-        }), "用户对象") user: { name: string; age: number }): string {
+        withObject(
+          @Param(
+            z.object({
+              name: z.string(),
+              age: z.number(),
+            }),
+            "用户对象",
+          )
+          user: { name: string; age: number },
+        ): string {
           return `${user.name} is ${user.age} years old`;
         }
       }
@@ -155,7 +161,7 @@ describe("BestMCP", () => {
 
     it("should execute tool with object arguments", async () => {
       const result = await mcp.executeTool("withObject", {
-        user: { name: "John", age: 30 }
+        user: { name: "John", age: 30 },
       });
       expect(result).toBe("John is 30 years old");
     });
@@ -220,7 +226,7 @@ describe("BestMCP", () => {
       const metadata = mcp.getToolMetadata("test");
       expect(metadata).toMatchObject({
         name: "test",
-        description: "测试工具"
+        description: "测试工具",
       });
       expect(metadata?.parameters).toBeDefined();
     });
@@ -268,7 +274,7 @@ describe("BestMCP", () => {
       const stats = mcp.getToolStats();
       expect(stats).toEqual({
         totalTools: 0,
-        toolNames: []
+        toolNames: [],
       });
     });
 
@@ -348,7 +354,7 @@ describe("BestMCP", () => {
         multiParam(
           @Param(z.string(), "字符串参数") str: string,
           @Param(z.number().optional(), "可选数字") num?: number,
-          @Param(z.boolean(), "布尔参数") flag: boolean = true
+          @Param(z.boolean(), "布尔参数") flag: boolean = true,
         ): string {
           return `${str}:${num || "default"}:${flag}`;
         }
@@ -370,14 +376,14 @@ describe("BestMCP", () => {
     it("should handle multiple parameters with optional ones", async () => {
       const result = await mcp.executeTool("multiParam", {
         str: "test",
-        flag: false
+        flag: false,
       });
       expect(result).toBe("test:default:false");
     });
 
     it("should handle array parameters", async () => {
       const result = await mcp.executeTool("arrayParam", {
-        arr: ["a", "b", "c"]
+        arr: ["a", "b", "c"],
       });
       expect(result).toBe("a,b,c");
     });

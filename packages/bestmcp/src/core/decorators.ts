@@ -1,15 +1,7 @@
 import "reflect-metadata";
 import type { z } from "zod";
-import {
-  TOOL_PARAM_METADATA,
-  TOOLS_METADATA,
-  type ToolMetadata,
-} from "./types";
-import {
-  extractParameters,
-  getParamNames,
-  isZodSchemaOptional,
-} from "./validation";
+import { TOOL_PARAM_METADATA, TOOLS_METADATA, type ToolMetadata } from "./types";
+import { extractParameters, getParamNames, isZodSchemaOptional } from "./validation";
 
 // 工具装饰器
 export function Tool(description?: string): MethodDecorator {

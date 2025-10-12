@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type JsonSchema, type ParamTypeMetadata, TOOL_PARAM_METADATA } from './types';
+import { type JsonSchema, type ParamTypeMetadata, TOOL_PARAM_METADATA } from "./types";
 
 // 参数名提取函数
 export function getParamNames(func: (...args: unknown[]) => unknown): string[] {

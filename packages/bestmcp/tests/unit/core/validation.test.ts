@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import "reflect-metadata";
 import { z } from "zod";
 import {
+  extractParameters,
   getParamNames,
+  inferTypeSchema,
   isZodSchemaOptional,
   zodSchemaToJsonSchema,
-  extractParameters,
-  inferTypeSchema
 } from "../../../src/core/validation";
 
 describe("getParamNames", () => {
@@ -75,7 +75,7 @@ describe("isZodSchemaOptional", () => {
   it("should return false for complex schemas", () => {
     const complexSchema = z.object({
       name: z.string(),
-      age: z.number()
+      age: z.number(),
     });
     expect(isZodSchemaOptional(complexSchema)).toBe(false);
   });
@@ -87,7 +87,7 @@ describe("isZodSchemaOptional", () => {
       ...schema,
       isOptional: () => {
         throw new Error("Test error");
-      }
+      },
     };
     expect(isZodSchemaOptional(mockSchema as any)).toBe(false);
   });
@@ -120,7 +120,7 @@ describe("zodSchemaToJsonSchema", () => {
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "string",
-        minLength: 5
+        minLength: 5,
       });
     });
 
@@ -129,7 +129,7 @@ describe("zodSchemaToJsonSchema", () => {
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "string",
-        maxLength: 10
+        maxLength: 10,
       });
     });
 
@@ -138,18 +138,22 @@ describe("zodSchemaToJsonSchema", () => {
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "string",
-        pattern: "^[a-zA-Z]+$"
+        pattern: "^[a-zA-Z]+$",
       });
     });
 
     it("should handle multiple string constraints", () => {
-      const schema = z.string().min(3).max(10).regex(/^[a-z]+$/);
+      const schema = z
+        .string()
+        .min(3)
+        .max(10)
+        .regex(/^[a-z]+$/);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "string",
         minLength: 3,
         maxLength: 10,
-        pattern: "^[a-z]+$"
+        pattern: "^[a-z]+$",
       });
     });
   });
@@ -160,7 +164,7 @@ describe("zodSchemaToJsonSchema", () => {
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "number",
-        minimum: 0
+        minimum: 0,
       });
     });
 
@@ -169,7 +173,7 @@ describe("zodSchemaToJsonSchema", () => {
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "number",
-        maximum: 100
+        maximum: 100,
       });
     });
 
@@ -179,7 +183,7 @@ describe("zodSchemaToJsonSchema", () => {
       expect(jsonSchema).toEqual({
         type: "number",
         minimum: 0,
-        maximum: 100
+        maximum: 100,
       });
     });
   });
@@ -190,15 +194,17 @@ describe("zodSchemaToJsonSchema", () => {
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "array",
-        items: { type: "string" }
+        items: { type: "string" },
       });
     });
 
     it("should handle array of complex types", () => {
-      const schema = z.array(z.object({
-        name: z.string(),
-        age: z.number()
-      }));
+      const schema = z.array(
+        z.object({
+          name: z.string(),
+          age: z.number(),
+        }),
+      );
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "array",
@@ -206,10 +212,10 @@ describe("zodSchemaToJsonSchema", () => {
           type: "object",
           properties: {
             name: { type: "string" },
-            age: { type: "number" }
+            age: { type: "number" },
           },
-          required: ["name", "age"]
-        }
+          required: ["name", "age"],
+        },
       });
     });
   });
@@ -218,48 +224,48 @@ describe("zodSchemaToJsonSchema", () => {
     it("should convert ZodObject to JSON Schema", () => {
       const schema = z.object({
         name: z.string(),
-        age: z.number()
+        age: z.number(),
       });
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "object",
         properties: {
           name: { type: "string" },
-          age: { type: "number" }
+          age: { type: "number" },
         },
-        required: ["name", "age"]
+        required: ["name", "age"],
       });
     });
 
     it("should handle optional fields", () => {
       const schema = z.object({
         name: z.string(),
-        age: z.number().optional()
+        age: z.number().optional(),
       });
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "object",
         properties: {
           name: { type: "string" },
-          age: { type: "string" }  // Zod optional gets unwrapped to string in our implementation
+          age: { type: "string" }, // Zod optional gets unwrapped to string in our implementation
         },
-        required: ["name"]
+        required: ["name"],
       });
     });
 
     it("should extract description from Zod fields", () => {
       const schema = z.object({
         name: z.string().describe("User's full name"),
-        age: z.number().describe("User's age in years")
+        age: z.number().describe("User's age in years"),
       });
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "object",
         properties: {
           name: { type: "string", description: "User's full name" },
-          age: { type: "number", description: "User's age in years" }
+          age: { type: "number", description: "User's age in years" },
         },
-        required: ["name", "age"]
+        required: ["name", "age"],
       });
     });
   });
@@ -270,7 +276,7 @@ describe("zodSchemaToJsonSchema", () => {
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "string",
-        enum: ["red", "green", "blue"]
+        enum: ["red", "green", "blue"],
       });
     });
 
@@ -279,7 +285,7 @@ describe("zodSchemaToJsonSchema", () => {
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
         type: "string",
-        enum: ["red"]
+        enum: ["red"],
       });
     });
   });
@@ -289,7 +295,7 @@ describe("zodSchemaToJsonSchema", () => {
       const schema = z.union([z.string(), z.number()]);
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
-        type: "string"
+        type: "string",
       });
     });
   });
@@ -299,7 +305,7 @@ describe("zodSchemaToJsonSchema", () => {
       const schema = z.string().optional();
       const jsonSchema = zodSchemaToJsonSchema(schema);
       expect(jsonSchema).toEqual({
-        type: "string"
+        type: "string",
       });
     });
   });
@@ -309,7 +315,7 @@ describe("zodSchemaToJsonSchema", () => {
       const unknownSchema = {} as any;
       const jsonSchema = zodSchemaToJsonSchema(unknownSchema);
       expect(jsonSchema).toEqual({
-        type: "string"
+        type: "string",
       });
     });
   });
@@ -336,7 +342,7 @@ describe("inferTypeSchema", () => {
   it("should infer array type", () => {
     expect(inferTypeSchema(Array)).toEqual({
       type: "array",
-      items: { type: "string" }
+      items: { type: "string" },
     });
   });
 
@@ -361,7 +367,7 @@ describe("extractParameters", () => {
     const result = extractParameters();
     expect(result).toEqual({
       properties: {},
-      required: []
+      required: [],
     });
   });
 
@@ -369,7 +375,7 @@ describe("extractParameters", () => {
     const result = extractParameters({}, "testMethod");
     expect(result).toEqual({
       properties: {},
-      required: []
+      required: [],
     });
   });
 
@@ -378,7 +384,7 @@ describe("extractParameters", () => {
     const result = extractParameters({}, "testMethod", [String, Number]);
     expect(result).toEqual({
       properties: {},
-      required: []
+      required: [],
     });
   });
 });

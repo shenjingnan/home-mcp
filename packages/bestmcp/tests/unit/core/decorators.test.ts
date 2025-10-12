@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "reflect-metadata";
 import { z } from "zod";
-import { Tool, Param } from "../../../src/core/decorators";
-import { TOOLS_METADATA, TOOL_PARAM_METADATA } from "../../../src/core/types";
+import { Param, Tool } from "../../../src/core/decorators";
+import { TOOL_PARAM_METADATA, TOOLS_METADATA } from "../../../src/core/types";
 
 describe("Tool decorator", () => {
   beforeEach(() => {
@@ -51,15 +51,9 @@ describe("Tool decorator", () => {
     class TestService {}
 
     // 模拟无效的装饰器调用
-    const invalidDecorator = Tool("test")(
-      null as any,
-      "invalidMethod",
-      null as any
-    );
+    const _invalidDecorator = Tool("test")(null as any, "invalidMethod", null as any);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Tool decorator: descriptor or target is undefined for invalidMethod"
-    );
+    expect(consoleSpy).toHaveBeenCalledWith("Tool decorator: descriptor or target is undefined for invalidMethod");
 
     consoleSpy.mockRestore();
   });
@@ -167,10 +161,7 @@ describe("Param decorator", () => {
 
   it("should handle multiple parameters", () => {
     class TestService {
-      testMethod(
-        @Param(z.string(), "第一个参数") str: string,
-        @Param(z.number(), "第二个参数") num: number
-      ): string {
+      testMethod(@Param(z.string(), "第一个参数") str: string, @Param(z.number(), "第二个参数") num: number): string {
         return `${str}:${num}`;
       }
     }
@@ -250,9 +241,9 @@ describe("Decorator integration", () => {
     class TestService {
       @Tool("混合参数测试")
       mixed(
-        @Param(z.string(), "必填字符串") required: string,
-        @Param(z.number().optional(), "可选数字") optional?: number,
-        @Param(z.boolean(), "必填布尔") requiredBool: boolean
+        @Param(z.string(), "必填字符串") _required: string,
+        @Param(z.number().optional(), "可选数字") _optional?: number,
+        @Param(z.boolean(), "必填布尔") _requiredBool: boolean,
       ): void {
         // 实现
       }
