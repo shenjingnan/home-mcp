@@ -48,31 +48,28 @@ export function separatePathParams<T extends Record<string, unknown>>(
  * 支持两种占位符格式：
  * 1. `:paramName` - Express 风格（如 `/api/logbook/:start_time`）
  * 2. `{paramName}` - OpenAPI 风格（如 `/api/logbook/{start_time}`）
- * 
+ *
  * @param template 路径模板，包含占位符
  * @param params 路径参数对象
  * @returns 替换后的完整路径
- * 
+ *
  * @example
  * ```typescript
  * buildPath('/api/logbook/:start_time', { start_time: '2024-01-01' })
  * 输出结果: '/api/logbook/2024-01-01'
- * 
+ *
  * buildPath('/api/logbook/{start_time}', { start_time: '2024-01-01' })
  * 输出结果: '/api/logbook/2024-01-01'
- * 
+ *
  * buildPath('/api/users/:userId/posts/:postId', { userId: '123', postId: '456' })
  * 输出结果: '/api/users/123/posts/456'
- * 
+ *
  * 注意：如果参数值为 undefined 或不存在，保持原样或移除该段
  * buildPath('/api/logbook/:start_time', {})
  * 输出结果: '/api/logbook'
  * ```
  */
-export function buildPath(
-  template: string,
-  params?: Record<string, string | number | boolean | undefined>,
-): string {
+export function buildPath(template: string, params?: Record<string, string | number | boolean | undefined>): string {
   if (!params || Object.keys(params).length === 0) {
     // 如果没有参数，移除所有占位符段
     return template
