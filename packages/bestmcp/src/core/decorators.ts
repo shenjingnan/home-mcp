@@ -1,15 +1,15 @@
-import type { z } from "zod";
 import "reflect-metadata";
+import type { z } from "zod";
 import {
-  type ToolMetadata,
+  TOOL_PARAM_METADATA,
   TOOLS_METADATA,
-  TOOL_PARAM_METADATA
-} from './types';
+  type ToolMetadata,
+} from "./types";
 import {
   extractParameters,
+  getParamNames,
   isZodSchemaOptional,
-  getParamNames
-} from './validation';
+} from "./validation";
 
 // 工具装饰器
 export function Tool(description?: string): MethodDecorator {
@@ -49,7 +49,7 @@ export function Tool(description?: string): MethodDecorator {
 // 参数装饰器
 export function Param(zodSchema: z.ZodType<unknown>, description?: string): ParameterDecorator {
   return (target: object, propertyKey: string | symbol | undefined, parameterIndex: number) => {
-    // Type guard to ensure propertyKey is string | symbol (excluding undefined)
+    // 类型保护，确保 propertyKey 为 string 或 symbol（排除 undefined）
     if (propertyKey === undefined) {
       return;
     }
