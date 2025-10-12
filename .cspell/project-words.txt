@@ -24,6 +24,7 @@ shebang
 smart-home
 sourcemap
 stdio
+tsc
 tsconfig-paths
 tsup
 vitest

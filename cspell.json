@@ -4,6 +4,7 @@
   "enableFiletypes": ["typescript", "javascript", "json", "markdown", "yaml", "toml"],
   "files": ["**/*.{ts,js,json,md,yml,yaml,toml}"],
   "ignorePaths": [
+    "docs/out/**",
     "dist/**",
     "node_modules/**",
     "pnpm-lock.yaml",
