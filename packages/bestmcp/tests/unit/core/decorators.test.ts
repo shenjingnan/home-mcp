@@ -51,7 +51,7 @@ describe("工具装饰器", () => {
     class TestService {}
 
     // 模拟无效的装饰器调用
-    const _invalidDecorator = Tool("test")(null as any, "invalidMethod", null as any);
+    Tool("test")(null as unknown as object, "invalidMethod", null as unknown as PropertyDescriptor);
 
     expect(consoleSpy).toHaveBeenCalledWith("工具装饰器: 描述符或目标对象对于 invalidMethod 未定义");
 
@@ -135,7 +135,7 @@ describe("参数装饰器", () => {
 
     // 测试 undefined propertyKey 的情况
     const decorator = Param(z.string(), "test");
-    decorator(TestService.prototype, undefined as any, 0);
+    decorator(TestService.prototype, undefined as unknown as string | symbol, 0);
 
     // 应该没有任何错误抛出
     expect(consoleSpy).not.toHaveBeenCalled();
@@ -153,7 +153,7 @@ describe("参数装饰器", () => {
 
     // 尝试在不存在的属性上应用装饰器
     expect(() => {
-      decorator(TestService.prototype, "nonExistentMethod" as any, 0);
+      decorator(TestService.prototype, "nonExistentMethod" as unknown as string | symbol, 0);
     }).toThrow("在目标对象上未找到方法 nonExistentMethod");
 
     consoleSpy.mockRestore();
@@ -215,7 +215,7 @@ describe("装饰器集成", () => {
     expect(tools).toHaveLength(2);
 
     // 检查第一个工具（add 方法）
-    const addTool = tools.find((t: any) => t.metadata.name === "add");
+    const addTool = tools.find((t: { metadata: { name: string; }; }) => t.metadata.name === "add");
     expect(addTool).toBeDefined();
     expect(addTool.metadata.description).toBe("加法运算");
 
@@ -226,7 +226,7 @@ describe("装饰器集成", () => {
     expect(addParams[1].name).toBe("b");
 
     // 检查第二个工具（concat 方法）
-    const concatTool = tools.find((t: any) => t.metadata.name === "concat");
+    const concatTool = tools.find((t: { metadata: { name: string; }; }) => t.metadata.name === "concat");
     expect(concatTool).toBeDefined();
     expect(concatTool.metadata.description).toBe("字符串连接");
 
@@ -242,8 +242,8 @@ describe("装饰器集成", () => {
       @Tool("混合参数测试")
       mixed(
         @Param(z.string(), "必填字符串") _required: string,
-        @Param(z.number().optional(), "可选数字") _optional?: number,
         @Param(z.boolean(), "必填布尔") _requiredBool: boolean,
+        @Param(z.number().optional(), "可选数字") _optional?: number,
       ): void {
         // 实现
       }
@@ -255,10 +255,10 @@ describe("装饰器集成", () => {
     expect(params[0].name).toBe("_required");
     expect(params[0].required).toBe(true);
 
-    expect(params[1].name).toBe("_optional");
-    expect(params[1].required).toBe(false);
+    expect(params[1].name).toBe("_requiredBool");
+    expect(params[1].required).toBe(true);
 
-    expect(params[2].name).toBe("_requiredBool");
-    expect(params[2].required).toBe(true);
+    expect(params[2].name).toBe("_optional");
+    expect(params[2].required).toBe(false);
   });
 });
