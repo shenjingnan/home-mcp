@@ -48,10 +48,10 @@ describe("BestMCP", () => {
 
       const tools = mcp.getTools();
       expect(tools).toHaveLength(2);
-      expect(tools[0].name).toBe("add");
-      expect(tools[0].description).toBe("测试加法");
-      expect(tools[1].name).toBe("multiply");
-      expect(tools[1].description).toBe("测试乘法");
+      expect(tools[0]?.name).toBe("add");
+      expect(tools[0]?.description).toBe("测试加法");
+      expect(tools[1]?.name).toBe("multiply");
+      expect(tools[1]?.description).toBe("测试乘法");
     });
 
     it("应该注册带有可选参数的工具", () => {
@@ -69,8 +69,8 @@ describe("BestMCP", () => {
 
       const tools = mcp.getTools();
       expect(tools).toHaveLength(1);
-      expect(tools[0].parameters.required).toEqual(["required"]);
-      expect(tools[0].parameters.properties).toHaveProperty("optional");
+      expect(tools[0]?.parameters.required).toEqual(["required"]);
+      expect(tools[0]?.parameters.properties).toHaveProperty("optional");
     });
 
     it("应该处理没有工具的服务类", () => {
@@ -307,7 +307,7 @@ describe("BestMCP", () => {
       // Create a server without proper initialization
       const incompleteServer = new BestMCP("test");
       // Force server to be undefined by accessing private property
-      (incompleteServer as any).server = undefined;
+      (incompleteServer as unknown as { server: undefined }).server = undefined;
 
       await expect(incompleteServer.startStdioServer()).rejects.toThrow("MCP 服务器未初始化");
     });
@@ -330,7 +330,7 @@ describe("BestMCP", () => {
       mcp.register(TestService);
 
       // Mock the async methods to avoid actual server startup
-      const setupToolRequestHandlersSpy = vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      const setupToolRequestHandlersSpy = vi.spyOn(mcp as unknown as { setupToolRequestHandlers: () => void }, "setupToolRequestHandlers").mockImplementation(() => {});
       const startStdioServerSpy = vi.spyOn(mcp, "startStdioServer").mockResolvedValue(undefined);
 
       // Test that run method completes without throwing an error
