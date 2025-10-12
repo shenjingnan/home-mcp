@@ -1,60 +1,9 @@
 #!/usr/bin/env node
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { BestMCP, Param, Tool } from "bestmcp";
 import z from "zod";
-
-// 动态读取 package.json 中的版本号
-function getPackageVersion(): string {
-  try {
-    const packageJsonPath = join(__dirname, "..", "package.json");
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-    return packageJson.version || "0.0.1";
-  } catch (_error) {
-    console.warn("无法读取 package.json 中的版本号，使用默认版本 0.0.1");
-    return "0.0.1";
-  }
-}
-
-interface HassState {
-  attributes: Record<string, unknown>;
-  entity_id: string;
-  last_changed: string;
-  state: string;
-}
-
-interface HassConfig extends Record<string, unknown> {
-  components: string[];
-  config_dir: string;
-  elevation: number;
-  latitude: number;
-  location_name: string;
-  longitude: number;
-  time_zone: string;
-  unit_system: Record<string, string>;
-  version: string;
-  whitelist_external_dirs: string[];
-}
-
-interface HassHistory {
-  attributes: Record<string, unknown>;
-  entity_id: string;
-  last_changed: string;
-  last_updated: string;
-  state: string;
-}
-
-type HassMinimalHistory = Pick<HassHistory, "last_changed" | "state">;
-
-interface HassLogbook {
-  context_user_id: string | null;
-  domain: string;
-  entity_id: string;
-  message: string;
-  name: string;
-  when: string;
-}
+import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassState } from "./types";
+import { buildPath, getPackageVersion, separatePathParams } from "./utils";
 
 class HassService {
   hassToken = (process.env["HASS_TOKEN"] ?? "").trim();
@@ -230,15 +179,11 @@ class HassService {
      *   ]
      * ]
      */
+    const { filter_entity_id, ...queryParams } = payload;
     return this.makeHassRequest<Array<HassHistory | HassMinimalHistory>>(
-      `/api/history/period/${payload.filter_entity_id}`,
+      `/api/history/period/${filter_entity_id}`,
       "GET",
-      {
-        end_time: payload.end_time,
-        minimal_response: payload.minimal_response,
-        no_attributes: payload.no_attributes,
-        significant_changes_only: payload.significant_changes_only,
-      },
+      queryParams,
     );
   }
 
@@ -246,12 +191,13 @@ class HassService {
   getLogbook(
     @Param(
       z.object({
+        start_time: z.string().optional().describe("格式为 YYYY-MM-DDThh:mm:ssTZD 的开始的时间段的起始时间"),
         entity: z.string().optional().describe("用于筛选某个实体"),
-        end_time: z.string().optional().describe("用于选择从指定 <timestamp>（URL 编码格式）开始的时间段的结束时间"),
+        end_time: z.string().optional().describe("格式为 YYYY-MM-DDThh:mm:ssTZD 的开始的时间段的结束时间"),
       }),
       "查询参数",
     )
-    payload: { entity?: string; end_time?: string },
+    payload?: { start_time?: string; entity?: string; end_time?: string },
   ) {
     /**
      * 返回一个日志条目的数组。
@@ -287,10 +233,12 @@ class HassService {
      *   }
      * ]
      */
-    return this.makeHassRequest<HassLogbook[]>("/api/logbook", "GET", {
-      entity: payload.entity,
-      end_time: payload.end_time,
-    });
+
+    const { pathParams, queryParams } = separatePathParams(payload, ["start_time"]);
+
+    const path = buildPath("/api/logbook/:start_time", pathParams as Record<string, string>);
+
+    return this.makeHassRequest<HassLogbook[]>(path, "GET", queryParams);
   }
 
   @Tool("获取 Home Assistant 中所有实体的状态信息")
@@ -301,7 +249,7 @@ class HassService {
       }),
       "查询参数",
     )
-    payload: { entity_id?: string },
+    payload?: { entity_id?: string },
   ) {
     /**
      * 获取 Home Assistant 中所有实体的状态信息
@@ -309,9 +257,10 @@ class HassService {
      *   - entity_id=<entity_id> 用于筛选某个实体。
      * @returns 返回一个状态对象数组。每个状态对象包含以下属性：entity_id、state、last_changed 和 attributes。
      */
-    return this.makeHassRequest<HassState[]>("/api/states", "GET", {
-      entity_id: payload.entity_id,
-    });
+    if (payload?.entity_id) {
+      return this.makeHassRequest<HassState[]>(`/api/states/${payload.entity_id}`, "GET");
+    }
+    return this.makeHassRequest<HassState[]>("/api/states", "GET");
   }
 
   @Tool("获取当前 Home Assistant 会话期间记录的所有错误日志")
@@ -362,11 +311,10 @@ class HassService {
      *   }
      * ]
      */
-    const path = `/api/calendars${payload.calendar_entity_id ? `/${payload.calendar_entity_id}` : ""}`;
-    return this.makeHassRequest<{ entity_id: string; name: string }[]>(path, "GET", {
-      end_time: payload.end_time,
-      start_time: payload.start_time,
-    });
+    const { pathParams, queryParams } = separatePathParams(payload, ["calendar_entity_id"]);
+
+    const path = buildPath("/api/calendars/:calendar_entity_id", pathParams as Record<string, string>);
+    return this.makeHassRequest<{ entity_id: string; name: string }[]>(path, "GET", queryParams);
   }
 
   @Tool("更新或创建一个状态")
