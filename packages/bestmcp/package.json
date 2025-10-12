@@ -23,9 +23,7 @@
   "keywords": [
     "mcp",
     "modelcontextprotocol",
-    "typescript",
-    "decorators",
-    "server"
+    "typescript"
   ],
   "author": "shenjingnan <sjn.code@gmail.com>",
   "license": "MIT",
