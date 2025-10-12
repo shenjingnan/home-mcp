@@ -280,14 +280,14 @@ describe("zodSchemaToJsonSchema", () => {
       });
     });
 
-  it("应该优雅地处理单值枚举", () => {
-    const schema = z.enum(["red"]);
-    const jsonSchema = zodSchemaToJsonSchema(schema);
-    expect(jsonSchema).toEqual({
-      type: "string",
-      enum: ["red"],
+    it("应该优雅地处理单值枚举", () => {
+      const schema = z.enum(["red"]);
+      const jsonSchema = zodSchemaToJsonSchema(schema);
+      expect(jsonSchema).toEqual({
+        type: "string",
+        enum: ["red"],
+      });
     });
-  });
   });
 
   describe("联合类型", () => {

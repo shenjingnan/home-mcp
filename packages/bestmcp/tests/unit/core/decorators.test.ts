@@ -215,7 +215,7 @@ describe("装饰器集成", () => {
     expect(tools).toHaveLength(2);
 
     // 检查第一个工具（add 方法）
-    const addTool = tools.find((t: { metadata: { name: string; }; }) => t.metadata.name === "add");
+    const addTool = tools.find((t: { metadata: { name: string } }) => t.metadata.name === "add");
     expect(addTool).toBeDefined();
     expect(addTool.metadata.description).toBe("加法运算");
 
@@ -226,7 +226,7 @@ describe("装饰器集成", () => {
     expect(addParams[1].name).toBe("b");
 
     // 检查第二个工具（concat 方法）
-    const concatTool = tools.find((t: { metadata: { name: string; }; }) => t.metadata.name === "concat");
+    const concatTool = tools.find((t: { metadata: { name: string } }) => t.metadata.name === "concat");
     expect(concatTool).toBeDefined();
     expect(concatTool.metadata.description).toBe("字符串连接");
 

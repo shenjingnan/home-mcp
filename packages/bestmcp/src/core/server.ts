@@ -281,7 +281,7 @@ export class BestMCP {
     if (this.expectsSingleObjectParameter(tool)) {
       // 对于单个对象参数，需要提取实际的对象值
       const parameters = tool.metadata.parameters;
-      if (parameters && parameters.properties && Object.keys(parameters.properties).length === 1) {
+      if (parameters?.properties && Object.keys(parameters.properties).length === 1) {
         const paramName = Object.keys(parameters.properties)[0];
         if (paramName) {
           return args[paramName] as Record<string, unknown>;

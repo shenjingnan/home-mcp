@@ -330,7 +330,9 @@ describe("BestMCP", () => {
       mcp.register(TestService);
 
       // Mock the async methods to avoid actual server startup
-      const setupToolRequestHandlersSpy = vi.spyOn(mcp as unknown as { setupToolRequestHandlers: () => void }, "setupToolRequestHandlers").mockImplementation(() => {});
+      const setupToolRequestHandlersSpy = vi
+        .spyOn(mcp as unknown as { setupToolRequestHandlers: () => void }, "setupToolRequestHandlers")
+        .mockImplementation(() => {});
       const startStdioServerSpy = vi.spyOn(mcp, "startStdioServer").mockResolvedValue(undefined);
 
       // Test that run method completes without throwing an error
