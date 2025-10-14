@@ -17,11 +17,18 @@ import {
  * 灯光控制服务类
  * 提供语义化的灯光控制功能，封装 Home Assistant Light API 调用
  */
+interface IHassService {
+  getStates(params?: { entity_id?: string }): Promise<HassState[]>;
+  callServices(params: { domain: string; service: string; service_data: Record<string, unknown> }): Promise<{
+    changed_states?: HassState[];
+  }>;
+}
+
 export class LightControlService {
-  private static hassServiceInstance: any;
+  private static hassServiceInstance: IHassService | null = null;
 
   // 设置 HassService 实例（在注册前调用）
-  static setHassService(hassService: any) {
+  static setHassService(hassService: IHassService) {
     LightControlService.hassServiceInstance = hassService;
   }
 

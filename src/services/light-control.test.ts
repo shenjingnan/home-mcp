@@ -262,7 +262,7 @@ describe("LightControlService", () => {
       // Assert
       expect(result.success).toBe(false);
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0]).toContain("INVALID_BRIGHTNESS");
+      expect(result.errors![0]).toContain("INVALID_BRIGHTNESS");
       expect(result.affected_entities).toHaveLength(0);
     });
 
@@ -280,7 +280,7 @@ describe("LightControlService", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.errors[0]).toContain("INVALID_BRIGHTNESS");
+      expect(result.errors![0]).toContain("INVALID_BRIGHTNESS");
     });
 
     it("应该处理RGB颜色验证错误", async () => {
@@ -297,7 +297,7 @@ describe("LightControlService", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.errors[0]).toContain("INVALID_COLOR");
+      expect(result.errors![0]).toContain("INVALID_COLOR");
     });
 
     it("应该处理色温值超出范围错误", async () => {
@@ -314,7 +314,7 @@ describe("LightControlService", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.errors[0]).toContain("INVALID_TEMPERATURE");
+      expect(result.errors![0]).toContain("INVALID_TEMPERATURE");
     });
 
     it("应该处理服务调用失败", async () => {
@@ -334,14 +334,15 @@ describe("LightControlService", () => {
       // Assert
       expect(result.success).toBe(false);
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0]).toContain("SERVICE_CALL_FAILED");
+      expect(result.errors![0]).toContain("SERVICE_CALL_FAILED");
     });
 
     it("应该处理不支持的操作类型", async () => {
       // Arrange
       const params: LightControlParams = {
         entity_id: "light.test",
-        action: "invalid_action" as any,
+        // @ts-expect-error - 测试无效的 action 类型
+        action: "invalid_action",
       };
 
       // Act
@@ -350,7 +351,7 @@ describe("LightControlService", () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.errors[0]).toContain("UNSUPPORTED_ACTION");
+      expect(result.errors![0]).toContain("UNSUPPORTED_ACTION");
     });
   });
 
@@ -366,7 +367,6 @@ describe("LightControlService", () => {
           color_temp: 300,
         },
         last_changed: "2024-01-01T12:00:00Z",
-        last_updated: "2024-01-01T12:00:00Z",
       },
       {
         entity_id: "light.bedroom",
@@ -375,7 +375,6 @@ describe("LightControlService", () => {
           friendly_name: "Bedroom Light",
         },
         last_changed: "2024-01-01T11:00:00Z",
-        last_updated: "2024-01-01T11:00:00Z",
       },
       {
         entity_id: "switch.fan", // 非灯光设备
@@ -384,7 +383,6 @@ describe("LightControlService", () => {
           friendly_name: "Ceiling Fan",
         },
         last_changed: "2024-01-01T10:00:00Z",
-        last_updated: "2024-01-01T10:00:00Z",
       },
     ];
 
@@ -461,7 +459,6 @@ describe("LightControlService", () => {
           state: "on",
           attributes: { friendly_name: "Kitchen Main Light" },
           last_changed: "2024-01-01T12:00:00Z",
-          last_updated: "2024-01-01T12:00:00Z",
         },
       ];
 
