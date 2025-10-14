@@ -3,7 +3,7 @@
  */
 
 // 导出原有的基础类型
-export * from '../types';
+export * from "../types";
 
 // 导出灯光控制相关类型
-export * from './light';
+export * from "./light";

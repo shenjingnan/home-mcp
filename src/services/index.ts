@@ -1,1 +1,1 @@
-export { LightControlService } from './light-control';
+export { LightControlService } from "./light-control";

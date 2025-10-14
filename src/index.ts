@@ -2,9 +2,9 @@
 
 import { BestMCP, Param, Tool } from "bestmcp";
 import z from "zod";
+import { LightControlService } from "./services";
 import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassState } from "./types";
 import { buildPath, getPackageVersion, separatePathParams } from "./utils";
-import { LightControlService } from "./services";
 
 class HassService {
   hassToken = (process.env["HASS_TOKEN"] ?? "").trim();
