@@ -113,6 +113,7 @@ export class BestMCP {
 
     // 注册工具
     const tools = Reflect.getMetadata(TOOLS_METADATA, serviceClass) || [];
+    console.log(JSON.stringify(tools, null, 2));
     tools.forEach((tool: { metadata: ToolMetadata; method: (...args: unknown[]) => unknown; propertyKey: string }) => {
       // 获取参数的 Zod schema 信息
       const paramZodSchemas = this.extractParamZodSchemas(serviceClass, tool.propertyKey);
