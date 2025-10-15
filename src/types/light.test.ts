@@ -153,7 +153,7 @@ describe("Light Types", () => {
 
       expect(result.lights).toHaveLength(1);
       expect(result.total_count).toBe(1);
-      expect(result.groups?.living).toBeDefined();
+      expect(result.groups?.["living"]).toBeDefined();
     });
   });
 

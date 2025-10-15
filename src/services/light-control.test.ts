@@ -397,16 +397,16 @@ describe("LightControlService", () => {
       const result = await lightService.getLightStatus(params);
 
       // Debug - 打印原始数据
-      console.log("原始灯光状态:", mockLightStates[0].attributes);
+      console.log("原始灯光状态:", mockLightStates[0]?.attributes);
       console.log("转换后的灯光信息:", result.lights[0]);
 
       // Assert
       expect(result.lights).toHaveLength(2); // 只有2个灯光设备
-      expect(result.lights[0].entity_id).toBe("light.living_room");
-      expect(result.lights[0].state).toBe("on");
-      expect(result.lights[0].brightness).toBe(100); // 255/255*100
-      expect(result.lights[1].entity_id).toBe("light.bedroom");
-      expect(result.lights[1].state).toBe("off");
+      expect(result.lights[0]?.entity_id).toBe("light.living_room");
+      expect(result.lights[0]?.state).toBe("on");
+      expect(result.lights[0]?.brightness).toBe(100); // 255/255*100
+      expect(result.lights[1]?.entity_id).toBe("light.bedroom");
+      expect(result.lights[1]?.state).toBe("off");
       expect(result.total_count).toBe(2);
       expect(result.groups).toBeUndefined();
     });
@@ -425,7 +425,7 @@ describe("LightControlService", () => {
 
       // Assert
       expect(result.lights).toHaveLength(1);
-      expect(result.lights[0].entity_id).toBe("light.living_room");
+      expect(result.lights[0]?.entity_id).toBe("light.living_room");
       expect(result.total_count).toBe(1);
     });
 
@@ -443,7 +443,7 @@ describe("LightControlService", () => {
 
       // Assert
       expect(result.lights).toHaveLength(1);
-      expect(result.lights[0].entity_id).toBe("light.living_room");
+      expect(result.lights[0]?.entity_id).toBe("light.living_room");
     });
 
     it("应该支持按房间分组", async () => {
@@ -488,10 +488,10 @@ describe("LightControlService", () => {
       const result = await lightService.getLightStatus(params);
 
       // Assert
-      expect(result.lights[0].brightness).toBeUndefined();
-      expect(result.lights[0].color).toBeUndefined();
-      expect(result.lights[0].temperature).toBeUndefined();
-      expect(result.lights[0].attributes).toBeUndefined();
+      expect(result.lights[0]?.brightness).toBeUndefined();
+      expect(result.lights[0]?.color).toBeUndefined();
+      expect(result.lights[0]?.temperature).toBeUndefined();
+      expect(result.lights[0]?.attributes).toBeUndefined();
     });
 
     it("应该正确转换色温单位", async () => {
@@ -505,7 +505,7 @@ describe("LightControlService", () => {
       const result = await lightService.getLightStatus(params);
 
       // Assert
-      expect(result.lights[0].temperature).toBe(Math.round(1000000 / 300)); // 约3333K
+      expect(result.lights[0]?.temperature).toBe(Math.round(1000000 / 300)); // 约3333K
     });
 
     it("应该处理查询失败", async () => {
