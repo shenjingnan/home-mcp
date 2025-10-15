@@ -48,8 +48,6 @@ describe("工具装饰器", () => {
     // 测试无效的装饰器参数
     const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    class TestService {}
-
     // 模拟无效的装饰器调用
     Tool("test")(null as unknown as object, "invalidMethod", null as unknown as PropertyDescriptor);
 
