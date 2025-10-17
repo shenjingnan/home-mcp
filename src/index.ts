@@ -2,6 +2,7 @@
 
 import { BestMCP, Param, Tool } from "bestmcp";
 import z from "zod";
+import { LightControlService } from "./services";
 import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassState } from "./types";
 import { buildPath, getPackageVersion, separatePathParams } from "./utils";
 
@@ -504,8 +505,15 @@ class HassService {
 // 创建 MCP 服务器实例
 const mcp = new BestMCP("智能家居 MCP 服务", getPackageVersion());
 
+// 创建 HassService 实例用于灯光控制服务
+const hassService = new HassService();
+
+// 设置灯光控制服务的依赖
+LightControlService.setHassService(hassService);
+
 // 注册服务类
 mcp.register(HassService);
+mcp.register(LightControlService);
 
 // 启动服务器
 mcp.run().catch((error: Error) => {
