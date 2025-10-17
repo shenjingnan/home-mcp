@@ -61,9 +61,10 @@ BestMCP 自动将 Zod Schema 转换为 MCP 协议所需的 JSON Schema，包括�
 ### 🚀 MCP 协议支持
 
 - 完全兼容 MCP 协议规范
-- 支持 stdio 传输层
+- **多传输层支持**：stdio 和 HTTP 传输层
 - 自动错误处理和响应格式化
 - 工具发现和调用处理
+- 支持有状态和无状态部署模式
 
 ### 📝 类型安全的工具定义
 
@@ -111,7 +112,10 @@ const mcp = new BestMCP("math-service", "1.0.0");
 mcp.register(MathService);
 
 // 启动服务器
-await mcp.run();
+await mcp.run(); // 默认 stdio 模式
+
+// 或者使用 HTTP 模式
+await mcp.run({ transport: 'http', port: 3000 });
 ```
 
 ### 高级用法示例
@@ -155,7 +159,7 @@ class UserService {
 
 const mcp = new BestMCP("user-service", "1.0.0");
 mcp.register(UserService);
-await mcp.run();
+await mcp.run(); // 或 await mcp.run({ transport: 'http', port: 8000 });
 ```
 
 ### 预定义 Schema 组合
@@ -181,6 +185,118 @@ class DataService {
     // 实现逻辑
   }
 }
+```
+
+## 多传输层支持
+
+BestMCP 支持两种传输层，满足不同的部署和使用场景。
+
+### Stdio 传输层（默认）
+
+适合传统的命令行工具集成和本地开发：
+
+```typescript
+import { BestMCP } from 'bestmcp';
+
+const mcp = new BestMCP("my-service", "1.0.0");
+mcp.register(MyService);
+
+// 默认方式
+await mcp.run();
+
+// 或显式指定
+await mcp.run({ transport: 'stdio' });
+```
+
+### HTTP 传输层
+
+适合 Web 应用集成、微服务架构和云部署：
+
+```typescript
+import { BestMCP } from 'bestmcp';
+
+const mcp = new BestMCP("my-service", "1.0.0");
+mcp.register(MyService);
+
+// 基本配置
+await mcp.run({ transport: 'http' }); // 默认端口 8000
+
+// 自定义配置
+await mcp.run({
+  transport: 'http',
+  port: 3000,
+  host: '127.0.0.1'
+});
+```
+
+#### HTTP 端点
+
+- **路径**: `/mcp`
+- **方法**: POST
+- **Content-Type**: application/json
+
+#### HTTP 请求示例
+
+```bash
+# 获取工具列表
+curl -X POST http://127.0.0.1:8000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/list"
+  }'
+
+# 调用工具
+curl -X POST http://127.0.0.1:8000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/call",
+    "params": {
+      "name": "add",
+      "arguments": { "a": 5, "b": 3 }
+    }
+  }'
+```
+
+### 配置选项
+
+```typescript
+interface RunOptions {
+  transport?: 'stdio' | 'http';  // 传输层类型，默认 'stdio'
+  port?: number;                 // HTTP 服务器端口，默认 8000
+  host?: string;                 // 服务器绑定地址，默认 '127.0.0.1'
+}
+```
+
+### 环境变量配置
+
+```typescript
+const transportType = process.env.MCP_TRANSPORT_TYPE || 'stdio';
+const port = parseInt(process.env.MCP_PORT || '8000');
+const host = process.env.MCP_HOST || '127.0.0.1';
+
+await mcp.run({
+  transport: transportType as 'stdio' | 'http',
+  port,
+  host
+});
+```
+
+### 状态管理
+
+```typescript
+// 获取传输层状态
+const status = mcp.getTransportStatus();
+console.log(status); // { type: 'http', isRunning: true, details: {...} }
+
+// 检查服务器是否运行
+const isRunning = mcp.isServerRunning();
+
+// 停止服务器
+await mcp.stopServer();
 ```
 
 ## API 文档
@@ -225,17 +341,84 @@ mcp.register(MathService);
 **返回：**
 - 工具名称数组
 
-##### async run()
+##### async run(options?: RunOptions)
 
-启动 MCP 服务器（stdio 模式）。
+启动 MCP 服务器，支持多种传输层。
+
+**参数：**
+- `options`: 可选的运行配置
+
+**RunOptions 接口：**
+```typescript
+interface RunOptions {
+  transport?: 'stdio' | 'http';  // 传输层类型，默认 'stdio'
+  port?: number;                 // HTTP 服务器端口，默认 8000
+  host?: string;                 // 服务器绑定地址，默认 '127.0.0.1'
+}
+```
+
+**示例：**
+```typescript
+// stdio 模式（默认）
+await mcp.run();
+await mcp.run({ transport: 'stdio' });
+
+// HTTP 模式
+await mcp.run({ transport: 'http' });
+await mcp.run({ transport: 'http', port: 3000, host: '0.0.0.0' });
+```
 
 ##### async startStdioServer()
 
-以 stdio 模式启动服务器。
+以 stdio 模式启动服务器（向后兼容方法）。
 
 ##### async stopServer()
 
 停止服务器。
+
+##### getTransportStatus(): TransportStatus | null
+
+获取当前传输层的运行状态。
+
+**返回：**
+- 传输层状态对象或 null
+
+**TransportStatus 接口：**
+```typescript
+interface TransportStatus {
+  type: 'stdio' | 'http';
+  isRunning: boolean;
+  details: {
+    transportType: string;
+    description: string;
+    config?: Record<string, any>;
+    [key: string]: any;
+  };
+}
+```
+
+##### getTransportStats(): TransportStats
+
+获取传输层统计信息。
+
+**返回：**
+- 传输层统计对象
+
+**TransportStats 接口：**
+```typescript
+interface TransportStats {
+  registeredTypes: ('stdio' | 'http')[];
+  currentType?: 'stdio' | 'http';
+  isRunning: boolean;
+}
+```
+
+##### isServerRunning(): boolean
+
+检查服务器是否正在运行。
+
+**返回：**
+- 布尔值表示服务器状态
 
 ### 装饰器
 
@@ -400,6 +583,36 @@ bestmcp/
 
 ## 最佳实践
 
+### 传输层选择
+
+根据使用场景选择合适的传输层：
+
+#### 开发环境
+```typescript
+// 开发时使用 stdio，便于调试
+await mcp.run({ transport: 'stdio' });
+```
+
+#### 测试环境
+```typescript
+// 测试时使用 HTTP，便于集成测试
+await mcp.run({
+  transport: 'http',
+  port: 3001,
+  host: '127.0.0.1'
+});
+```
+
+#### 生产环境
+```typescript
+// 生产环境使用 HTTP，支持负载均衡
+await mcp.run({
+  transport: 'http',
+  port: 8000,
+  host: '0.0.0.0' // 允许外部访问
+});
+```
+
 ### 代码组织
 
 ```typescript
@@ -464,5 +677,14 @@ MIT License
 ## 更多资源
 
 - [MCP 官方文档](https://modelcontextprotocol.io/)
+- [传输层支持指南](./TRANSPORT_GUIDE.md) - 详细的传输层配置和使用说明
 - [Zod 验证库文档](https://zod.dev/)
 - [TypeScript 装饰器文档](https://www.typescriptlang.org/docs/handbook/decorators.html)
+
+## 示例项目
+
+查看 `examples/` 目录中的完整示例：
+
+- `http-example.ts` - HTTP 传输层示例
+- `stdio-example.ts` - stdio 传输层示例
+- `config-example.ts` - 配置对象使用示例

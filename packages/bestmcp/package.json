@@ -18,7 +18,9 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "type:check": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
   },
   "keywords": [
     "mcp",

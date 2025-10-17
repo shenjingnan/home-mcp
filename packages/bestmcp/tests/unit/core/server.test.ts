@@ -309,7 +309,7 @@ describe("BestMCP", () => {
       // Force server to be undefined by accessing private property
       (incompleteServer as unknown as { server: undefined }).server = undefined;
 
-      await expect(incompleteServer.startStdioServer()).rejects.toThrow("MCP 服务器未初始化");
+      await expect(incompleteServer.startStdioServer()).rejects.toThrow("启动传输层失败 [stdio]");
     });
   });
 
