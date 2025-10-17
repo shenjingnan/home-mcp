@@ -1,21 +1,21 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { HTTPTransport, type HTTPTransportConfig } from "../../../../src/core/transports/http.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TransportType } from "../../../../src/core/transports/base.js";
-import { IncomingMessage, ServerResponse } from 'node:http';
+import { HTTPTransport, type HTTPTransportConfig } from "../../../../src/core/transports/http.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
 // Mock node:http module
-vi.mock('node:http', () => ({
+vi.mock("node:http", () => ({
   default: {
-    createServer: vi.fn()
+    createServer: vi.fn(),
   },
   IncomingMessage: class MockIncomingMessage {},
-  ServerResponse: class MockServerResponse {}
+  ServerResponse: class MockServerResponse {},
 }));
 
 describe("HTTPTransport", () => {
@@ -34,8 +34,8 @@ describe("HTTPTransport", () => {
       options: {
         enableJsonResponse: true,
         port: 8000,
-        host: '127.0.0.1'
-      }
+        host: "127.0.0.1",
+      },
     };
 
     transport = new HTTPTransport(config);
@@ -51,16 +51,16 @@ describe("HTTPTransport", () => {
     } as unknown as Server;
 
     mockHTTPServer = {
-      listen: vi.fn((port: number, host: string, callback: () => void) => {
+      listen: vi.fn((_port: number, _host: string, callback: () => void) => {
         callback();
       }),
       close: vi.fn(),
-      address: () => ({ port: 8000, address: '127.0.0.1' })
+      address: () => ({ port: 8000, address: "127.0.0.1" }),
     };
 
     mockStreamableTransport = {
       close: vi.fn().mockResolvedValue(undefined),
-      handleRequest: vi.fn().mockResolvedValue(undefined)
+      handleRequest: vi.fn().mockResolvedValue(undefined),
     };
 
     // Mock StreamableHTTPServerTransport constructor
@@ -69,7 +69,7 @@ describe("HTTPTransport", () => {
     });
 
     // Mock http.createServer
-    const http = require('node:http');
+    const http = require("node:http");
     http.createServer.mockReturnValue(mockHTTPServer);
   });
 
@@ -91,7 +91,7 @@ describe("HTTPTransport", () => {
     it("应该处理空配置", () => {
       const emptyConfig: HTTPTransportConfig = {
         type: TransportType.HTTP,
-        options: {}
+        options: {},
       };
       const transportWithEmptyConfig = new HTTPTransport(emptyConfig);
       expect(transportWithEmptyConfig.type).toBe(TransportType.HTTP);
@@ -106,13 +106,13 @@ describe("HTTPTransport", () => {
         sessionIdGenerator: undefined,
         enableJsonResponse: true,
         port: 8000,
-        host: '127.0.0.1'
+        host: "127.0.0.1",
       });
     });
 
     it("应该使用默认配置", async () => {
       const defaultConfig: HTTPTransportConfig = {
-        type: TransportType.HTTP
+        type: TransportType.HTTP,
       };
       const defaultTransport = new HTTPTransport(defaultConfig);
 
@@ -120,7 +120,7 @@ describe("HTTPTransport", () => {
 
       expect(StreamableHTTPServerTransport).toHaveBeenCalledWith({
         sessionIdGenerator: undefined,
-        enableJsonResponse: true
+        enableJsonResponse: true,
       });
     });
 
@@ -129,8 +129,8 @@ describe("HTTPTransport", () => {
         type: TransportType.HTTP,
         options: {
           enableJsonResponse: false,
-          customOption: 'test-value'
-        }
+          customOption: "test-value",
+        },
       };
       const customTransport = new HTTPTransport(customConfig);
 
@@ -139,7 +139,7 @@ describe("HTTPTransport", () => {
       expect(StreamableHTTPServerTransport).toHaveBeenCalledWith({
         sessionIdGenerator: undefined,
         enableJsonResponse: false,
-        customOption: 'test-value'
+        customOption: "test-value",
       });
     });
   });
@@ -152,7 +152,7 @@ describe("HTTPTransport", () => {
 
       expect(mockServer.connect).toHaveBeenCalledWith(mcpTransport);
       expect(transport.getStatus().isRunning).toBe(true);
-      expect(consoleSpy).toHaveBeenCalledWith('HTTP 传输层已启动');
+      expect(consoleSpy).toHaveBeenCalledWith("HTTP 传输层已启动");
     });
 
     it("应该处理服务器连接失败", async () => {
@@ -161,8 +161,7 @@ describe("HTTPTransport", () => {
 
       const mcpTransport = await transport.createTransport(mockServer);
 
-      await expect(transport.start(mockServer, mcpTransport))
-        .rejects.toThrow(`启动 HTTP 传输层失败: ${errorMessage}`);
+      await expect(transport.start(mockServer, mcpTransport)).rejects.toThrow(`启动 HTTP 传输层失败: ${errorMessage}`);
 
       expect(transport.getStatus().isRunning).toBe(false);
     });
@@ -173,8 +172,7 @@ describe("HTTPTransport", () => {
 
       const mcpTransport = await transport.createTransport(mockServer);
 
-      await expect(transport.start(mockServer, mcpTransport))
-        .rejects.toThrow("启动 HTTP 传输层失败: 未知错误");
+      await expect(transport.start(mockServer, mcpTransport)).rejects.toThrow("启动 HTTP 传输层失败: 未知错误");
     });
   });
 
@@ -191,7 +189,7 @@ describe("HTTPTransport", () => {
       expect(mockStreamableTransport.close).toHaveBeenCalled();
       expect(mockHTTPServer.close).toHaveBeenCalled();
       expect(transport.getStatus().isRunning).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith('HTTP 传输层已停止');
+      expect(consoleSpy).toHaveBeenCalledWith("HTTP 传输层已停止");
     });
 
     it("应该处理停止时的错误", async () => {
@@ -205,8 +203,8 @@ describe("HTTPTransport", () => {
       await transport.stop(mcpTransport);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('停止 HTTP 传输层时出错'),
-        expect.any(Error)
+        expect.stringContaining("停止 HTTP 传输层时出错"),
+        expect.any(Error),
       );
     });
 
@@ -226,12 +224,12 @@ describe("HTTPTransport", () => {
     it("应该启动 HTTP 服务器", async () => {
       await transport.createTransport(mockServer);
 
-      await transport.startHTTPServer(3000, 'localhost', '/test');
+      await transport.startHTTPServer(3000, "localhost", "/test");
 
-      const http = require('node:http');
+      const http = require("node:http");
       expect(http.createServer).toHaveBeenCalled();
-      expect(mockHTTPServer.listen).toHaveBeenCalledWith(3000, 'localhost', expect.any(Function));
-      expect(consoleSpy).toHaveBeenCalledWith('MCP HTTP 服务器监听 http://localhost:3000/test');
+      expect(mockHTTPServer.listen).toHaveBeenCalledWith(3000, "localhost", expect.any(Function));
+      expect(consoleSpy).toHaveBeenCalledWith("MCP HTTP 服务器监听 http://localhost:3000/test");
     });
 
     it("应该使用默认参数", async () => {
@@ -239,12 +237,11 @@ describe("HTTPTransport", () => {
 
       await transport.startHTTPServer();
 
-      expect(mockHTTPServer.listen).toHaveBeenCalledWith(8000, '127.0.0.1', expect.any(Function));
+      expect(mockHTTPServer.listen).toHaveBeenCalledWith(8000, "127.0.0.1", expect.any(Function));
     });
 
     it("应该在传输层未初始化时抛出错误", async () => {
-      await expect(transport.startHTTPServer())
-        .rejects.toThrow('HTTP 传输层未初始化，请先调用 createTransport');
+      await expect(transport.startHTTPServer()).rejects.toThrow("HTTP 传输层未初始化，请先调用 createTransport");
     });
   });
 
@@ -254,22 +251,22 @@ describe("HTTPTransport", () => {
 
     beforeEach(async () => {
       mockReq = {
-        method: 'POST',
-        url: '/mcp',
-        headers: {}
+        method: "POST",
+        url: "/mcp",
+        headers: {},
       } as IncomingMessage;
 
       mockRes = {
         writeHead: vi.fn(),
         end: vi.fn(),
-        headersSent: false
+        headersSent: false,
       } as unknown as ServerResponse;
 
       await transport.createTransport(mockServer);
     });
 
     it("应该处理有效的 HTTP 请求", async () => {
-      const requestBody = { test: 'data' };
+      const requestBody = { test: "data" };
 
       await transport.handleRequest(mockReq, mockRes, requestBody);
 
@@ -281,11 +278,13 @@ describe("HTTPTransport", () => {
 
       await uninitializedTransport.handleRequest(mockReq, mockRes, {});
 
-      expect(mockRes.writeHead).toHaveBeenCalledWith(500, { 'Content-Type': 'application/json' });
-      expect(mockRes.end).toHaveBeenCalledWith(JSON.stringify({
-        error: 'Transport not initialized',
-        message: 'HTTP 传输层未正确初始化'
-      }));
+      expect(mockRes.writeHead).toHaveBeenCalledWith(500, { "Content-Type": "application/json" });
+      expect(mockRes.end).toHaveBeenCalledWith(
+        JSON.stringify({
+          error: "Transport not initialized",
+          message: "HTTP 传输层未正确初始化",
+        }),
+      );
     });
 
     it("应该处理请求处理错误", async () => {
@@ -294,12 +293,14 @@ describe("HTTPTransport", () => {
 
       await transport.handleRequest(mockReq, mockRes, {});
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('处理 HTTP 请求时出错:', expect.any(Error));
-      expect(mockRes.writeHead).toHaveBeenCalledWith(500, { 'Content-Type': 'application/json' });
-      expect(mockRes.end).toHaveBeenCalledWith(JSON.stringify({
-        error: 'Internal server error',
-        message: errorMessage
-      }));
+      expect(consoleErrorSpy).toHaveBeenCalledWith("处理 HTTP 请求时出错:", expect.any(Error));
+      expect(mockRes.writeHead).toHaveBeenCalledWith(500, { "Content-Type": "application/json" });
+      expect(mockRes.end).toHaveBeenCalledWith(
+        JSON.stringify({
+          error: "Internal server error",
+          message: errorMessage,
+        }),
+      );
     });
 
     it("应该避免重复发送响应头", async () => {
@@ -322,12 +323,12 @@ describe("HTTPTransport", () => {
         type: TransportType.HTTP,
         isRunning: false,
         details: {
-          transportType: 'http',
-          description: 'HTTP 传输层',
+          transportType: "http",
+          description: "HTTP 传输层",
           config: config.options,
           hasHTTPServer: false,
-          hasTransport: false
-        }
+          hasTransport: false,
+        },
       });
     });
 
@@ -388,14 +389,14 @@ describe("HTTPTransport", () => {
         options: {
           enableJsonResponse: false,
           port: 3000,
-          host: 'localhost'
-        }
+          host: "localhost",
+        },
       };
 
       expect(config.type).toBe(TransportType.HTTP);
       expect(config.options?.enableJsonResponse).toBe(false);
       expect(config.options?.port).toBe(3000);
-      expect(config.options?.host).toBe('localhost');
+      expect(config.options?.host).toBe("localhost");
     });
   });
 

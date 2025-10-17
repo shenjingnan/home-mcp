@@ -1,7 +1,7 @@
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import { BaseTransport, TransportType, type TransportConfig } from "../../../../src/core/transports/base.js";
+import { BaseTransport, type TransportConfig, TransportType } from "../../../../src/core/transports/base.js";
 
 // 创建一个具体的 BaseTransport 实现用于测试
 class TestTransport extends BaseTransport {
@@ -9,7 +9,7 @@ class TestTransport extends BaseTransport {
   private isRunning = false;
   private mockTransport: Transport | null = null;
 
-  async createTransport(server: Server): Promise<Transport> {
+  async createTransport(_server: Server): Promise<Transport> {
     const mockTransport: Transport = {
       close: vi.fn(),
       start: vi.fn(),
@@ -23,11 +23,11 @@ class TestTransport extends BaseTransport {
     return mockTransport;
   }
 
-  async start(server: Server, transport: Transport): Promise<void> {
+  async start(_server: Server, _transport: Transport): Promise<void> {
     this.isRunning = true;
   }
 
-  async stop(transport: Transport): Promise<void> {
+  async stop(_transport: Transport): Promise<void> {
     this.isRunning = false;
     this.mockTransport = null;
   }
@@ -37,10 +37,10 @@ class TestTransport extends BaseTransport {
       type: this.type,
       isRunning: this.isRunning,
       details: {
-        transportType: 'test',
-        description: '测试传输层',
-        hasTransport: !!this.mockTransport
-      }
+        transportType: "test",
+        description: "测试传输层",
+        hasTransport: !!this.mockTransport,
+      },
     };
   }
 }
@@ -181,8 +181,8 @@ describe("BaseTransport", () => {
 
   describe("传输层类型枚举", () => {
     it("TransportType 枚举应该包含正确的值", () => {
-      expect(TransportType.STDIO).toBe('stdio');
-      expect(TransportType.HTTP).toBe('http');
+      expect(TransportType.STDIO).toBe("stdio");
+      expect(TransportType.HTTP).toBe("http");
     });
   });
 
@@ -190,16 +190,16 @@ describe("BaseTransport", () => {
     it("TransportConfig 接口应该正确工作", () => {
       const config: TransportConfig = {
         type: TransportType.STDIO,
-        options: { test: 'value' }
+        options: { test: "value" },
       };
 
       expect(config.type).toBe(TransportType.STDIO);
-      expect(config.options).toEqual({ test: 'value' });
+      expect(config.options).toEqual({ test: "value" });
     });
 
     it("TransportConfig 选项应该是可选的", () => {
       const config: TransportConfig = {
-        type: TransportType.HTTP
+        type: TransportType.HTTP,
       };
 
       expect(config.type).toBe(TransportType.HTTP);

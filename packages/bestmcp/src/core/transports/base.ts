@@ -1,12 +1,12 @@
-import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 
 /**
  * 传输层类型枚举
  */
 export enum TransportType {
-  STDIO = 'stdio',
-  HTTP = 'http'
+  STDIO = "stdio",
+  HTTP = "http",
 }
 
 /**

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "reflect-metadata";
 import { z } from "zod";
+import { Param, Tool } from "../../src/core/decorators.js";
 import { BestMCP } from "../../src/core/server.js";
-import { Tool, Param } from "../../src/core/decorators.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -23,7 +23,8 @@ class MathService {
   @Tool("斐波那契数列")
   fibonacci(@Param(z.number(), "位置") n: number): number {
     if (n <= 1) return n;
-    let a = 0, b = 1;
+    let a = 0,
+      b = 1;
     for (let i = 2; i <= n; i++) {
       [a, b] = [b, a + b];
     }
@@ -39,7 +40,7 @@ class TextService {
 
   @Tool("字符串反转")
   reverse(@Param(z.string(), "输入字符串") text: string): string {
-    return text.split('').reverse().join('');
+    return text.split("").reverse().join("");
   }
 
   @Tool("计算文本哈希")
@@ -47,7 +48,7 @@ class TextService {
     let hash = 0;
     for (let i = 0; i < text.length; i++) {
       const char = text.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // 转换为32位整数
     }
     return hash;
@@ -69,10 +70,10 @@ describe("性能基准测试", () => {
     const ITERATION_COUNT = 1000;
 
     it("应该能快速执行数学运算工具", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       const startTime = performance.now();
 
@@ -89,10 +90,10 @@ describe("性能基准测试", () => {
     });
 
     it("应该能快速执行字符串操作工具", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       const startTime = performance.now();
       const testStrings = Array.from({ length: ITERATION_COUNT }, (_, i) => `test-string-${i}`);
@@ -110,15 +111,16 @@ describe("性能基准测试", () => {
     });
 
     it("应该能处理复杂计算工具", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       const startTime = performance.now();
 
       // 测试斐波那契数列计算（相对较重的操作）
-      for (let i = 0; i < 100; i++) { // 减少迭代次数因为计算较重
+      for (let i = 0; i < 100; i++) {
+        // 减少迭代次数因为计算较重
         await mcp.executeTool("fibonacci", { n: 20 });
       }
 
@@ -133,17 +135,17 @@ describe("性能基准测试", () => {
 
   describe("传输层切换性能", () => {
     it("应该能快速切换传输层", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
       const SWITCH_COUNT = 50;
       const startTime = performance.now();
 
       for (let i = 0; i < SWITCH_COUNT; i++) {
         if (i % 2 === 0) {
-          await mcp.run({ transport: 'stdio' });
+          await mcp.run({ transport: "stdio" });
         } else {
-          await mcp.run({ transport: 'http', port: 3000 });
+          await mcp.run({ transport: "http", port: 3000 });
         }
       }
 
@@ -192,10 +194,10 @@ describe("性能基准测试", () => {
 
   describe("内存使用稳定性", () => {
     it("应该在长时间运行下保持内存稳定", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       // 模拟长时间运行
       const initialMemory = process.memoryUsage().heapUsed;
@@ -222,10 +224,10 @@ describe("性能基准测试", () => {
 
   describe("并发性能", () => {
     it("应该能处理并发工具执行", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       const CONCURRENT_COUNT = 50;
       const startTime = performance.now();
@@ -281,10 +283,10 @@ describe("性能基准测试", () => {
 
   describe("状态查询性能", () => {
     it("应该能快速查询状态信息", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       const QUERY_COUNT = 1000;
       const startTime = performance.now();
@@ -307,10 +309,10 @@ describe("性能基准测试", () => {
 
   describe("错误处理性能", () => {
     it("应该能快速处理错误情况", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'stdio' });
+      await mcp.run({ transport: "stdio" });
 
       const ERROR_COUNT = 500;
       const startTime = performance.now();

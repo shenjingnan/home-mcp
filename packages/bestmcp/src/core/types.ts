@@ -1,5 +1,5 @@
-import type { z } from "zod";
 import type { ServerCapabilities } from "@modelcontextprotocol/sdk/types.js";
+import type { z } from "zod";
 
 // 类型定义
 export interface ToolMetadata {
@@ -90,7 +90,7 @@ export function inferTypeSchema(type: unknown): JsonSchema {
 
 // 运行时配置接口
 export interface RunOptions {
-  transport?: 'stdio' | 'http';
+  transport?: "stdio" | "http";
   port?: number;
   host?: string;
 }

@@ -4,7 +4,6 @@
  * 本示例展示如何与 HTTP 传输层的 BestMCP 服务器进行交互
  */
 
-import { z } from 'zod';
 
 // MCP 响应类型定义
 interface MCPResponse {
@@ -213,7 +212,7 @@ async function demonstrateClient() {
 
       const squareRoot = await tools.sqrt(144);
       console.log(`   √144 = ${squareRoot}`);
-    } catch (error) {
+    } catch (_error) {
       console.log('   ⚠️ 数学工具不可用或调用失败');
     }
     console.log('');
@@ -233,7 +232,7 @@ async function demonstrateClient() {
       if (status.postCount !== undefined) {
         console.log(`      - 文章数量: ${status.postCount}`);
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('   ⚠️ 系统工具不可用或调用失败');
     }
     console.log('');
@@ -249,7 +248,7 @@ async function demonstrateClient() {
           console.log(`      - ${check}: ${result}`);
         });
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('   ⚠️ 健康检查工具不可用');
     }
     console.log('');
@@ -267,11 +266,11 @@ async function demonstrateClient() {
       console.log(`   🔍 搜索到 ${users.length} 个用户`);
 
       // 获取用户详情
-      if (newUser && newUser.id) {
+      if (newUser?.id) {
         const userDetails = await tools.getUser(newUser.id);
         console.log(`   📄 用户详情: ${userDetails.name}`);
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('   ⚠️ 用户管理工具不可用');
     }
     console.log('');

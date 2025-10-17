@@ -5,7 +5,7 @@
  * 包括命令行工具、批量操作、错误处理等功能
  */
 
-import { createInterface } from 'readline';
+import { createInterface } from 'node:readline';
 import { program } from 'commander';
 
 // MCP 响应类型定义
@@ -276,7 +276,7 @@ class PerformanceTester {
           duration: Date.now() - requestStartTime,
           success: true
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           duration: Date.now() - requestStartTime,
           success: false
@@ -481,8 +481,8 @@ class InteractiveCLI {
     }
 
     const toolName = parts[0];
-    const requests = parseInt(parts[1]);
-    const concurrency = parts.length > 2 ? parseInt(parts[2]) : 5;
+    const requests = parseInt(parts[1], 10);
+    const concurrency = parts.length > 2 ? parseInt(parts[2], 10) : 5;
 
     // 获取工具的默认参数
     const tool = this.tools.find(t => t.name === toolName);
@@ -491,7 +491,7 @@ class InteractiveCLI {
       return;
     }
 
-    let args = {};
+    const args = {};
     if (tool.inputSchema.properties) {
       Object.entries(tool.inputSchema.properties).forEach(([key, schema]: [string, any]) => {
         if (schema.default !== undefined) {
@@ -607,8 +607,8 @@ program
       const result = await tester.runConcurrentTest(
         options.tool,
         args,
-        parseInt(options.concurrency),
-        parseInt(options.requests)
+        parseInt(options.concurrency, 10),
+        parseInt(options.requests, 10)
       );
 
       console.log('性能测试结果:');

@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import "reflect-metadata";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   type CallToolRequest,
@@ -9,19 +10,23 @@ import {
   type Tool as MCPSDKTool,
 } from "@modelcontextprotocol/sdk/types.js";
 import { ToolNotFoundError, ToolValidationError, ZodValidationError } from "./errors.js";
+import { TransportManager } from "./transport-manager.js";
 import {
+  type BaseTransport,
+  type HTTPTransportConfig,
+  type TransportConfig,
+  TransportType,
+} from "./transports/index.js";
+import {
+  type BestMCPConfig,
   type JsonSchema,
   type ParamTypeMetadata,
+  type RunOptions,
   TOOL_PARAM_METADATA,
   TOOLS_METADATA,
   type ToolExecutor,
   type ToolMetadata,
-  type RunOptions,
-  type BestMCPConfig,
 } from "./types.js";
-import { TransportManager } from "./transport-manager.js";
-import { BaseTransport, TransportType, type TransportConfig, type HTTPTransportConfig } from "./transports/index.js";
-import { IncomingMessage, ServerResponse } from 'node:http';
 
 export class BestMCP {
   private name: string;
@@ -38,7 +43,7 @@ export class BestMCP {
     this.transportManager = new TransportManager();
 
     // 处理两种构造函数重载
-    if (typeof nameOrConfig === 'string') {
+    if (typeof nameOrConfig === "string") {
       this.name = nameOrConfig;
       this.version = version || "1.0.0";
     } else {
@@ -47,7 +52,7 @@ export class BestMCP {
       this.version = config.version || "1.0.0";
     }
 
-    this.initializeMCPServer(typeof nameOrConfig === 'object' ? nameOrConfig : undefined);
+    this.initializeMCPServer(typeof nameOrConfig === "object" ? nameOrConfig : undefined);
   }
 
   private initializeMCPServer(config?: BestMCPConfig) {
@@ -73,17 +78,17 @@ export class BestMCP {
 
   private createTransportConfig(transportType: string, options: RunOptions): TransportConfig {
     switch (transportType) {
-      case 'stdio':
+      case "stdio":
         return { type: TransportType.STDIO };
 
-      case 'http':
+      case "http":
         return {
           type: TransportType.HTTP,
           options: {
             enableJsonResponse: true, // HTTP 模式使用 JSON 响应
             port: options.port || 8000,
-            host: options.host || '127.0.0.1'
-          }
+            host: options.host || "127.0.0.1",
+          },
         } as HTTPTransportConfig;
 
       default:
@@ -419,7 +424,7 @@ export class BestMCP {
 
   // 增强的 run 方法，支持运行时选择传输层
   async run(options: RunOptions = {}): Promise<void> {
-    const transportType = options.transport || 'stdio';
+    const transportType = options.transport || "stdio";
 
     // 设置工具请求处理器
     this.setupToolRequestHandlers();
@@ -431,7 +436,7 @@ export class BestMCP {
     await this.transportManager.startCurrentTransport(this.server!);
 
     // 如果是 HTTP 传输，启动 HTTP 服务器
-    if (transportType === 'http') {
+    if (transportType === "http") {
       await this.startHTTPServer(options);
     }
 
@@ -441,26 +446,26 @@ export class BestMCP {
   }
 
   private async startHTTPServer(options: RunOptions): Promise<void> {
-    const http = await import('node:http');
+    const http = await import("node:http");
     const port = options.port || 8000;
-    const host = options.host || '127.0.0.1';
-    const path = '/mcp';
+    const host = options.host || "127.0.0.1";
+    const path = "/mcp";
 
     const server = http.createServer(async (req, res) => {
       // 只处理 POST 请求到 /mcp 路径
-      if (req.method === 'POST' && req.url === path) {
-        let body = '';
-        req.on('data', chunk => {
+      if (req.method === "POST" && req.url === path) {
+        let body = "";
+        req.on("data", (chunk) => {
           body += chunk.toString();
         });
 
-        req.on('end', async () => {
+        req.on("end", async () => {
           try {
             const parsedBody = JSON.parse(body);
             await this.handleHTTPRequest(req, res, parsedBody);
-          } catch (error) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Invalid JSON' }));
+          } catch (_error) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Invalid JSON" }));
           }
         });
       } else {
@@ -500,7 +505,7 @@ export class BestMCP {
 
   // 启动 stdio MCP 服务器（兼容性方法）
   async startStdioServer(): Promise<void> {
-    await this.run({ transport: 'stdio' });
+    await this.run({ transport: "stdio" });
   }
 
   // 检查服务器状态
@@ -516,18 +521,5 @@ export class BestMCP {
   // 获取传输层统计信息
   getTransportStats(): { registeredTypes: TransportType[]; currentType?: TransportType; isRunning: boolean } {
     return this.transportManager.getStats();
-  }
-
-  private handleError(error: unknown, context: string): never {
-    const message = error instanceof Error ? error.message : "未知错误";
-    const timestamp = new Date().toISOString();
-
-    console.error(`[${timestamp}] [${context}] 错误: ${message}`);
-
-    if (error instanceof Error) {
-      console.error(`堆栈: ${error.stack}`);
-    }
-
-    throw new Error(`[${context}] ${message}`);
   }
 }

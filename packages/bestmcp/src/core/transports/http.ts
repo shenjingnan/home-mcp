@@ -1,8 +1,11 @@
-import { StreamableHTTPServerTransport, type StreamableHTTPServerTransportOptions } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { BaseTransport, TransportType, type HTTPTransportConfig } from './base.js';
-import { IncomingMessage, ServerResponse } from 'node:http';
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import {
+  StreamableHTTPServerTransport,
+  type StreamableHTTPServerTransportOptions,
+} from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import { BaseTransport, type HTTPTransportConfig, TransportType } from "./base.js";
 
 /**
  * HTTP 传输层实现
@@ -25,14 +28,14 @@ export class HTTPTransport extends BaseTransport {
    * @param server MCP 服务器实例
    * @returns StreamableHTTPServerTransport 实例
    */
-  async createTransport(server: Server): Promise<StreamableHTTPServerTransport> {
+  async createTransport(_server: Server): Promise<StreamableHTTPServerTransport> {
     const options = this.config.options || {};
 
     // 设置默认的 HTTP 传输配置
     const httpOptions: StreamableHTTPServerTransportOptions = {
       sessionIdGenerator: undefined, // 无状态模式，简化实现
       enableJsonResponse: true, // 默认启用 JSON 响应模式
-      ...options
+      ...options,
     };
 
     this.transport = new StreamableHTTPServerTransport(httpOptions);
@@ -48,10 +51,10 @@ export class HTTPTransport extends BaseTransport {
     try {
       await server.connect(transport);
       this.isRunning = true;
-      console.log('HTTP 传输层已启动');
+      console.log("HTTP 传输层已启动");
     } catch (error) {
       this.isRunning = false;
-      throw new Error(`启动 HTTP 传输层失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      throw new Error(`启动 HTTP 传输层失败: ${error instanceof Error ? error.message : "未知错误"}`);
     }
   }
 
@@ -59,7 +62,7 @@ export class HTTPTransport extends BaseTransport {
    * 停止 HTTP 传输层
    * @param transport HTTP 传输层实例
    */
-  async stop(transport: Transport): Promise<void> {
+  async stop(_transport: Transport): Promise<void> {
     try {
       // 关闭 HTTP 传输层
       if (this.transport) {
@@ -74,9 +77,9 @@ export class HTTPTransport extends BaseTransport {
       }
 
       this.isRunning = false;
-      console.log('HTTP 传输层已停止');
+      console.log("HTTP 传输层已停止");
     } catch (error) {
-      console.error(`停止 HTTP 传输层时出错: ${error instanceof Error ? error.message : '未知错误'}`);
+      console.error(`停止 HTTP 传输层时出错: ${error instanceof Error ? error.message : "未知错误"}`);
     }
   }
 
@@ -86,31 +89,33 @@ export class HTTPTransport extends BaseTransport {
    * @param host 服务器主机地址
    * @param path MCP 请求路径
    */
-  async startHTTPServer(port: number = 8000, host: string = '127.0.0.1', path: string = '/mcp'): Promise<void> {
+  async startHTTPServer(port: number = 8000, host: string = "127.0.0.1", path: string = "/mcp"): Promise<void> {
     if (!this.transport) {
-      throw new Error('HTTP 传输层未初始化，请先调用 createTransport');
+      throw new Error("HTTP 传输层未初始化，请先调用 createTransport");
     }
 
-    const http = await import('node:http');
+    const http = await import("node:http");
 
     const server = http.createServer(async (req, res) => {
       // 只处理 POST 请求到指定路径
-      if (req.method === 'POST' && req.url === path) {
-        let body = '';
-        req.on('data', chunk => {
+      if (req.method === "POST" && req.url === path) {
+        let body = "";
+        req.on("data", (chunk) => {
           body += chunk.toString();
         });
 
-        req.on('end', async () => {
+        req.on("end", async () => {
           try {
             const parsedBody = JSON.parse(body);
             await this.handleRequest(req, res, parsedBody);
-          } catch (error) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({
-              error: 'Invalid JSON',
-              message: '请求体包含无效的 JSON 数据'
-            }));
+          } catch (_error) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(
+              JSON.stringify({
+                error: "Invalid JSON",
+                message: "请求体包含无效的 JSON 数据",
+              }),
+            );
           }
         });
       } else {
@@ -135,24 +140,28 @@ export class HTTPTransport extends BaseTransport {
    */
   async handleRequest(req: IncomingMessage, res: ServerResponse, parsedBody?: unknown): Promise<void> {
     if (!this.transport) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        error: 'Transport not initialized',
-        message: 'HTTP 传输层未正确初始化'
-      }));
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          error: "Transport not initialized",
+          message: "HTTP 传输层未正确初始化",
+        }),
+      );
       return;
     }
 
     try {
       await this.transport.handleRequest(req, res, parsedBody);
     } catch (error) {
-      console.error('处理 HTTP 请求时出错:', error);
+      console.error("处理 HTTP 请求时出错:", error);
       if (!res.headersSent) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          error: 'Internal server error',
-          message: error instanceof Error ? error.message : '未知错误'
-        }));
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error: "Internal server error",
+            message: error instanceof Error ? error.message : "未知错误",
+          }),
+        );
       }
     }
   }
@@ -166,12 +175,12 @@ export class HTTPTransport extends BaseTransport {
       type: this.type,
       isRunning: this.isRunning,
       details: {
-        transportType: 'http',
-        description: 'HTTP 传输层',
+        transportType: "http",
+        description: "HTTP 传输层",
         config: this.config.options,
         hasHTTPServer: !!this.httpServer,
-        hasTransport: !!this.transport
-      }
+        hasTransport: !!this.transport,
+      },
     };
   }
 

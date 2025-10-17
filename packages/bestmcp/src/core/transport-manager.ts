@@ -1,8 +1,13 @@
-import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { BaseTransport, TransportType, type TransportConfig, type HTTPTransportConfig } from './transports/base.js';
-import { StdioTransport } from './transports/stdio.js';
-import { HTTPTransport } from './transports/http.js';
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import {
+  type BaseTransport,
+  type HTTPTransportConfig,
+  type TransportConfig,
+  TransportType,
+} from "./transports/base.js";
+import { HTTPTransport } from "./transports/http.js";
+import { StdioTransport } from "./transports/stdio.js";
 
 /**
  * 传输层管理器
@@ -29,7 +34,7 @@ export class TransportManager {
     this.transports.set(TransportType.HTTP, () => {
       return new HTTPTransport({
         type: TransportType.HTTP,
-        options: {}
+        options: {},
       } as HTTPTransportConfig);
     });
   }
@@ -63,7 +68,7 @@ export class TransportManager {
       const transport = transportFactory();
       return transport;
     } catch (error) {
-      throw new Error(`创建传输层失败 [${config.type}]: ${error instanceof Error ? error.message : '未知错误'}`);
+      throw new Error(`创建传输层失败 [${config.type}]: ${error instanceof Error ? error.message : "未知错误"}`);
     }
   }
 
@@ -106,7 +111,7 @@ export class TransportManager {
    */
   async startCurrentTransport(server: Server): Promise<void> {
     if (!this.currentTransport) {
-      throw new Error('未设置当前传输层');
+      throw new Error("未设置当前传输层");
     }
 
     try {
@@ -120,7 +125,9 @@ export class TransportManager {
       console.log(`传输层 ${this.currentTransport.type} 启动成功`);
     } catch (error) {
       this.currentMCPTransport = null;
-      throw new Error(`启动传输层失败 [${this.currentTransport.type}]: ${error instanceof Error ? error.message : '未知错误'}`);
+      throw new Error(
+        `启动传输层失败 [${this.currentTransport.type}]: ${error instanceof Error ? error.message : "未知错误"}`,
+      );
     }
   }
 
@@ -199,7 +206,7 @@ export class TransportManager {
     return {
       registeredTypes: this.getRegisteredTransportTypes(),
       ...(currentTransport && { currentType: currentTransport.type }),
-      isRunning: !!currentTransport?.getStatus().isRunning
+      isRunning: !!currentTransport?.getStatus().isRunning,
     };
   }
 }

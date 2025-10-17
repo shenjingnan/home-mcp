@@ -1,10 +1,10 @@
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { TransportManager } from "../../../src/core/transport-manager.js";
-import { StdioTransport } from "../../../src/core/transports/stdio.js";
+import { type HTTPTransportConfig, type TransportConfig, TransportType } from "../../../src/core/transports/base.js";
 import { HTTPTransport } from "../../../src/core/transports/http.js";
-import { TransportType, type TransportConfig, type HTTPTransportConfig } from "../../../src/core/transports/base.js";
-import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import { StdioTransport } from "../../../src/core/transports/stdio.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -56,8 +56,8 @@ describe("TransportManager", () => {
           type: TransportType.HTTP,
           options: {
             enableJsonResponse: true,
-            port: 3000
-          }
+            port: 3000,
+          },
         };
 
         const transport = await manager.createTransport(config);
@@ -70,7 +70,7 @@ describe("TransportManager", () => {
     describe("Stdio 传输层", () => {
       it("应该创建 stdio 传输层", async () => {
         const config: TransportConfig = {
-          type: TransportType.STDIO
+          type: TransportType.STDIO,
         };
 
         const transport = await manager.createTransport(config);
@@ -83,11 +83,10 @@ describe("TransportManager", () => {
     describe("错误处理", () => {
       it("应该为不支持的传输层类型抛出错误", async () => {
         const config = {
-          type: 'unsupported' as TransportType
+          type: "unsupported" as TransportType,
         };
 
-        await expect(manager.createTransport(config))
-          .rejects.toThrow('不支持的传输层类型: unsupported');
+        await expect(manager.createTransport(config)).rejects.toThrow("不支持的传输层类型: unsupported");
       });
     });
   });
@@ -103,7 +102,7 @@ describe("TransportManager", () => {
       await manager.setCurrentTransport(transport);
 
       expect(manager.getCurrentTransport()).toBe(transport);
-      expect(consoleSpy).toHaveBeenCalledWith('已设置当前传输层: stdio');
+      expect(consoleSpy).toHaveBeenCalledWith("已设置当前传输层: stdio");
     });
 
     it("应该覆盖当前传输层", async () => {
@@ -139,15 +138,14 @@ describe("TransportManager", () => {
   });
 
   describe("startCurrentTransport", () => {
-    let transport: StdioTransport;
+    let _transport: StdioTransport;
 
     beforeEach(() => {
-      transport = new StdioTransport();
+      _transport = new StdioTransport();
     });
 
     it("应该在未设置传输层时抛出错误", async () => {
-      await expect(manager.startCurrentTransport(mockServer))
-        .rejects.toThrow('未设置当前传输层');
+      await expect(manager.startCurrentTransport(mockServer)).rejects.toThrow("未设置当前传输层");
     });
   });
 
@@ -167,9 +165,9 @@ describe("TransportManager", () => {
         type: TransportType.STDIO,
         isRunning: false,
         details: expect.objectContaining({
-          transportType: 'stdio',
-          description: '标准输入输出传输层'
-        })
+          transportType: "stdio",
+          description: "标准输入输出传输层",
+        }),
       });
     });
   });
@@ -180,7 +178,7 @@ describe("TransportManager", () => {
 
       expect(stats).toEqual({
         registeredTypes: [TransportType.STDIO, TransportType.HTTP],
-        isRunning: false
+        isRunning: false,
       });
       expect(stats.currentType).toBeUndefined();
     });
@@ -216,7 +214,7 @@ describe("TransportManager", () => {
     it("应该处理注册的传输层类型查询", () => {
       expect(manager.isTransportTypeRegistered(TransportType.STDIO)).toBe(true);
       expect(manager.isTransportTypeRegistered(TransportType.HTTP)).toBe(true);
-      expect(manager.isTransportTypeRegistered('unsupported' as TransportType)).toBe(false);
+      expect(manager.isTransportTypeRegistered("unsupported" as TransportType)).toBe(false);
     });
   });
 });

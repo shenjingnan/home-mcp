@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "reflect-metadata";
 import { z } from "zod";
+import { Param, Tool } from "../../src/core/decorators.js";
 import { BestMCP } from "../../src/core/server.js";
-import { Tool, Param } from "../../src/core/decorators.js";
-import { IncomingMessage, ServerResponse } from 'node:http';
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -23,7 +22,7 @@ class CalculatorService {
 
   @Tool("幂运算")
   power(@Param(z.number(), "基数") base: number, @Param(z.number(), "指数") exponent: number): number {
-    return Math.pow(base, exponent);
+    return base ** exponent;
   }
 }
 
@@ -40,7 +39,7 @@ class TextService {
 
   @Tool("反转文本")
   reverse(@Param(z.string(), "输入文本") text: string): string {
-    return text.split('').reverse().join('');
+    return text.split("").reverse().join("");
   }
 }
 
@@ -58,14 +57,14 @@ class MockServerResponse {
   headers: Record<string, string> = {};
   _responseData: string[] = [];
 
-  writeHead = vi.fn(function(this: MockServerResponse, statusCode: number, headers?: Record<string, string>) {
+  writeHead = vi.fn(function (this: MockServerResponse, statusCode: number, headers?: Record<string, string>) {
     this.statusCode = statusCode;
     if (headers) {
       Object.assign(this.headers, headers);
     }
   });
 
-  end = vi.fn(function(this: MockServerResponse, data?: string) {
+  end = vi.fn(function (this: MockServerResponse, data?: string) {
     if (data !== undefined) {
       this._responseData.push(data);
     }
@@ -74,19 +73,19 @@ class MockServerResponse {
 
 describe("HTTP 端到端集成测试", () => {
   let mcp: BestMCP;
-  let mockHTTPServer: any;
+  let _mockHTTPServer: any;
 
   beforeEach(() => {
     consoleSpy.mockClear();
     consoleErrorSpy.mockClear();
 
     // Mock HTTP server
-    mockHTTPServer = {
-      listen: vi.fn((port: number, host: string, callback: () => void) => {
+    _mockHTTPServer = {
+      listen: vi.fn((_port: number, _host: string, callback: () => void) => {
         callback();
       }),
       close: vi.fn(),
-      address: () => ({ port: 8000, address: '127.0.0.1' })
+      address: () => ({ port: 8000, address: "127.0.0.1" }),
     };
 
     mcp = new BestMCP("http-e2e-test", "1.0.0");
@@ -96,21 +95,21 @@ describe("HTTP 端到端集成测试", () => {
 
   describe("HTTP 服务器启动和停止", () => {
     it("应该能够启动 HTTP 服务器", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'http', port: 3000, host: '127.0.0.1' });
+      await mcp.run({ transport: "http", port: 3000, host: "127.0.0.1" });
 
-      expect(mcp.getTransportStats().currentType).toBe('http');
+      expect(mcp.getTransportStats().currentType).toBe("http");
       expect(mcp.isServerRunning()).toBe(true);
-      expect(consoleSpy).toHaveBeenCalledWith('MCP Server listening on http://127.0.0.1:3000/mcp');
+      expect(consoleSpy).toHaveBeenCalledWith("MCP Server listening on http://127.0.0.1:3000/mcp");
     });
 
     it("应该能够停止 HTTP 服务器", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'http', port: 3000 });
+      await mcp.run({ transport: "http", port: 3000 });
       expect(mcp.isServerRunning()).toBe(true);
 
       await mcp.stopServer();
@@ -120,10 +119,10 @@ describe("HTTP 端到端集成测试", () => {
 
   describe("工具功能兼容性", () => {
     beforeEach(async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'http', port: 3000 });
+      await mcp.run({ transport: "http", port: 3000 });
     });
 
     it("应该在 HTTP 模式下正常执行工具", async () => {
@@ -144,44 +143,41 @@ describe("HTTP 端到端集成测试", () => {
       const tools = mcp.getTools();
       expect(tools).toHaveLength(6);
 
-      const toolNames = tools.map(tool => tool.name);
-      expect(toolNames).toContain('add');
-      expect(toolNames).toContain('multiply');
-      expect(toolNames).toContain('power');
-      expect(toolNames).toContain('toUpperCase');
-      expect(toolNames).toContain('length');
-      expect(toolNames).toContain('reverse');
+      const toolNames = tools.map((tool) => tool.name);
+      expect(toolNames).toContain("add");
+      expect(toolNames).toContain("multiply");
+      expect(toolNames).toContain("power");
+      expect(toolNames).toContain("toUpperCase");
+      expect(toolNames).toContain("length");
+      expect(toolNames).toContain("reverse");
     });
   });
 
   describe("错误处理", () => {
     beforeEach(async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'http', port: 3000 });
+      await mcp.run({ transport: "http", port: 3000 });
     });
 
     it("应该处理不存在的工具调用", async () => {
-      await expect(mcp.executeTool("nonexistentTool", {}))
-        .rejects.toThrow("未找到工具 nonexistentTool");
+      await expect(mcp.executeTool("nonexistentTool", {})).rejects.toThrow("未找到工具 nonexistentTool");
     });
 
     it("应该处理无效参数", async () => {
-      await expect(mcp.executeTool("add", { a: "not-a-number", b: 3 }))
-        .rejects.toThrow("参数无效");
+      await expect(mcp.executeTool("add", { a: "not-a-number", b: 3 })).rejects.toThrow("参数无效");
     });
 
     it("应该处理缺失的必需参数", async () => {
-      await expect(mcp.executeTool("add", { a: 5 }))
-        .rejects.toThrow("参数无效");
+      await expect(mcp.executeTool("add", { a: 5 })).rejects.toThrow("参数无效");
     });
   });
 
   describe("状态管理", () => {
     beforeEach(async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
     });
 
     it("应该正确跟踪 HTTP 传输层状态", async () => {
@@ -190,9 +186,9 @@ describe("HTTP 端到端集成测试", () => {
       expect(mcp.getTransportStatus()).toBeNull();
 
       // 启动 HTTP
-      await mcp.run({ transport: 'http', port: 3000 });
+      await mcp.run({ transport: "http", port: 3000 });
       expect(mcp.isServerRunning()).toBe(true);
-      expect(mcp.getTransportStatus()?.type).toBe('http');
+      expect(mcp.getTransportStatus()?.type).toBe("http");
 
       // 停止
       await mcp.stopServer();
@@ -200,49 +196,49 @@ describe("HTTP 端到端集成测试", () => {
     });
 
     it("应该提供正确的传输层统计信息", async () => {
-      await mcp.run({ transport: 'http', port: 3000 });
+      await mcp.run({ transport: "http", port: 3000 });
 
       const stats = mcp.getTransportStats();
-      expect(stats.registeredTypes).toContain('stdio');
-      expect(stats.registeredTypes).toContain('http');
-      expect(stats.currentType).toBe('http');
+      expect(stats.registeredTypes).toContain("stdio");
+      expect(stats.registeredTypes).toContain("http");
+      expect(stats.currentType).toBe("http");
       expect(stats.isRunning).toBe(true);
     });
   });
 
   describe("配置灵活性", () => {
     it("应该支持不同的端口配置", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'http', port: 9000, host: 'localhost' });
+      await mcp.run({ transport: "http", port: 9000, host: "localhost" });
 
-      expect(mcp.getTransportStats().currentType).toBe('http');
-      expect(consoleSpy).toHaveBeenCalledWith('MCP Server listening on http://localhost:9000/mcp');
+      expect(mcp.getTransportStats().currentType).toBe("http");
+      expect(consoleSpy).toHaveBeenCalledWith("MCP Server listening on http://localhost:9000/mcp");
     });
 
     it("应该支持默认配置", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'http' });
+      await mcp.run({ transport: "http" });
 
-      expect(mcp.getTransportStats().currentType).toBe('http');
-      expect(consoleSpy).toHaveBeenCalledWith('MCP Server listening on http://127.0.0.1:8000/mcp');
+      expect(mcp.getTransportStats().currentType).toBe("http");
+      expect(consoleSpy).toHaveBeenCalledWith("MCP Server listening on http://127.0.0.1:8000/mcp");
     });
   });
 
   describe("复杂场景集成测试", () => {
     it("应该支持传输层动态切换", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
       // stdio -> HTTP
-      await mcp.run({ transport: 'stdio' });
-      expect(mcp.getTransportStats().currentType).toBe('stdio');
+      await mcp.run({ transport: "stdio" });
+      expect(mcp.getTransportStats().currentType).toBe("stdio");
 
-      await mcp.run({ transport: 'http', port: 3000 });
-      expect(mcp.getTransportStats().currentType).toBe('http');
+      await mcp.run({ transport: "http", port: 3000 });
+      expect(mcp.getTransportStats().currentType).toBe("http");
 
       // 工具在任何传输层下都应该正常工作
       const result = await mcp.executeTool("add", { a: 10, b: 5 });
@@ -250,20 +246,20 @@ describe("HTTP 端到端集成测试", () => {
     });
 
     it("应该处理复杂的数学运算", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'http', port: 3000 });
+      await mcp.run({ transport: "http", port: 3000 });
 
       const result = await mcp.executeTool("power", { base: 2, exponent: 8 });
       expect(result).toBe(256);
     });
 
     it("应该处理复杂的文本操作", async () => {
-      vi.spyOn(mcp as any, 'setupToolRequestHandlers').mockImplementation(() => {});
-      vi.spyOn(mcp['transportManager'], 'startCurrentTransport').mockResolvedValue(undefined);
+      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
 
-      await mcp.run({ transport: 'http', port: 3000 });
+      await mcp.run({ transport: "http", port: 3000 });
 
       const result1 = await mcp.executeTool("toUpperCase", { text: "Hello World" });
       expect(result1).toBe("HELLO WORLD");

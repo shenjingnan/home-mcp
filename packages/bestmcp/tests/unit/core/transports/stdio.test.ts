@@ -1,8 +1,8 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { StdioTransport, type StdioTransportConfig } from "../../../../src/core/transports/stdio.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TransportType } from "../../../../src/core/transports/base.js";
+import { StdioTransport, type StdioTransportConfig } from "../../../../src/core/transports/stdio.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -68,7 +68,7 @@ describe("StdioTransport", () => {
 
       expect(mockServer.connect).toHaveBeenCalledWith(mcpTransport);
       expect(transport.getStatus().isRunning).toBe(true);
-      expect(consoleSpy).toHaveBeenCalledWith('Stdio 传输层已启动');
+      expect(consoleSpy).toHaveBeenCalledWith("Stdio 传输层已启动");
     });
 
     it("应该处理服务器连接失败的情况", async () => {
@@ -102,7 +102,7 @@ describe("StdioTransport", () => {
       await transport.stop(mcpTransport);
 
       expect(transport.getStatus().isRunning).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith('Stdio 传输层已停止');
+      expect(consoleSpy).toHaveBeenCalledWith("Stdio 传输层已停止");
     });
 
     it("应该处理停止时的错误", async () => {
@@ -139,9 +139,9 @@ describe("StdioTransport", () => {
         type: TransportType.STDIO,
         isRunning: false,
         details: {
-          transportType: 'stdio',
-          description: '标准输入输出传输层'
-        }
+          transportType: "stdio",
+          description: "标准输入输出传输层",
+        },
       });
     });
 
@@ -172,16 +172,16 @@ describe("StdioTransport", () => {
     it("应该正确创建配置对象", () => {
       const config: StdioTransportConfig = {
         type: TransportType.STDIO,
-        options: { test: 'value' }
+        options: { test: "value" },
       };
 
       expect(config.type).toBe(TransportType.STDIO);
-      expect(config.options).toEqual({ test: 'value' });
+      expect(config.options).toEqual({ test: "value" });
     });
 
     it("选项应该是可选的", () => {
       const config: StdioTransportConfig = {
-        type: TransportType.STDIO
+        type: TransportType.STDIO,
       };
 
       expect(config.type).toBe(TransportType.STDIO);
