@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import type { ServerCapabilities } from "@modelcontextprotocol/sdk/types.js";
 
 // 类型定义
 export interface ToolMetadata {
@@ -85,4 +86,19 @@ export function inferTypeSchema(type: unknown): JsonSchema {
 
   // 默认回退
   return { type: "string" };
+}
+
+// 运行时配置接口
+export interface RunOptions {
+  transport?: 'stdio' | 'http';
+  port?: number;
+  host?: string;
+}
+
+// BestMCP 配置接口
+export interface BestMCPConfig {
+  name: string;
+  version?: string;
+  capabilities?: ServerCapabilities;
+  instructions?: string;
 }

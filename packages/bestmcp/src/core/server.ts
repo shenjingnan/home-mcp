@@ -1,7 +1,6 @@
 import type { z } from "zod";
 import "reflect-metadata";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   type CallToolRequest,
   CallToolRequestSchema,
@@ -17,33 +16,79 @@ import {
   TOOLS_METADATA,
   type ToolExecutor,
   type ToolMetadata,
+  type RunOptions,
+  type BestMCPConfig,
 } from "./types.js";
+import { TransportManager } from "./transport-manager.js";
+import { BaseTransport, TransportType, type TransportConfig, type HTTPTransportConfig } from "./transports/index.js";
+import { IncomingMessage, ServerResponse } from 'node:http';
 
 export class BestMCP {
   private name: string;
   private version: string;
   private tools: Map<string, ToolExecutor> = new Map();
   private server?: Server;
-  private transport: StdioServerTransport | undefined;
+  private transportManager: TransportManager;
+  private currentTransport?: BaseTransport;
+  private httpServer?: any; // HTTP 服务器实例
 
-  constructor(name: string, version: string = "1.0.0") {
-    this.name = name;
-    this.version = version;
-    this.initializeMCPServer();
+  constructor(name: string, version?: string);
+  constructor(config: BestMCPConfig);
+  constructor(nameOrConfig: string | BestMCPConfig, version?: string) {
+    this.transportManager = new TransportManager();
+
+    // 处理两种构造函数重载
+    if (typeof nameOrConfig === 'string') {
+      this.name = nameOrConfig;
+      this.version = version || "1.0.0";
+    } else {
+      const config = nameOrConfig;
+      this.name = config.name;
+      this.version = config.version || "1.0.0";
+    }
+
+    this.initializeMCPServer(typeof nameOrConfig === 'object' ? nameOrConfig : undefined);
   }
 
-  private initializeMCPServer() {
+  private initializeMCPServer(config?: BestMCPConfig) {
     this.server = new Server(
       {
         name: this.name,
         version: this.version,
       },
       {
-        capabilities: {
+        capabilities: config?.capabilities || {
           tools: {},
         },
+        ...(config?.instructions && { instructions: config.instructions }),
       },
     );
+  }
+
+  private async initializeTransport(transportType: string, options: RunOptions = {}): Promise<void> {
+    const config: TransportConfig = this.createTransportConfig(transportType, options);
+    this.currentTransport = await this.transportManager.createTransport(config);
+    await this.transportManager.setCurrentTransport(this.currentTransport);
+  }
+
+  private createTransportConfig(transportType: string, options: RunOptions): TransportConfig {
+    switch (transportType) {
+      case 'stdio':
+        return { type: TransportType.STDIO };
+
+      case 'http':
+        return {
+          type: TransportType.HTTP,
+          options: {
+            enableJsonResponse: true, // HTTP 模式使用 JSON 响应
+            port: options.port || 8000,
+            host: options.host || '127.0.0.1'
+          }
+        } as HTTPTransportConfig;
+
+      default:
+        throw new Error(`不支持的传输层类型: ${transportType}`);
+    }
   }
 
   private setupToolRequestHandlers() {
@@ -372,49 +417,105 @@ export class BestMCP {
     };
   }
 
-  // 启动 stdio MCP 服务器
-  async startStdioServer() {
-    if (!this.server) {
-      throw new Error("MCP 服务器未初始化");
+  // 增强的 run 方法，支持运行时选择传输层
+  async run(options: RunOptions = {}): Promise<void> {
+    const transportType = options.transport || 'stdio';
+
+    // 设置工具请求处理器
+    this.setupToolRequestHandlers();
+
+    // 初始化传输层
+    await this.initializeTransport(transportType, options);
+
+    // 启动传输层
+    await this.transportManager.startCurrentTransport(this.server!);
+
+    // 如果是 HTTP 传输，启动 HTTP 服务器
+    if (transportType === 'http') {
+      await this.startHTTPServer(options);
     }
 
-    try {
-      // 创建 stdio 传输层
-      this.transport = new StdioServerTransport();
+    console.log(`${this.name} v${this.version} 已启动`);
+    console.log(`传输层: ${transportType}`);
+    console.log(`已注册 ${this.tools.size} 个工具`);
+  }
 
-      // 连接服务器到传输层
-      await this.server.connect(this.transport);
+  private async startHTTPServer(options: RunOptions): Promise<void> {
+    const http = await import('node:http');
+    const port = options.port || 8000;
+    const host = options.host || '127.0.0.1';
+    const path = '/mcp';
 
-      console.log(`${this.name} v${this.version} 已启动，使用 stdio 传输`);
-      console.log(`已注册 ${this.tools.size} 个工具`);
-      console.log("MCP 服务器已准备就绪，可以接受请求");
-    } catch (error) {
-      this.handleError(error, "启动 stdio 服务器失败");
+    const server = http.createServer(async (req, res) => {
+      // 只处理 POST 请求到 /mcp 路径
+      if (req.method === 'POST' && req.url === path) {
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+
+        req.on('end', async () => {
+          try {
+            const parsedBody = JSON.parse(body);
+            await this.handleHTTPRequest(req, res, parsedBody);
+          } catch (error) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid JSON' }));
+          }
+        });
+      } else {
+        res.writeHead(404).end();
+      }
+    });
+
+    server.listen(port, host, () => {
+      console.log(`MCP Server listening on http://${host}:${port}${path}`);
+    });
+
+    // 保存服务器实例以便后续清理
+    this.httpServer = server;
+  }
+
+  // HTTP 请求处理方法
+  async handleHTTPRequest(req: IncomingMessage, res: ServerResponse, parsedBody?: unknown): Promise<void> {
+    if (this.currentTransport && this.currentTransport.type === TransportType.HTTP) {
+      const httpTransport = this.currentTransport as any; // 类型转换，因为我们需要访问其内部方法
+      await httpTransport.handleRequest(req, res, parsedBody);
+    } else {
+      throw new Error("当前传输层不是 HTTP 类型");
     }
   }
 
   // 停止服务器
   async stopServer() {
-    if (this.transport) {
-      // MCP SDK 会自动处理连接关闭
-      this.transport = undefined;
-      console.log("MCP 服务器已停止");
+    // 停止传输层管理器
+    await this.transportManager.stopCurrentTransport();
+
+    // 关闭 HTTP 服务器
+    if (this.httpServer) {
+      this.httpServer.close();
+      this.httpServer = undefined;
     }
   }
 
-  // 增强的 run 方法，支持 stdio 传输
-  async run() {
-    // 保持原有的兼容性模式
-    console.log(`正在以兼容模式启动 ${this.name} v${this.version}`);
-    console.log(`已注册 ${this.tools.size} 个工具`);
-    console.log('使用 run({ transport: "stdio" }) 进行 MCP 协议通信');
-    this.setupToolRequestHandlers();
-    await this.startStdioServer();
+  // 启动 stdio MCP 服务器（兼容性方法）
+  async startStdioServer(): Promise<void> {
+    await this.run({ transport: 'stdio' });
   }
 
   // 检查服务器状态
   isServerRunning(): boolean {
-    return this.transport !== undefined;
+    return this.transportManager.getCurrentTransportStatus()?.isRunning || false;
+  }
+
+  // 获取当前传输层状态
+  getTransportStatus(): { type: TransportType; isRunning: boolean; details?: Record<string, unknown> } | null {
+    return this.transportManager.getCurrentTransportStatus();
+  }
+
+  // 获取传输层统计信息
+  getTransportStats(): { registeredTypes: TransportType[]; currentType?: TransportType; isRunning: boolean } {
+    return this.transportManager.getStats();
   }
 
   private handleError(error: unknown, context: string): never {
