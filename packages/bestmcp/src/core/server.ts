@@ -37,22 +37,13 @@ export class BestMCP {
   private currentTransport?: BaseTransport;
   private httpServer?: any; // HTTP 服务器实例
 
-  constructor(name: string, version?: string);
-  constructor(config: BestMCPConfig);
-  constructor(nameOrConfig: string | BestMCPConfig, version?: string) {
+  constructor(config: BestMCPConfig) {
     this.transportManager = new TransportManager();
 
-    // 处理两种构造函数重载
-    if (typeof nameOrConfig === "string") {
-      this.name = nameOrConfig;
-      this.version = version || "1.0.0";
-    } else {
-      const config = nameOrConfig;
-      this.name = config.name;
-      this.version = config.version || "1.0.0";
-    }
+    this.name = config.name || "bestmcp";
+    this.version = config.version || "0.0.1";
 
-    this.initializeMCPServer(typeof nameOrConfig === "object" ? nameOrConfig : undefined);
+    this.initializeMCPServer(config);
   }
 
   private initializeMCPServer(config?: BestMCPConfig) {
@@ -514,12 +505,20 @@ export class BestMCP {
   }
 
   // 获取当前传输层状态
-  getTransportStatus(): { type: TransportType; isRunning: boolean; details?: Record<string, unknown> } | null {
+  getTransportStatus(): {
+    type: TransportType;
+    isRunning: boolean;
+    details?: Record<string, unknown>;
+  } | null {
     return this.transportManager.getCurrentTransportStatus();
   }
 
   // 获取传输层统计信息
-  getTransportStats(): { registeredTypes: TransportType[]; currentType?: TransportType; isRunning: boolean } {
+  getTransportStats(): {
+    registeredTypes: TransportType[];
+    currentType?: TransportType;
+    isRunning: boolean;
+  } {
     return this.transportManager.getStats();
   }
 }

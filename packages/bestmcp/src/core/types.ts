@@ -97,7 +97,7 @@ export interface RunOptions {
 
 // BestMCP 配置接口
 export interface BestMCPConfig {
-  name: string;
+  name?: string;
   version?: string;
   capabilities?: ServerCapabilities;
   instructions?: string;
