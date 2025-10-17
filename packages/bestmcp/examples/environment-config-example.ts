@@ -67,7 +67,7 @@ class LoggingService {
     this.enabled = enabled;
   }
 
-  log(level: "info" | "warn" | "error", message: string, data?: any): void {
+  log(level: "info" | "warn" | "error", message: string, data?: Record<string, unknown>): void {
     if (!this.enabled) return;
 
     const timestamp = new Date().toISOString();
@@ -81,15 +81,15 @@ class LoggingService {
     console.log(JSON.stringify(logEntry));
   }
 
-  info(message: string, data?: any): void {
+  info(message: string, data?: Record<string, unknown>): void {
     this.log("info", message, data);
   }
 
-  warn(message: string, data?: any): void {
+  warn(message: string, data?: Record<string, unknown>): void {
     this.log("warn", message, data);
   }
 
-  error(message: string, data?: any): void {
+  error(message: string, data?: Record<string, unknown>): void {
     this.log("error", message, data);
   }
 }

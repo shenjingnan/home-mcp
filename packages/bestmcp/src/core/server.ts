@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import "reflect-metadata";
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Server as HttpServer, IncomingMessage, ServerResponse } from "node:http";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   type CallToolRequest,
@@ -13,6 +13,7 @@ import { ToolNotFoundError, ToolValidationError, ZodValidationError } from "./er
 import { TransportManager } from "./transport-manager.js";
 import {
   type BaseTransport,
+  type HTTPTransport,
   type HTTPTransportConfig,
   type TransportConfig,
   TransportType,
@@ -35,7 +36,7 @@ export class BestMCP {
   private server?: Server;
   private transportManager: TransportManager;
   private currentTransport?: BaseTransport;
-  private httpServer?: any; // HTTP 服务器实例
+  private httpServer?: HttpServer; // HTTP 服务器实例
 
   constructor(config: BestMCPConfig) {
     this.transportManager = new TransportManager();
@@ -475,7 +476,7 @@ export class BestMCP {
   // HTTP 请求处理方法
   async handleHTTPRequest(req: IncomingMessage, res: ServerResponse, parsedBody?: unknown): Promise<void> {
     if (this.currentTransport && this.currentTransport.type === TransportType.HTTP) {
-      const httpTransport = this.currentTransport as any; // 类型转换，因为我们需要访问其内部方法
+      const httpTransport = this.currentTransport as HTTPTransport; // 类型转换，因为我们需要访问其内部方法
       await httpTransport.handleRequest(req, res, parsedBody);
     } else {
       throw new Error("当前传输层不是 HTTP 类型");

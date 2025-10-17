@@ -1,4 +1,4 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Server as HttpServer, IncomingMessage, ServerResponse } from "node:http";
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   StreamableHTTPServerTransport,
@@ -15,7 +15,7 @@ export class HTTPTransport extends BaseTransport {
   readonly type = TransportType.HTTP;
   private config: HTTPTransportConfig;
   private transport: StreamableHTTPServerTransport | null = null;
-  private httpServer: any | null = null; // HTTP 服务器实例
+  private httpServer: HttpServer | null = null; // HTTP 服务器实例
   private isRunning = false;
 
   constructor(config: HTTPTransportConfig) {
@@ -188,7 +188,7 @@ export class HTTPTransport extends BaseTransport {
    * 获取 HTTP 服务器实例
    * @returns HTTP 服务器实例
    */
-  getHTTPServer(): any | null {
+  getHTTPServer(): HttpServer | null {
     return this.httpServer;
   }
 
