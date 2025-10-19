@@ -3,6 +3,7 @@ import "reflect-metadata";
 import { z } from "zod";
 import { Param, Tool } from "../../src/core/decorators.js";
 import { BestMCP } from "../../src/core/server.js";
+import { applyTestMocks } from "../test-types.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -70,8 +71,7 @@ describe("性能基准测试", () => {
     const ITERATION_COUNT = 1000;
 
     it("应该能快速执行数学运算工具", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 
@@ -90,8 +90,7 @@ describe("性能基准测试", () => {
     });
 
     it("应该能快速执行字符串操作工具", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 
@@ -111,8 +110,7 @@ describe("性能基准测试", () => {
     });
 
     it("应该能处理复杂计算工具", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 
@@ -135,8 +133,7 @@ describe("性能基准测试", () => {
 
   describe("传输层切换性能", () => {
     it("应该能快速切换传输层", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       const SWITCH_COUNT = 50;
       const startTime = performance.now();
@@ -194,8 +191,7 @@ describe("性能基准测试", () => {
 
   describe("内存使用稳定性", () => {
     it("应该在长时间运行下保持内存稳定", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 
@@ -224,8 +220,7 @@ describe("性能基准测试", () => {
 
   describe("并发性能", () => {
     it("应该能处理并发工具执行", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 
@@ -283,8 +278,7 @@ describe("性能基准测试", () => {
 
   describe("状态查询性能", () => {
     it("应该能快速查询状态信息", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 
@@ -309,8 +303,7 @@ describe("性能基准测试", () => {
 
   describe("错误处理性能", () => {
     it("应该能快速处理错误情况", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 

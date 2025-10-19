@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Param, Tool } from "../../src/core/decorators.js";
 import { BestMCP } from "../../src/core/server.js";
 import { TransportType } from "../../src/core/transports/base.js";
+import { applyTestMocks, asTestableMCP, getTransportManager } from "../test-types.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -47,11 +48,12 @@ describe("双传输层集成测试", () => {
   describe("传输层切换", () => {
     it("应该能够在 stdio 和 HTTP 传输层之间切换", async () => {
       // 启动 stdio 传输层
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      const stdioSpy = vi.spyOn(mcp as any, "initializeTransport").mockResolvedValue(undefined);
-      const transportManagerSpy = vi
-        .spyOn(mcp["transportManager"], "startCurrentTransport")
-        .mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const stdioSpy = vi.spyOn(testableMcp, "initializeTransport").mockResolvedValue(undefined);
+      const transportManagerSpy = vi.spyOn(transportManager, "startCurrentTransport").mockResolvedValue(undefined);
 
       await mcp.run({ transport: "stdio" });
 
@@ -64,8 +66,8 @@ describe("双传输层集成测试", () => {
       transportManagerSpy.mockClear();
 
       // 切换到 HTTP 传输层
-      const httpSpy = vi.spyOn(mcp as any, "initializeTransport").mockResolvedValue(undefined);
-      const startHTTPServerSpy = vi.spyOn(mcp as any, "startHTTPServer").mockResolvedValue(undefined);
+      const httpSpy = vi.spyOn(testableMcp, "initializeTransport").mockResolvedValue(undefined);
+      const startHTTPServerSpy = vi.spyOn(testableMcp, "startHTTPServer").mockResolvedValue(undefined);
 
       await mcp.run({ transport: "http", port: 3000 });
 
@@ -75,9 +77,9 @@ describe("双传输层集成测试", () => {
     });
 
     it("应该支持多次切换传输层", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
-      vi.spyOn(mcp as any, "startHTTPServer").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi, { startHTTPServer: true });
+      const _testableMcp = asTestableMCP(mcp);
+      const _transportManager = getTransportManager(mcp);
 
       // stdio -> HTTP -> stdio
       await mcp.run({ transport: "stdio" });
@@ -103,9 +105,7 @@ describe("双传输层集成测试", () => {
         MCP_HOST: "localhost",
       };
 
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
-      vi.spyOn(mcp as any, "startHTTPServer").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi, { startHTTPServer: true });
 
       const transportType = process.env.MCP_TRANSPORT_TYPE || "stdio";
       const port = parseInt(process.env.MCP_PORT || "8000", 10);
@@ -133,8 +133,7 @@ describe("双传输层集成测试", () => {
 
       configMCP.register(TestService);
 
-      vi.spyOn(configMCP as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(configMCP["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(configMCP, vi);
 
       await configMCP.run({ transport: "stdio" });
 
@@ -144,8 +143,7 @@ describe("双传输层集成测试", () => {
 
   describe("工具功能兼容性", () => {
     it("应该在两种传输层下都能正常执行工具", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       // stdio 模式下测试工具执行
       await mcp.run({ transport: "stdio" });
@@ -169,8 +167,7 @@ describe("双传输层集成测试", () => {
     });
 
     it("应该在两种传输层下都有相同的工具列表", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       // stdio 模式
       await mcp.run({ transport: "stdio" });
@@ -187,8 +184,7 @@ describe("双传输层集成测试", () => {
 
   describe("错误处理兼容性", () => {
     it("应该在两种传输层下有一致的错误处理", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       // stdio 模式下的错误处理
       await mcp.run({ transport: "stdio" });
@@ -208,9 +204,7 @@ describe("双传输层集成测试", () => {
 
   describe("状态管理", () => {
     it("应该正确跟踪传输层状态", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
-      vi.spyOn(mcp as any, "startHTTPServer").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi, { startHTTPServer: true });
 
       // 初始状态
       expect(mcp.isServerRunning()).toBe(false);
@@ -236,8 +230,7 @@ describe("双传输层集成测试", () => {
     });
 
     it("应该提供正确的传输层统计信息", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       const stats = mcp.getTransportStats();
       expect(stats.registeredTypes).toContain(TransportType.STDIO);
@@ -254,8 +247,7 @@ describe("双传输层集成测试", () => {
 
   describe("参数验证兼容性", () => {
     it("应该在两种传输层下有一致的参数验证", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       // stdio 模式下的验证
       await mcp.run({ transport: "stdio" });
@@ -283,9 +275,7 @@ describe("双传输层集成测试", () => {
 
   describe("复杂场景集成测试", () => {
     it("应该支持动态传输层配置", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
-      vi.spyOn(mcp as any, "startHTTPServer").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi, { startHTTPServer: true });
 
       const configurations = [
         { transport: "stdio" as const },
@@ -310,11 +300,12 @@ describe("双传输层集成测试", () => {
     });
 
     it("应该处理传输层切换期间的错误", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
+      const _mocks = applyTestMocks(mcp, vi, { initializeTransport: false });
+      const transportManager = getTransportManager(mcp);
 
       // 模拟传输层启动失败
       const errorSpy = vi
-        .spyOn(mcp["transportManager"], "startCurrentTransport")
+        .spyOn(transportManager, "startCurrentTransport")
         .mockRejectedValueOnce(new Error("传输层启动失败"));
 
       await expect(mcp.run({ transport: "stdio" })).rejects.toThrow("传输层启动失败");

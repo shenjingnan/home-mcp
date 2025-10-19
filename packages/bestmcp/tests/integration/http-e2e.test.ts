@@ -3,6 +3,7 @@ import "reflect-metadata";
 import { z } from "zod";
 import { Param, Tool } from "../../src/core/decorators.js";
 import { BestMCP } from "../../src/core/server.js";
+import { applyTestMocks } from "../../test-types.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -43,37 +44,16 @@ class TextService {
   }
 }
 
-// Mock classes
-class MockIncomingMessage {
-  method?: string;
-  url?: string;
-  headers: Record<string, string> = {};
-  on = vi.fn();
-}
-
-class MockServerResponse {
-  headersSent = false;
-  statusCode = 200;
-  headers: Record<string, string> = {};
-  _responseData: string[] = [];
-
-  writeHead = vi.fn(function (this: MockServerResponse, statusCode: number, headers?: Record<string, string>) {
-    this.statusCode = statusCode;
-    if (headers) {
-      Object.assign(this.headers, headers);
-    }
-  });
-
-  end = vi.fn(function (this: MockServerResponse, data?: string) {
-    if (data !== undefined) {
-      this._responseData.push(data);
-    }
-  });
+// HTTP 服务器 Mock 接口
+interface MockHTTPServer {
+  listen: (port: number, host: string, callback: () => void) => void;
+  close: () => void;
+  address: () => { port: number; address: string };
 }
 
 describe("HTTP 端到端集成测试", () => {
   let mcp: BestMCP;
-  let _mockHTTPServer: any;
+  let _mockHTTPServer: MockHTTPServer;
 
   beforeEach(() => {
     consoleSpy.mockClear();
@@ -95,8 +75,7 @@ describe("HTTP 端到端集成测试", () => {
 
   describe("HTTP 服务器启动和停止", () => {
     it("应该能够启动 HTTP 服务器", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "http", port: 3000, host: "127.0.0.1" });
 
@@ -106,8 +85,7 @@ describe("HTTP 端到端集成测试", () => {
     });
 
     it("应该能够停止 HTTP 服务器", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "http", port: 3000 });
       expect(mcp.isServerRunning()).toBe(true);
@@ -119,8 +97,7 @@ describe("HTTP 端到端集成测试", () => {
 
   describe("工具功能兼容性", () => {
     beforeEach(async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "http", port: 3000 });
     });
@@ -155,8 +132,7 @@ describe("HTTP 端到端集成测试", () => {
 
   describe("错误处理", () => {
     beforeEach(async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "http", port: 3000 });
     });
@@ -176,8 +152,7 @@ describe("HTTP 端到端集成测试", () => {
 
   describe("状态管理", () => {
     beforeEach(async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
     });
 
     it("应该正确跟踪 HTTP 传输层状态", async () => {
@@ -208,8 +183,7 @@ describe("HTTP 端到端集成测试", () => {
 
   describe("配置灵活性", () => {
     it("应该支持不同的端口配置", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "http", port: 9000, host: "localhost" });
 
@@ -218,8 +192,7 @@ describe("HTTP 端到端集成测试", () => {
     });
 
     it("应该支持默认配置", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "http" });
 
@@ -230,8 +203,7 @@ describe("HTTP 端到端集成测试", () => {
 
   describe("复杂场景集成测试", () => {
     it("应该支持传输层动态切换", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       // stdio -> HTTP
       await mcp.run({ transport: "stdio" });
@@ -246,8 +218,7 @@ describe("HTTP 端到端集成测试", () => {
     });
 
     it("应该处理复杂的数学运算", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "http", port: 3000 });
 
@@ -256,8 +227,7 @@ describe("HTTP 端到端集成测试", () => {
     });
 
     it("应该处理复杂的文本操作", async () => {
-      vi.spyOn(mcp as any, "setupToolRequestHandlers").mockImplementation(() => {});
-      vi.spyOn(mcp["transportManager"], "startCurrentTransport").mockResolvedValue(undefined);
+      const _mocks = applyTestMocks(mcp, vi);
 
       await mcp.run({ transport: "http", port: 3000 });
 
