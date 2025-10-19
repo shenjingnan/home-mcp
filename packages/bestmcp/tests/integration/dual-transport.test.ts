@@ -48,16 +48,30 @@ describe("双传输层集成测试", () => {
   describe("传输层切换", () => {
     it("应该能够在 stdio 和 HTTP 传输层之间切换", async () => {
       // 启动 stdio 传输层
-      const _mocks = applyTestMocks(mcp, vi);
+      const _mocks = applyTestMocks(mcp, vi, { initializeTransport: false, startCurrentTransport: false });
       const testableMcp = asTestableMCP(mcp);
       const transportManager = getTransportManager(mcp);
 
-      const stdioSpy = vi.spyOn(testableMcp, "initializeTransport").mockResolvedValue(undefined);
-      const transportManagerSpy = vi.spyOn(transportManager, "startCurrentTransport").mockResolvedValue(undefined);
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+      const originalStartHTTPServer = testableMcp.startHTTPServer.bind(testableMcp);
+
+      const stdioSpy = vi
+        .spyOn(testableMcp, "initializeTransport")
+        .mockImplementation(async (transportType, options) => {
+          // 调用原始方法以保持状态管理
+          await originalInitializeTransport(transportType, options);
+        });
+      const transportManagerSpy = vi
+        .spyOn(transportManager, "startCurrentTransport")
+        .mockImplementation(async (server) => {
+          // 调用原始方法以保持状态管理
+          await originalStartCurrentTransport(server);
+        });
 
       await mcp.run({ transport: "stdio" });
 
-      expect(stdioSpy).toHaveBeenCalledWith("stdio", {});
+      expect(stdioSpy).toHaveBeenCalledWith("stdio", { transport: "stdio" });
       expect(transportManagerSpy).toHaveBeenCalled();
       expect(mcp.getTransportStats().currentType).toBe(TransportType.STDIO);
 
@@ -66,20 +80,42 @@ describe("双传输层集成测试", () => {
       transportManagerSpy.mockClear();
 
       // 切换到 HTTP 传输层
-      const httpSpy = vi.spyOn(testableMcp, "initializeTransport").mockResolvedValue(undefined);
-      const startHTTPServerSpy = vi.spyOn(testableMcp, "startHTTPServer").mockResolvedValue(undefined);
+      const httpSpy = vi
+        .spyOn(testableMcp, "initializeTransport")
+        .mockImplementation(async (transportType, options) => {
+          // 调用原始方法以保持状态管理
+          await originalInitializeTransport(transportType, options);
+        });
+      const startHTTPServerSpy = vi.spyOn(testableMcp, "startHTTPServer").mockImplementation(async (options) => {
+        // 调用原始方法以保持状态管理
+        return await originalStartHTTPServer(options);
+      });
 
       await mcp.run({ transport: "http", port: 3000 });
 
-      expect(httpSpy).toHaveBeenCalledWith("http", { port: 3000 });
+      expect(httpSpy).toHaveBeenCalledWith("http", { transport: "http", port: 3000 });
       expect(startHTTPServerSpy).toHaveBeenCalled();
       expect(mcp.getTransportStats().currentType).toBe(TransportType.HTTP);
     });
 
     it("应该支持多次切换传输层", async () => {
-      const _mocks = applyTestMocks(mcp, vi, { startHTTPServer: true });
-      const _testableMcp = asTestableMCP(mcp);
-      const _transportManager = getTransportManager(mcp);
+      const _mocks = applyTestMocks(mcp, vi, {
+        startHTTPServer: true,
+        initializeTransport: false,
+        startCurrentTransport: false,
+      });
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       // stdio -> HTTP -> stdio
       await mcp.run({ transport: "stdio" });
@@ -105,7 +141,23 @@ describe("双传输层集成测试", () => {
         MCP_HOST: "localhost",
       };
 
-      const _mocks = applyTestMocks(mcp, vi, { startHTTPServer: true });
+      const _mocks = applyTestMocks(mcp, vi, {
+        startHTTPServer: true,
+        initializeTransport: false,
+        startCurrentTransport: false,
+      });
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       const transportType = process.env.MCP_TRANSPORT_TYPE || "stdio";
       const port = parseInt(process.env.MCP_PORT || "8000", 10);
@@ -133,7 +185,19 @@ describe("双传输层集成测试", () => {
 
       configMCP.register(TestService);
 
-      const _mocks = applyTestMocks(configMCP, vi);
+      const _mocks = applyTestMocks(configMCP, vi, { initializeTransport: false, startCurrentTransport: false });
+      const testableMcp = asTestableMCP(configMCP);
+      const transportManager = getTransportManager(configMCP);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       await configMCP.run({ transport: "stdio" });
 
@@ -143,7 +207,19 @@ describe("双传输层集成测试", () => {
 
   describe("工具功能兼容性", () => {
     it("应该在两种传输层下都能正常执行工具", async () => {
-      const _mocks = applyTestMocks(mcp, vi);
+      const _mocks = applyTestMocks(mcp, vi, { initializeTransport: false, startCurrentTransport: false });
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       // stdio 模式下测试工具执行
       await mcp.run({ transport: "stdio" });
@@ -167,7 +243,19 @@ describe("双传输层集成测试", () => {
     });
 
     it("应该在两种传输层下都有相同的工具列表", async () => {
-      const _mocks = applyTestMocks(mcp, vi);
+      const _mocks = applyTestMocks(mcp, vi, { initializeTransport: false, startCurrentTransport: false });
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       // stdio 模式
       await mcp.run({ transport: "stdio" });
@@ -184,7 +272,19 @@ describe("双传输层集成测试", () => {
 
   describe("错误处理兼容性", () => {
     it("应该在两种传输层下有一致的错误处理", async () => {
-      const _mocks = applyTestMocks(mcp, vi);
+      const _mocks = applyTestMocks(mcp, vi, { initializeTransport: false, startCurrentTransport: false });
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       // stdio 模式下的错误处理
       await mcp.run({ transport: "stdio" });
@@ -204,7 +304,23 @@ describe("双传输层集成测试", () => {
 
   describe("状态管理", () => {
     it("应该正确跟踪传输层状态", async () => {
-      const _mocks = applyTestMocks(mcp, vi, { startHTTPServer: true });
+      const _mocks = applyTestMocks(mcp, vi, {
+        startHTTPServer: true,
+        initializeTransport: false,
+        startCurrentTransport: false,
+      });
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       // 初始状态
       expect(mcp.isServerRunning()).toBe(false);
@@ -230,7 +346,19 @@ describe("双传输层集成测试", () => {
     });
 
     it("应该提供正确的传输层统计信息", async () => {
-      const _mocks = applyTestMocks(mcp, vi);
+      const _mocks = applyTestMocks(mcp, vi, { initializeTransport: false, startCurrentTransport: false });
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       const stats = mcp.getTransportStats();
       expect(stats.registeredTypes).toContain(TransportType.STDIO);
@@ -247,7 +375,19 @@ describe("双传输层集成测试", () => {
 
   describe("参数验证兼容性", () => {
     it("应该在两种传输层下有一致的参数验证", async () => {
-      const _mocks = applyTestMocks(mcp, vi);
+      const _mocks = applyTestMocks(mcp, vi, { initializeTransport: false, startCurrentTransport: false });
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       // stdio 模式下的验证
       await mcp.run({ transport: "stdio" });
@@ -275,7 +415,23 @@ describe("双传输层集成测试", () => {
 
   describe("复杂场景集成测试", () => {
     it("应该支持动态传输层配置", async () => {
-      const _mocks = applyTestMocks(mcp, vi, { startHTTPServer: true });
+      const _mocks = applyTestMocks(mcp, vi, {
+        startHTTPServer: true,
+        initializeTransport: false,
+        startCurrentTransport: false,
+      });
+      const testableMcp = asTestableMCP(mcp);
+      const transportManager = getTransportManager(mcp);
+
+      const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
+      const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
+
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
+        await originalInitializeTransport(transportType, options);
+      });
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+        await originalStartCurrentTransport(server);
+      });
 
       const configurations = [
         { transport: "stdio" as const },

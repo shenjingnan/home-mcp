@@ -162,6 +162,9 @@ export class HTTPTransport extends BaseTransport {
             message: error instanceof Error ? error.message : "未知错误",
           }),
         );
+      } else {
+        // 如果响应头已经发送，仍然需要结束响应
+        res.end();
       }
     }
   }

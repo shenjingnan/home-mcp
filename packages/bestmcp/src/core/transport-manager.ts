@@ -139,11 +139,13 @@ export class TransportManager {
       return; // 没有运行的传输层
     }
 
+    const transportType = this.currentTransport.type; // 保存类型信息
+
     try {
       await this.currentTransport.stop(this.currentMCPTransport);
-      console.log(`传输层 ${this.currentTransport.type} 已停止`);
+      console.log(`传输层 ${transportType} 已停止`);
     } catch (error) {
-      console.error(`停止传输层时出错 [${this.currentTransport.type}]:`, error);
+      console.error(`停止传输层时出错 [${transportType}]:`, error);
     } finally {
       this.currentTransport = null;
       this.currentMCPTransport = null;

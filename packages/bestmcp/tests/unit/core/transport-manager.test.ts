@@ -1,6 +1,6 @@
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TransportManager } from "../../../src/core/transport-manager.js";
 import { type HTTPTransportConfig, type TransportConfig, TransportType } from "../../../src/core/transports/base.js";
 import { HTTPTransport } from "../../../src/core/transports/http.js";
@@ -31,7 +31,13 @@ describe("TransportManager", () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    // 清理传输层管理器状态以避免跨测试影响
+    if (manager.getCurrentTransport()) {
+      manager.reset();
+    }
+    // 清理 console mock，但不恢复 spy
+    consoleSpy.mockClear();
+    consoleErrorSpy.mockClear();
   });
 
   describe("初始化", () => {

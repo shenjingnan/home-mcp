@@ -2,20 +2,23 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { HTTPTransportConfig } from "../../../../src/core/transports/base.js";
 import { TransportType } from "../../../../src/core/transports/base.js";
-import { HTTPTransport, type HTTPTransportConfig } from "../../../../src/core/transports/http.js";
-
-// Mock console methods to avoid noise in tests
-const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+import { HTTPTransport } from "../../../../src/core/transports/http.js";
 
 // Mock node:http module
 vi.mock("node:http", () => ({
   default: {
     createServer: vi.fn(),
   },
+  createServer: vi.fn(),
   IncomingMessage: class MockIncomingMessage {},
   ServerResponse: class MockServerResponse {},
+}));
+
+// Mock StreamableHTTPServerTransport
+vi.mock("@modelcontextprotocol/sdk/server/streamableHttp.js", () => ({
+  StreamableHTTPServerTransport: vi.fn(),
 }));
 
 // Mock 类型定义
@@ -36,10 +39,13 @@ describe("HTTPTransport", () => {
   let mockHTTPServer: MockHTTPServer;
   let mockStreamableTransport: MockStreamableTransport;
   let config: HTTPTransportConfig;
+  let consoleSpy: ReturnType<typeof vi.spyOn>;
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(() => {
-    consoleSpy.mockClear();
-    consoleErrorSpy.mockClear();
+  beforeEach(async () => {
+    // Setup console mocks
+    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     config = {
       type: TransportType.HTTP,
@@ -76,13 +82,14 @@ describe("HTTPTransport", () => {
     };
 
     // Mock StreamableHTTPServerTransport constructor
+    const { StreamableHTTPServerTransport } = await import("@modelcontextprotocol/sdk/server/streamableHttp.js");
     vi.mocked(StreamableHTTPServerTransport).mockImplementation(() => {
       return mockStreamableTransport;
     });
 
     // Mock http.createServer
-    const http = require("node:http");
-    http.createServer.mockReturnValue(mockHTTPServer);
+    const http = await import("node:http");
+    vi.mocked(http.createServer).mockReturnValue(mockHTTPServer);
   });
 
   afterEach(() => {
@@ -214,10 +221,7 @@ describe("HTTPTransport", () => {
 
       await transport.stop(mcpTransport);
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining("停止 HTTP 传输层时出错"),
-        expect.any(Error),
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith("停止 HTTP 传输层时出错: Stop failed");
     });
 
     it("应该处理没有 HTTP 服务器的情况", async () => {
@@ -238,7 +242,7 @@ describe("HTTPTransport", () => {
 
       await transport.startHTTPServer(3000, "localhost", "/test");
 
-      const http = require("node:http");
+      const http = await import("node:http");
       expect(http.createServer).toHaveBeenCalled();
       expect(mockHTTPServer.listen).toHaveBeenCalledWith(3000, "localhost", expect.any(Function));
       expect(consoleSpy).toHaveBeenCalledWith("MCP HTTP 服务器监听 http://localhost:3000/test");

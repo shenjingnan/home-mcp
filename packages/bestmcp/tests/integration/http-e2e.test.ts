@@ -3,7 +3,7 @@ import "reflect-metadata";
 import { z } from "zod";
 import { Param, Tool } from "../../src/core/decorators.js";
 import { BestMCP } from "../../src/core/server.js";
-import { applyTestMocks } from "../../test-types.js";
+import { applyTestMocks } from "../test-types.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});

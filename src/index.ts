@@ -503,7 +503,10 @@ class HassService {
 }
 
 // 创建 MCP 服务器实例
-const mcp = new BestMCP("智能家居 MCP 服务", getPackageVersion());
+const mcp = new BestMCP({
+  name: "智能家居 MCP 服务",
+  version: getPackageVersion(),
+});
 
 // 创建 HassService 实例用于灯光控制服务
 const hassService = new HassService();

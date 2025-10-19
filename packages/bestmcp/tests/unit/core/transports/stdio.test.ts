@@ -5,17 +5,19 @@ import { TransportType } from "../../../../src/core/transports/base.js";
 import { StdioTransport, type StdioTransportConfig } from "../../../../src/core/transports/stdio.js";
 
 // Mock console methods to avoid noise in tests
-const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+let consoleSpy: ReturnType<typeof vi.spyOn>;
+let _consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
 describe("StdioTransport", () => {
   let transport: StdioTransport;
   let mockServer: Server;
 
   beforeEach(() => {
+    // Setup console mocks
+    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    _consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
     transport = new StdioTransport();
-    consoleSpy.mockClear();
-    consoleErrorSpy.mockClear();
 
     mockServer = {
       name: "test-server",
@@ -106,9 +108,6 @@ describe("StdioTransport", () => {
     });
 
     it("应该处理停止时的错误", async () => {
-      // Mock console.error to capture error messages
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
       const mcpTransport = await transport.createTransport(mockServer);
       await transport.start(mockServer, mcpTransport);
 
@@ -119,8 +118,6 @@ describe("StdioTransport", () => {
       await transport.stop(mcpTransport);
 
       expect(transport.getStatus().isRunning).toBe(false);
-
-      consoleErrorSpy.mockRestore();
     });
 
     it("应该处理未初始化的传输层停止", async () => {
