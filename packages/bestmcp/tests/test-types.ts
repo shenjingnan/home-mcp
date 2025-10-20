@@ -21,16 +21,15 @@ export interface TransportManagerTestAccess {
  * 统一的测试访问接口，避免类型冲突
  */
 export interface BestMCPTestAccess {
-  // 私有方法
-  setupToolRequestHandlers(): void;
-  initializeTransport(transportType: string, options?: Record<string, unknown>): Promise<void>;
-  startHTTPServer(options?: Record<string, unknown>): Promise<void>;
+  // 公开方法
   stopServer(): Promise<void>;
+  isServerRunning(): boolean;
+  getTransportStatus(): unknown;
+  getTransportStats(): unknown;
+  getToolStats(): unknown;
 
-  // 私有属性（通过方法访问以避免直接属性访问的类型问题）
-  getCurrentTransport(): unknown;
-  setCurrentTransport(transport: unknown): void;
-  getTransportManager(): TransportManagerTestAccess;
+  // 私有属性（通过属性访问以避免直接属性访问的类型问题）
+  transportManager: TransportManagerTestAccess;
 }
 
 /**
@@ -50,9 +49,9 @@ export function asTestableMCP(mcp: BestMCP): BestMCPTestAccess {
  * @returns 传输管理器的测试访问接口
  */
 export function getTransportManager(mcp: BestMCP): TransportManagerTestAccess {
-  // 使用测试接口的方法来获取传输管理器，避免直接访问私有属性
+  // 直接访问私有属性
   const testableMcp = asTestableMCP(mcp);
-  return testableMcp.getTransportManager();
+  return testableMcp.transportManager;
 }
 
 /**
@@ -62,8 +61,9 @@ export function getTransportManager(mcp: BestMCP): TransportManagerTestAccess {
  * @param transport 传输层对象
  */
 export function setCurrentTransport(mcp: BestMCP, transport: unknown): void {
+  // 直接访问私有属性
   const testableMcp = asTestableMCP(mcp);
-  testableMcp.setCurrentTransport(transport);
+  (testableMcp as { currentTransport: unknown }).currentTransport = transport;
 }
 
 /**
@@ -73,8 +73,9 @@ export function setCurrentTransport(mcp: BestMCP, transport: unknown): void {
  * @returns 当前传输层对象
  */
 export function getCurrentTransport(mcp: BestMCP): unknown {
+  // 直接访问私有属性
   const testableMcp = asTestableMCP(mcp);
-  return testableMcp.getCurrentTransport();
+  return (testableMcp as { currentTransport: unknown }).currentTransport;
 }
 
 /**
@@ -112,12 +113,16 @@ export function applyTestMocks(
   const mocks: Record<string, SpyInstance> = {};
 
   if (config.setupToolRequestHandlers !== false) {
-    mocks["setupToolHandlersSpy"] = vi.spyOn(testableMcp, "setupToolRequestHandlers").mockImplementation(() => {});
+    // Mock setupToolRequestHandlers 方法
+    mocks["setupToolHandlersSpy"] = vi
+      .spyOn(testableMcp as Record<string, unknown>, "setupToolRequestHandlers")
+      .mockImplementation(() => {});
   }
 
   if (config.initializeTransport !== false) {
+    // Mock initializeTransport 方法
     mocks["initializeTransportSpy"] = vi
-      .spyOn(testableMcp, "initializeTransport")
+      .spyOn(testableMcp as Record<string, unknown>, "initializeTransport")
       .mockImplementation(async (transportType: string, _options: Record<string, unknown>) => {
         // 创建一个简单的 mock 传输层，正确设置类型和状态
         const mockTransport = {
@@ -141,8 +146,9 @@ export function applyTestMocks(
   }
 
   if (config.startHTTPServer !== false) {
+    // Mock startHTTPServer 方法
     mocks["startHTTPServerSpy"] = vi
-      .spyOn(testableMcp, "startHTTPServer")
+      .spyOn(testableMcp as Record<string, unknown>, "startHTTPServer")
       .mockImplementation(async (options?: Record<string, unknown>) => {
         const port = options?.["port"] || 8000;
         const host = options?.["host"] || "127.0.0.1";

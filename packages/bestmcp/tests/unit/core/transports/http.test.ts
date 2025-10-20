@@ -87,11 +87,8 @@ describe("HTTPTransport", () => {
 
     // Mock StreamableHTTPServerTransport constructor
     const { StreamableHTTPServerTransport } = await import("@modelcontextprotocol/sdk/server/streamableHttp.js");
-    const mockConstructor = vi.mocked(StreamableHTTPServerTransport) as vi.MockedConstructor<
-      typeof StreamableHTTPServerTransport
-    >;
-    mockConstructor.mockImplementation(() => {
-      return mockStreamableTransport as unknown;
+    vi.mocked(StreamableHTTPServerTransport).mockImplementation(() => {
+      return mockStreamableTransport as StreamableHTTPServerTransport;
     });
 
     // Mock http.createServer
