@@ -28,8 +28,14 @@ export interface BestMCPTestAccess {
   getTransportStats(): unknown;
   getToolStats(): unknown;
 
+  // 私有方法（用于测试）
+  initializeTransport(transportType: string, options?: unknown): Promise<void>;
+  startHTTPServer(options?: unknown): Promise<void>;
+  setupToolRequestHandlers(): void;
+
   // 私有属性（通过属性访问以避免直接属性访问的类型问题）
   transportManager: TransportManagerTestAccess;
+  currentTransport?: unknown;
 }
 
 /**
@@ -63,7 +69,7 @@ export function getTransportManager(mcp: BestMCP): TransportManagerTestAccess {
 export function setCurrentTransport(mcp: BestMCP, transport: unknown): void {
   // 直接访问私有属性
   const testableMcp = asTestableMCP(mcp);
-  (testableMcp as { currentTransport: unknown }).currentTransport = transport;
+  testableMcp.currentTransport = transport;
 }
 
 /**
@@ -75,7 +81,7 @@ export function setCurrentTransport(mcp: BestMCP, transport: unknown): void {
 export function getCurrentTransport(mcp: BestMCP): unknown {
   // 直接访问私有属性
   const testableMcp = asTestableMCP(mcp);
-  return (testableMcp as { currentTransport: unknown }).currentTransport;
+  return testableMcp.currentTransport;
 }
 
 /**
@@ -114,16 +120,14 @@ export function applyTestMocks(
 
   if (config.setupToolRequestHandlers !== false) {
     // Mock setupToolRequestHandlers 方法
-    mocks["setupToolHandlersSpy"] = vi
-      .spyOn(testableMcp as Record<string, unknown>, "setupToolRequestHandlers")
-      .mockImplementation(() => {});
+    mocks["setupToolHandlersSpy"] = vi.spyOn(testableMcp, "setupToolRequestHandlers").mockImplementation(() => {});
   }
 
   if (config.initializeTransport !== false) {
     // Mock initializeTransport 方法
     mocks["initializeTransportSpy"] = vi
-      .spyOn(testableMcp as Record<string, unknown>, "initializeTransport")
-      .mockImplementation(async (transportType: string, _options: Record<string, unknown>) => {
+      .spyOn(testableMcp, "initializeTransport")
+      .mockImplementation(async (transportType: string, _options: unknown) => {
         // 创建一个简单的 mock 传输层，正确设置类型和状态
         const mockTransport = {
           type: transportType,
@@ -148,10 +152,11 @@ export function applyTestMocks(
   if (config.startHTTPServer !== false) {
     // Mock startHTTPServer 方法
     mocks["startHTTPServerSpy"] = vi
-      .spyOn(testableMcp as Record<string, unknown>, "startHTTPServer")
-      .mockImplementation(async (options?: Record<string, unknown>) => {
-        const port = options?.["port"] || 8000;
-        const host = options?.["host"] || "127.0.0.1";
+      .spyOn(testableMcp, "startHTTPServer")
+      .mockImplementation(async (options?: unknown) => {
+        const optionsRecord = (options as Record<string, unknown>) || {};
+        const port = optionsRecord["port"] || 8000;
+        const host = optionsRecord["host"] || "127.0.0.1";
         console.log(`MCP Server listening on http://${host}:${port}/mcp`);
         return Promise.resolve();
       });

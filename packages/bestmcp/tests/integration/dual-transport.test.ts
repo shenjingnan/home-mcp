@@ -61,7 +61,7 @@ describe("双传输层集成测试", () => {
 
       const stdioSpy = vi
         .spyOn(testableMcp, "initializeTransport")
-        .mockImplementation(async (transportType, options) => {
+        .mockImplementation(async (transportType: string, options?: unknown) => {
           // 调用原始方法以保持状态管理
           await originalInitializeTransport(transportType, options);
         });
@@ -85,14 +85,16 @@ describe("双传输层集成测试", () => {
       // 切换到 HTTP 传输层
       const httpSpy = vi
         .spyOn(testableMcp, "initializeTransport")
-        .mockImplementation(async (transportType, options) => {
+        .mockImplementation(async (transportType: string, options?: unknown) => {
           // 调用原始方法以保持状态管理
           await originalInitializeTransport(transportType, options);
         });
-      const startHTTPServerSpy = vi.spyOn(testableMcp, "startHTTPServer").mockImplementation(async (options) => {
-        // 调用原始方法以保持状态管理
-        return await originalStartHTTPServer(options);
-      });
+      const startHTTPServerSpy = vi
+        .spyOn(testableMcp, "startHTTPServer")
+        .mockImplementation(async (options?: unknown) => {
+          // 调用原始方法以保持状态管理
+          return await originalStartHTTPServer(options);
+        });
 
       await mcp.run({ transport: "http", port: 3000 });
 
@@ -113,10 +115,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
@@ -155,10 +159,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
@@ -195,10 +201,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
@@ -217,10 +225,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
@@ -253,10 +263,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
@@ -282,10 +294,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
@@ -318,10 +332,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
@@ -356,10 +372,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
@@ -385,10 +403,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
@@ -429,10 +449,12 @@ describe("双传输层集成测试", () => {
       const originalInitializeTransport = testableMcp.initializeTransport.bind(testableMcp);
       const originalStartCurrentTransport = transportManager.startCurrentTransport.bind(transportManager);
 
-      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(async (transportType, options) => {
-        await originalInitializeTransport(transportType, options);
-      });
-      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server) => {
+      vi.spyOn(testableMcp, "initializeTransport").mockImplementation(
+        async (transportType: string, options?: unknown) => {
+          await originalInitializeTransport(transportType, options);
+        },
+      );
+      vi.spyOn(transportManager, "startCurrentTransport").mockImplementation(async (server?: unknown) => {
         await originalStartCurrentTransport(server);
       });
 
