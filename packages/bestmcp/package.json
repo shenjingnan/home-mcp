@@ -19,6 +19,7 @@
     "dev": "tsc --watch",
     "type:check": "tsc --noEmit",
     "test": "vitest run",
+    "test:silent": "vitest run --silent",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },

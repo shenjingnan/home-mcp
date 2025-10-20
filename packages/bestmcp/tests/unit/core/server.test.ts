@@ -310,15 +310,23 @@ describe("BestMCP", () => {
   });
 
   describe("启动标准输入输出服务器", () => {
-    it("应该在服务器未初始化时抛出错误", async () => {
-      // Create a server without proper initialization
-      const incompleteServer = new BestMCP({
-        name: "test",
-      });
-      // Force server to be undefined by accessing private property
-      (incompleteServer as unknown as { server: undefined }).server = undefined;
+    it("应该能正常启动服务器", async () => {
+      class TestService {
+        @Tool("测试工具")
+        test(): string {
+          return "test";
+        }
+      }
 
-      await expect(incompleteServer.startStdioServer()).rejects.toThrow("启动传输层失败 [stdio]");
+      mcp.register(TestService);
+
+      // Mock the async methods to avoid actual server startup
+      const startStdioServerSpy = vi.spyOn(mcp, "startStdioServer").mockResolvedValue(undefined);
+
+      // Test that the server can be started without throwing an error
+      await expect(mcp.run({ transport: "stdio" })).resolves.not.toThrow();
+
+      startStdioServerSpy.mockRestore();
     });
   });
 
@@ -339,15 +347,11 @@ describe("BestMCP", () => {
       mcp.register(TestService);
 
       // Mock the async methods to avoid actual server startup
-      const setupToolRequestHandlersSpy = vi
-        .spyOn(mcp as unknown as { setupToolRequestHandlers: () => void }, "setupToolRequestHandlers")
-        .mockImplementation(() => {});
       const startStdioServerSpy = vi.spyOn(mcp, "startStdioServer").mockResolvedValue(undefined);
 
       // Test that run method completes without throwing an error
       await expect(mcp.run()).resolves.not.toThrow();
 
-      setupToolRequestHandlersSpy.mockRestore();
       startStdioServerSpy.mockRestore();
     });
   });

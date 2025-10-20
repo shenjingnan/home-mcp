@@ -4,7 +4,6 @@ import { z } from "zod";
 import { Param, Tool } from "../../../src/core/decorators";
 import { ToolNotFoundError, ToolValidationError } from "../../../src/core/errors";
 import { BestMCP } from "../../../src/core/server";
-import { applyTestMocks } from "../../test-types.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -294,7 +293,9 @@ describe("错误处理和边界条件测试", () => {
 
   describe("内存边界测试", () => {
     it("应该处理大量并发请求", async () => {
-      const _mocks = applyTestMocks(mcp, vi);
+      // Mock the server startup to avoid actual network operations
+      const startStdioServerSpy = vi.spyOn(mcp, "startStdioServer").mockResolvedValue(undefined);
+      const stopServerSpy = vi.spyOn(mcp, "stopServer").mockResolvedValue(undefined);
 
       await mcp.run({ transport: "stdio" });
 
@@ -310,6 +311,9 @@ describe("错误处理和边界条件测试", () => {
       results.forEach((result, index) => {
         expect(result).toBe(`test-${index}`);
       });
+
+      startStdioServerSpy.mockRestore();
+      stopServerSpy.mockRestore();
     });
 
     it("应该在大对象参数下正常工作", async () => {
@@ -329,7 +333,9 @@ describe("错误处理和边界条件测试", () => {
 
   describe("状态一致性测试", () => {
     it("应该在错误后保持服务器状态", async () => {
-      const _mocks = applyTestMocks(mcp, vi);
+      // Mock the server startup to avoid actual network operations
+      const startStdioServerSpy = vi.spyOn(mcp, "startStdioServer").mockResolvedValue(undefined);
+      const stopServerSpy = vi.spyOn(mcp, "stopServer").mockResolvedValue(undefined);
 
       await mcp.run({ transport: "stdio" });
 
@@ -351,10 +357,15 @@ describe("错误处理和边界条件测试", () => {
       // 验证状态
       expect(mcp.isServerRunning()).toBe(true);
       expect(mcp.getToolStats().totalTools).toBeGreaterThan(0);
+
+      startStdioServerSpy.mockRestore();
+      stopServerSpy.mockRestore();
     });
 
     it("应该在多次错误后保持稳定", async () => {
-      const _mocks = applyTestMocks(mcp, vi);
+      // Mock the server startup to avoid actual network operations
+      const startStdioServerSpy = vi.spyOn(mcp, "startStdioServer").mockResolvedValue(undefined);
+      const stopServerSpy = vi.spyOn(mcp, "stopServer").mockResolvedValue(undefined);
 
       await mcp.run({ transport: "stdio" });
 
@@ -370,6 +381,9 @@ describe("错误处理和边界条件测试", () => {
       // 验证服务器仍然正常工作
       const result = await mcp.executeTool("normalTool", { param: "stable" });
       expect(result).toBe("stable");
+
+      startStdioServerSpy.mockRestore();
+      stopServerSpy.mockRestore();
     });
   });
 
@@ -433,7 +447,9 @@ describe("错误处理和边界条件测试", () => {
 
   describe("并发错误处理", () => {
     it("应该正确处理并发中的混合成功和失败", async () => {
-      const _mocks = applyTestMocks(mcp, vi);
+      // Mock the server startup to avoid actual network operations
+      const startStdioServerSpy = vi.spyOn(mcp, "startStdioServer").mockResolvedValue(undefined);
+      const stopServerSpy = vi.spyOn(mcp, "stopServer").mockResolvedValue(undefined);
 
       await mcp.run({ transport: "stdio" });
 
@@ -462,6 +478,9 @@ describe("错误处理和边界条件测试", () => {
       successResults.forEach((result, _index) => {
         expect(result).toMatch(/^success-\d+$/);
       });
+
+      startStdioServerSpy.mockRestore();
+      stopServerSpy.mockRestore();
     });
   });
 });
