@@ -94,6 +94,15 @@ src/
   - 如果需要表示动态对象，使用 `Record<string, T>` 或索引签名
   - 测试代码中使用 `vi.spyOn` 等 mock 操作时，通过 `applyTestMocks` 工具函数避免 `any` 类型
   - **例外情况**：仅在特殊可控情况下使用 `@ts-expect-error` 注释明确标记，并说明使用原因
+- **测试中的类型安全**：
+  - 使用项目提供的 `test-types.ts` 中的类型安全工具函数
+  - 避免直接使用 `(obj as any)` 进行类型断言
+  - 使用 `asTestableMCP`、`getTransportManager`、`setCurrentTransport` 等辅助函数
+  - 访问私有成员时使用适当的接口定义而非 `any` 类型
+- **代码检查工具**：
+  - 项目使用 Biome 而非 ESLint 进行代码检查和格式化
+  - 禁止使用 `eslint-disable` 注释，应使用 Biome 兼容的注释格式
+  - Biome 配置中的 `noExplicitAny` 规则设置为 `error` 级别
 
 ### 测试
 - 使用 Vitest 测试框架

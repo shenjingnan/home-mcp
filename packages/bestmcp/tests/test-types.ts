@@ -13,6 +13,15 @@ export interface BestMCPTestAccess {
   setupToolRequestHandlers(): void;
   initializeTransport(transportType: string, options?: Record<string, unknown>): Promise<void>;
   startHTTPServer(options?: Record<string, unknown>): Promise<void>;
+  stopServer(): Promise<void>;
+}
+
+/**
+ * 测试中需要访问的 BestMCP 私有属性接口
+ */
+export interface BestMCPPrivateAccess {
+  currentTransport: unknown;
+  transportManager: TransportManagerTestAccess;
 }
 
 /**
@@ -20,6 +29,9 @@ export interface BestMCPTestAccess {
  */
 export interface TransportManagerTestAccess {
   startCurrentTransport(server?: unknown): Promise<void>;
+  getCurrentTransportStatus(): unknown;
+  setCurrentTransport(transport: unknown): Promise<void>;
+  reset(): void;
 }
 
 /**
@@ -41,6 +53,30 @@ export function asTestableMCP(mcp: BestMCP): BestMCP & BestMCPTestAccess {
 export function getTransportManager(mcp: BestMCP): TransportManagerTestAccess {
   // @ts-expect-error - 访问私有属性以进行测试
   return mcp.transportManager as TransportManagerTestAccess;
+}
+
+/**
+ * 类型安全地设置当前传输层
+ *
+ * @param mcp BestMCP 实例
+ * @param transport 传输层对象
+ */
+export function setCurrentTransport(mcp: BestMCP, transport: unknown): void {
+  // @ts-expect-error - 访问私有属性进行测试
+  const testableMcp = mcp as unknown as BestMCP & BestMCPPrivateAccess;
+  testableMcp.currentTransport = transport;
+}
+
+/**
+ * 获取当前传输层
+ *
+ * @param mcp BestMCP 实例
+ * @returns 当前传输层对象
+ */
+export function getCurrentTransport(mcp: BestMCP): unknown {
+  // @ts-expect-error - 访问私有属性进行测试
+  const testableMcp = mcp as unknown as BestMCP & BestMCPPrivateAccess;
+  return testableMcp.currentTransport;
 }
 
 /**
@@ -86,7 +122,6 @@ export function applyTestMocks(
       .spyOn(testableMcp, "initializeTransport")
       .mockImplementation(async (transportType: string, _options: Record<string, unknown>) => {
         // 创建一个简单的 mock 传输层，正确设置类型和状态
-        // @ts-expect-error - 访问私有属性进行测试
         const mockTransport = {
           type: transportType,
           getStatus: () => ({
@@ -101,10 +136,8 @@ export function applyTestMocks(
           start: async () => {},
           stop: async () => {},
         };
-        // @ts-expect-error - 访问私有属性进行测试
-        testableMcp.currentTransport = mockTransport;
-        // @ts-expect-error - 访问私有属性进行测试
-        await testableMcp.transportManager.setCurrentTransport(mockTransport);
+        setCurrentTransport(mcp, mockTransport);
+        await getTransportManager(mcp).setCurrentTransport(mockTransport);
         return Promise.resolve();
       });
   }
@@ -127,10 +160,8 @@ export function applyTestMocks(
   // 添加 stopServer mock
   mocks.stopServerSpy = vi.spyOn(testableMcp, "stopServer").mockImplementation(async () => {
     // 重置传输层状态
-    // @ts-expect-error - 访问私有属性进行测试
-    testableMcp.currentTransport = null;
-    // @ts-expect-error - 访问私有属性进行测试
-    testableMcp.transportManager.reset();
+    setCurrentTransport(mcp, null);
+    getTransportManager(mcp).reset();
     return Promise.resolve();
   });
 

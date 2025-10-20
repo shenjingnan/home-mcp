@@ -1,70 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "reflect-metadata";
 import { z } from "zod";
-// import { applyTestMocks } from "../../../test-types.js"; // 临时禁用以解决导入问题
 import { Param, Tool } from "../../../src/core/decorators";
 import { ToolNotFoundError, ToolValidationError } from "../../../src/core/errors";
 import { BestMCP } from "../../../src/core/server";
+import { applyTestMocks } from "../../test-types.js";
 
 // Mock console methods to avoid noise in tests
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-// 临时简化的 applyTestMocks 函数，避免导入问题
-function applyTestMocks(
-  mcp: BestMCP,
-  vi: { spyOn: (obj: unknown, method: string) => unknown },
-  _config: Record<string, unknown> = {},
-): Record<string, unknown> {
-  const mocks: Record<string, unknown> = {};
-
-  // Mock setupToolRequestHandlers
-  // @ts-expect-error - 访问私有方法进行测试
-  mocks.setupToolHandlersSpy = vi.spyOn(mcp, "setupToolRequestHandlers").mockImplementation(() => {});
-
-  // Mock initializeTransport 并确保它正确设置传输层
-  // @ts-expect-error - 访问私有方法进行测试
-  mocks.initializeTransportSpy = vi
-    .spyOn(mcp, "initializeTransport")
-    .mockImplementation(async (transportType: string, _options: Record<string, unknown>) => {
-      // 创建一个简单的 mock 传输层
-      // @ts-expect-error - 访问私有属性进行测试
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mcp as any).currentTransport = {
-        type: transportType,
-        getStatus: () => ({ isRunning: false, type: transportType }),
-        createTransport: async () => ({}),
-        start: async () => {},
-        stop: async () => {},
-      };
-      return Promise.resolve();
-    });
-
-  // Mock startHTTPServer
-  // @ts-expect-error - 访问私有方法进行测试
-  mocks.startHTTPServerSpy = vi.spyOn(mcp, "startHTTPServer").mockResolvedValue(undefined);
-
-  // Mock transportManager.startCurrentTransport 以避免 "未设置当前传输层" 错误
-  // @ts-expect-error - 访问私有属性进行测试
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ((mcp as any).transportManager) {
-    // @ts-expect-error - 访问私有方法进行测试
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.spyOn((mcp as any).transportManager, "startCurrentTransport").mockImplementation(async () => {
-      // 模拟成功启动
-      return Promise.resolve();
-    });
-
-    // @ts-expect-error - 访问私有方法进行测试
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.spyOn((mcp as any).transportManager, "getCurrentTransportStatus").mockReturnValue({
-      type: "stdio",
-      isRunning: true,
-    });
-  }
-
-  return mocks;
-}
 
 // 错误测试服务类
 class ErrorTestService {
