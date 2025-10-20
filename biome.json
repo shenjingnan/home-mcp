@@ -6,7 +6,16 @@
     "useIgnoreFile": false
   },
   "files": {
-    "includes": ["**", "!coverage", "!dist", "!node_modules", "!packages/bestmcp/dist", "!docs/.next", "!docs/out"]
+    "includes": [
+      "**",
+      "!coverage",
+      "!dist",
+      "!node_modules",
+      "!packages/bestmcp/dist",
+      "!docs/.next",
+      "!docs/out",
+      "!packages/bestmcp/coverage"
+    ]
   },
   "formatter": {
     "enabled": true,
