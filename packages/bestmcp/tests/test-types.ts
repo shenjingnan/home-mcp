@@ -4,8 +4,8 @@
  * 提供测试中使用的类型定义，减少对 any 类型的依赖
  */
 
-import type { BestMCP } from "../src/core/server.js";
 import type { SpyInstance } from "vitest";
+import type { BestMCP } from "../src/core/server.js";
 
 /**
  * 传输管理器测试访问接口
@@ -23,10 +23,7 @@ export interface TransportManagerTestAccess {
 export interface BestMCPTestAccess {
   // 私有方法
   setupToolRequestHandlers(): void;
-  initializeTransport(
-    transportType: string,
-    options?: Record<string, unknown>
-  ): Promise<void>;
+  initializeTransport(transportType: string, options?: Record<string, unknown>): Promise<void>;
   startHTTPServer(options?: Record<string, unknown>): Promise<void>;
   stopServer(): Promise<void>;
 
@@ -101,7 +98,7 @@ export interface TestMockConfig {
 export function applyTestMocks(
   mcp: BestMCP,
   vi: { spyOn: (obj: unknown, method: string) => SpyInstance },
-  config: TestMockConfig = {}
+  config: TestMockConfig = {},
 ): {
   setupToolHandlersSpy?: SpyInstance;
   initializeTransportSpy?: SpyInstance;
@@ -115,64 +112,58 @@ export function applyTestMocks(
   const mocks: Record<string, SpyInstance> = {};
 
   if (config.setupToolRequestHandlers !== false) {
-    mocks['setupToolHandlersSpy'] = vi
-      .spyOn(testableMcp, "setupToolRequestHandlers")
-      .mockImplementation(() => {});
+    mocks["setupToolHandlersSpy"] = vi.spyOn(testableMcp, "setupToolRequestHandlers").mockImplementation(() => {});
   }
 
   if (config.initializeTransport !== false) {
-    mocks['initializeTransportSpy'] = vi
+    mocks["initializeTransportSpy"] = vi
       .spyOn(testableMcp, "initializeTransport")
-      .mockImplementation(
-        async (transportType: string, _options: Record<string, unknown>) => {
-          // 创建一个简单的 mock 传输层，正确设置类型和状态
-          const mockTransport = {
+      .mockImplementation(async (transportType: string, _options: Record<string, unknown>) => {
+        // 创建一个简单的 mock 传输层，正确设置类型和状态
+        const mockTransport = {
+          type: transportType,
+          getStatus: () => ({
+            isRunning: true,
             type: transportType,
-            getStatus: () => ({
-              isRunning: true,
-              type: transportType,
-              details: {
-                transportType,
-                description: `${transportType} 传输层`,
-              },
-            }),
-            createTransport: async () => ({}),
-            start: async () => {},
-            stop: async () => {},
-          };
-          setCurrentTransport(mcp, mockTransport);
-          await getTransportManager(mcp).setCurrentTransport(mockTransport);
-          return Promise.resolve();
-        }
-      );
+            details: {
+              transportType,
+              description: `${transportType} 传输层`,
+            },
+          }),
+          createTransport: async () => ({}),
+          start: async () => {},
+          stop: async () => {},
+        };
+        setCurrentTransport(mcp, mockTransport);
+        await getTransportManager(mcp).setCurrentTransport(mockTransport);
+        return Promise.resolve();
+      });
   }
 
   if (config.startHTTPServer !== false) {
-    mocks['startHTTPServerSpy'] = vi
+    mocks["startHTTPServerSpy"] = vi
       .spyOn(testableMcp, "startHTTPServer")
       .mockImplementation(async (options?: Record<string, unknown>) => {
-        const port = options?.['port'] || 8000;
-        const host = options?.['host'] || "127.0.0.1";
+        const port = options?.["port"] || 8000;
+        const host = options?.["host"] || "127.0.0.1";
         console.log(`MCP Server listening on http://${host}:${port}/mcp`);
         return Promise.resolve();
       });
   }
 
   if (config.startCurrentTransport !== false) {
-    mocks['startCurrentTransportSpy'] = vi
+    mocks["startCurrentTransportSpy"] = vi
       .spyOn(transportManager, "startCurrentTransport")
       .mockResolvedValue(undefined);
   }
 
   // 添加 stopServer mock
-  mocks['stopServerSpy'] = vi
-    .spyOn(testableMcp, "stopServer")
-    .mockImplementation(async () => {
-      // 重置传输层状态
-      setCurrentTransport(mcp, null);
-      getTransportManager(mcp).reset();
-      return Promise.resolve();
-    });
+  mocks["stopServerSpy"] = vi.spyOn(testableMcp, "stopServer").mockImplementation(async () => {
+    // 重置传输层状态
+    setCurrentTransport(mcp, null);
+    getTransportManager(mcp).reset();
+    return Promise.resolve();
+  });
 
   return mocks;
 }
@@ -184,7 +175,7 @@ export function applyTestMocks(
  */
 export function resetMocks(mocks: ReturnType<typeof applyTestMocks>): void {
   Object.values(mocks).forEach((spy) => {
-    if (spy && 'mockReset' in spy && typeof spy.mockReset === "function") {
+    if (spy && "mockReset" in spy && typeof spy.mockReset === "function") {
       spy.mockReset();
     }
   });
@@ -197,7 +188,7 @@ export function resetMocks(mocks: ReturnType<typeof applyTestMocks>): void {
  */
 export function clearMocks(mocks: ReturnType<typeof applyTestMocks>): void {
   Object.values(mocks).forEach((spy) => {
-    if (spy && 'mockClear' in spy && typeof spy.mockClear === "function") {
+    if (spy && "mockClear" in spy && typeof spy.mockClear === "function") {
       spy.mockClear();
     }
   });

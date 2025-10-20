@@ -115,7 +115,7 @@ describe("BaseTransport", () => {
       expect(status.isRunning).toBe(false);
       expect(status.type).toBe(TransportType.STDIO);
       expect(status.details).toBeDefined();
-      expect(status.details?.['transportType']).toBe("test");
+      expect(status.details?.["transportType"]).toBe("test");
     });
 
     it("启动后状态应该更新为运行中", async () => {
@@ -124,7 +124,7 @@ describe("BaseTransport", () => {
 
       const status = transport.getStatus();
       expect(status.isRunning).toBe(true);
-      expect(status.details?.['hasTransport']).toBe(true);
+      expect(status.details?.["hasTransport"]).toBe(true);
     });
 
     it("停止后状态应该更新为未运行", async () => {
@@ -134,7 +134,7 @@ describe("BaseTransport", () => {
 
       const status = transport.getStatus();
       expect(status.isRunning).toBe(false);
-      expect(status.details?.['hasTransport']).toBe(false);
+      expect(status.details?.["hasTransport"]).toBe(false);
     });
   });
 

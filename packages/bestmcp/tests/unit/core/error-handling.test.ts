@@ -104,7 +104,7 @@ describe("错误处理和边界条件测试", () => {
   beforeEach(() => {
     mcp = new BestMCP({
       name: "error-test",
-      version: "1.0.0"
+      version: "1.0.0",
     });
     mcp.register(ErrorTestService);
     mcp.register(ComplexParameterService);

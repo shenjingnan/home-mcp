@@ -70,7 +70,7 @@ describe("HTTP 端到端集成测试", () => {
 
     mcp = new BestMCP({
       name: "http-e2e-test",
-      version: "1.0.0"
+      version: "1.0.0",
     });
     mcp.register(CalculatorService);
     mcp.register(TextService);

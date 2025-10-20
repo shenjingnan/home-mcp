@@ -14,8 +14,12 @@ describe("StdioTransport", () => {
 
   beforeEach(() => {
     // Setup console mocks
-    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {}) as ReturnType<typeof vi.spyOn> & { mockClear: () => void };
-    _consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {}) as ReturnType<typeof vi.spyOn> & { mockClear: () => void };
+    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {}) as ReturnType<typeof vi.spyOn> & {
+      mockClear: () => void;
+    };
+    _consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {}) as ReturnType<typeof vi.spyOn> & {
+      mockClear: () => void;
+    };
 
     transport = new StdioTransport();
 

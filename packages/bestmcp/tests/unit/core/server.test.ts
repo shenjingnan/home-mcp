@@ -14,7 +14,7 @@ describe("BestMCP", () => {
 
   beforeEach(() => {
     mcp = new BestMCP({
-      name: "test-server"
+      name: "test-server",
     });
     consoleSpy.mockClear();
     consoleErrorSpy.mockClear();
@@ -23,7 +23,7 @@ describe("BestMCP", () => {
   describe("构造函数", () => {
     it("应该使用默认版本初始化", () => {
       const server = new BestMCP({
-        name: "test"
+        name: "test",
       });
       expect(server).toBeDefined();
     });
@@ -31,7 +31,7 @@ describe("BestMCP", () => {
     it("应该使用自定义版本初始化", () => {
       const server = new BestMCP({
         name: "test",
-        version: "2.0.0"
+        version: "2.0.0",
       });
       expect(server).toBeDefined();
     });
@@ -313,7 +313,7 @@ describe("BestMCP", () => {
     it("应该在服务器未初始化时抛出错误", async () => {
       // Create a server without proper initialization
       const incompleteServer = new BestMCP({
-        name: "test"
+        name: "test",
       });
       // Force server to be undefined by accessing private property
       (incompleteServer as unknown as { server: undefined }).server = undefined;

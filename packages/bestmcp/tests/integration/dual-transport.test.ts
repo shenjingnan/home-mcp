@@ -37,7 +37,7 @@ describe("双传输层集成测试", () => {
   beforeEach(() => {
     mcp = new BestMCP({
       name: "dual-transport-test",
-      version: "1.0.0"
+      version: "1.0.0",
     });
     mcp.register(TestService);
     consoleSpy.mockClear();
@@ -162,9 +162,9 @@ describe("双传输层集成测试", () => {
         await originalStartCurrentTransport(server);
       });
 
-      const transportType = process.env['MCP_TRANSPORT_TYPE'] || "stdio";
-      const port = parseInt(process.env['MCP_PORT'] || "8000", 10);
-      const host = process.env['MCP_HOST'] || "127.0.0.1";
+      const transportType = process.env["MCP_TRANSPORT_TYPE"] || "stdio";
+      const port = parseInt(process.env["MCP_PORT"] || "8000", 10);
+      const host = process.env["MCP_HOST"] || "127.0.0.1";
 
       await mcp.run({
         transport: transportType as "stdio" | "http",
