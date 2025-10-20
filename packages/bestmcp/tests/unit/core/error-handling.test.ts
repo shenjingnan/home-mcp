@@ -30,8 +30,7 @@ class ErrorTestService {
   @Tool("类型错误工具")
   typeError(@Param(z.string(), "参数") param: string): string {
     // 故意返回错误类型
-    // @ts-expect-error - 测试类型错误处理
-    return param as unknown as string;
+    return param;
   }
 
   @Tool("边界测试工具")
@@ -103,7 +102,10 @@ describe("错误处理和边界条件测试", () => {
   let mcp: BestMCP;
 
   beforeEach(() => {
-    mcp = new BestMCP("error-test", "1.0.0");
+    mcp = new BestMCP({
+      name: "error-test",
+      version: "1.0.0"
+    });
     mcp.register(ErrorTestService);
     mcp.register(ComplexParameterService);
     consoleSpy.mockClear();

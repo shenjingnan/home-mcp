@@ -236,7 +236,7 @@ describe("性能基准测试", () => {
 
       // 注册所有服务
       for (const service of services) {
-        mcp.register(service);
+        mcp.register(service as new () => InstanceType<typeof service>);
       }
 
       const endTime = performance.now();

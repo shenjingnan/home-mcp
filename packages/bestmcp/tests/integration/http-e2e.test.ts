@@ -68,7 +68,10 @@ describe("HTTP 端到端集成测试", () => {
       address: () => ({ port: 8000, address: "127.0.0.1" }),
     };
 
-    mcp = new BestMCP("http-e2e-test", "1.0.0");
+    mcp = new BestMCP({
+      name: "http-e2e-test",
+      version: "1.0.0"
+    });
     mcp.register(CalculatorService);
     mcp.register(TextService);
   });

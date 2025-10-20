@@ -491,7 +491,7 @@ export class BestMCP {
     // 关闭 HTTP 服务器
     if (this.httpServer) {
       this.httpServer.close();
-      this.httpServer = undefined;
+      (this.httpServer as HttpServer | undefined) = undefined;
     }
   }
 

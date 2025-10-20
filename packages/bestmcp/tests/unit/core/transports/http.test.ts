@@ -39,13 +39,13 @@ describe("HTTPTransport", () => {
   let mockHTTPServer: MockHTTPServer;
   let mockStreamableTransport: MockStreamableTransport;
   let config: HTTPTransportConfig;
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  let consoleSpy: ReturnType<typeof vi.spyOn> & { mockClear: () => void };
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn> & { mockClear: () => void };
 
   beforeEach(async () => {
     // Setup console mocks
-    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {}) as ReturnType<typeof vi.spyOn> & { mockClear: () => void };
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {}) as ReturnType<typeof vi.spyOn> & { mockClear: () => void };
 
     config = {
       type: TransportType.HTTP,
@@ -83,13 +83,13 @@ describe("HTTPTransport", () => {
 
     // Mock StreamableHTTPServerTransport constructor
     const { StreamableHTTPServerTransport } = await import("@modelcontextprotocol/sdk/server/streamableHttp.js");
-    vi.mocked(StreamableHTTPServerTransport).mockImplementation(() => {
+    (vi.mocked(StreamableHTTPServerTransport) as any).mockImplementation(() => {
       return mockStreamableTransport;
     });
 
     // Mock http.createServer
     const http = await import("node:http");
-    vi.mocked(http.createServer).mockReturnValue(mockHTTPServer);
+    vi.mocked(http.createServer).mockReturnValue(mockHTTPServer as any);
   });
 
   afterEach(() => {
@@ -104,7 +104,7 @@ describe("HTTPTransport", () => {
 
     it("应该保存配置", () => {
       const transportWithConfig = new HTTPTransport(config);
-      expect(transportWithConfig.getStatus().details?.config).toEqual(config.options);
+      expect(transportWithConfig.getStatus().details?.['config']).toEqual(config.options);
     });
 
     it("应该处理空配置", () => {
@@ -275,7 +275,8 @@ describe("HTTPTransport", () => {
       mockRes = {
         writeHead: vi.fn(),
         end: vi.fn(),
-        headersSent: false,
+        get headersSent() { return false; },
+        set headersSent(value: boolean) { /* ignore */ },
       } as unknown as ServerResponse;
 
       await transport.createTransport(mockServer);
@@ -320,7 +321,14 @@ describe("HTTPTransport", () => {
     });
 
     it("应该避免重复发送响应头", async () => {
-      mockRes.headersSent = true;
+      // 使用新的mock对象来模拟headersSent为true的情况
+      mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+        get headersSent() { return true; },
+        set headersSent(value: boolean) { /* ignore */ },
+      } as unknown as ServerResponse;
+
       const errorMessage = "Request failed";
       mockStreamableTransport.handleRequest = vi.fn().mockRejectedValue(new Error(errorMessage));
 
@@ -355,7 +363,7 @@ describe("HTTPTransport", () => {
       const status = transport.getStatus();
 
       expect(status.isRunning).toBe(true);
-      expect(status.details?.hasTransport).toBe(true);
+      expect(status.details?.['hasTransport']).toBe(true);
     });
 
     it("启动 HTTP 服务器后应该更新状态", async () => {
@@ -364,7 +372,7 @@ describe("HTTPTransport", () => {
 
       const status = transport.getStatus();
 
-      expect(status.details?.hasHTTPServer).toBe(true);
+      expect(status.details?.['hasHTTPServer']).toBe(true);
     });
   });
 

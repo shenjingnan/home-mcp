@@ -5,8 +5,8 @@ import { TransportType } from "../../../../src/core/transports/base.js";
 import { StdioTransport, type StdioTransportConfig } from "../../../../src/core/transports/stdio.js";
 
 // Mock console methods to avoid noise in tests
-let consoleSpy: ReturnType<typeof vi.spyOn>;
-let _consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+let consoleSpy: ReturnType<typeof vi.spyOn> & { mockClear: () => void };
+let _consoleErrorSpy: ReturnType<typeof vi.spyOn> & { mockClear: () => void };
 
 describe("StdioTransport", () => {
   let transport: StdioTransport;
@@ -14,8 +14,8 @@ describe("StdioTransport", () => {
 
   beforeEach(() => {
     // Setup console mocks
-    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    _consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {}) as ReturnType<typeof vi.spyOn> & { mockClear: () => void };
+    _consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {}) as ReturnType<typeof vi.spyOn> & { mockClear: () => void };
 
     transport = new StdioTransport();
 
