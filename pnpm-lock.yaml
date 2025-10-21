@@ -17,10 +17,10 @@ importers:
         specifier: ^1.17.5
         version: 1.18.1
       bestmcp:
-        specifier: 0.0.5-beta.0
-        version: 0.0.5-beta.0
+        specifier: link:../../../Library/pnpm/global/5/node_modules/bestmcp
+        version: link:../../../Library/pnpm/global/5/node_modules/bestmcp
       zod:
-        specifier: ^3.22.4
+        specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
       '@biomejs/biome':
@@ -1722,9 +1722,6 @@ packages:
 
   before-after-hook@4.0.0:
     resolution: {integrity: sha512-q6tR3RPqIB1pMiTRMFcZwuG5T8vwp+vUvEG0vuI6B+Rikh5BfPp2fQ82c925FOs+b0lcFQ8CFrL+KbilfZFhOQ==}
-
-  bestmcp@0.0.5-beta.0:
-    resolution: {integrity: sha512-++UyWVcEVQKqSayxVHYLO9mUlW9P0TOxLHqYKOIqFbYC87QaT/vdLE50928k15REPMihoRyR6c9pHKutxyDuOg==}
 
   better-react-mathjax@2.3.0:
     resolution: {integrity: sha512-K0ceQC+jQmB+NLDogO5HCpqmYf18AU2FxDbLdduYgkHYWZApFggkHE4dIaXCV1NqeoscESYXXo1GSkY6fA295w==}
@@ -5984,13 +5981,6 @@ snapshots:
   basic-ftp@5.0.5: {}
 
   before-after-hook@4.0.0: {}
-
-  bestmcp@0.0.5-beta.0:
-    dependencies:
-      '@modelcontextprotocol/sdk': 1.18.2
-      reflect-metadata: 0.2.2
-    transitivePeerDependencies:
-      - supports-color
 
   better-react-mathjax@2.3.0(react@19.2.0):
     dependencies:
