@@ -15,8 +15,6 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "type:check": "tsc --project tsconfig.typecheck.json",
-    "type:check:bestmcp": "cd packages/bestmcp && tsc --project tsconfig.typecheck.json",
-    "type:check:all": "pnpm run type:check && pnpm run type:check:bestmcp",
     "spell:check": "cspell \"**/*.{ts,js,json,md,yaml}\"",
     "check": "biome check .",
     "check:fix": "biome check --write --unsafe .",
@@ -43,12 +41,13 @@
   "pnpm": {
     "overrides": {
       "@conventional-changelog/git-client": ">=2.0.0",
-      "esbuild": ">=0.25.0"
+      "esbuild": ">=0.25.0",
+      "bestmcp": "link:../../../Library/pnpm/global/5/node_modules/bestmcp"
     }
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
-    "bestmcp": "workspace:*",
+    "bestmcp": "0.0.5-beta.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -58,7 +57,6 @@
     "@vitest/coverage-v8": "^1.6.1",
     "cspell": "^9.2.1",
     "happy-dom": "^20.0.0",
-    "mintlify": "^4.2.158",
     "nodemon": "^3.1.7",
     "release-it": "^19.0.4",
     "ts-node": "^10.9.2",
