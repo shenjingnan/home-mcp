@@ -3,7 +3,13 @@
 import { BestMCP, Param, Tool } from "bestmcp";
 import z from "zod";
 import { LightControlService } from "./services";
-import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassState } from "./types";
+import type {
+  HassConfig,
+  HassHistory,
+  HassLogbook,
+  HassMinimalHistory,
+  HassState,
+} from "./types";
 import { buildPath, getPackageVersion, separatePathParams } from "./utils";
 
 class HassService {
@@ -13,10 +19,12 @@ class HassService {
   private async makeHassRequest<T>(
     endpoint: string,
     method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
-    body?: unknown,
+    body?: unknown
   ): Promise<T> {
     if (!this.hassToken || !this.hassUrl) {
-      throw new Error("未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
+      throw new Error(
+        "未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量"
+      );
     }
 
     try {
@@ -75,7 +83,9 @@ class HassService {
      * 返回一个事件对象数组。每个事件对象包含事件名称和监听器数量。
      * @returns json
      */
-    return this.makeHassRequest<Array<{ event: string; listener_count: number }>>("/api/events");
+    return this.makeHassRequest<
+      Array<{ event: string; listener_count: number }>
+    >("/api/events");
   }
 
   @Tool("获取当前加载的服务列表")
@@ -84,23 +94,38 @@ class HassService {
      * 返回一个服务对象数组。每个对象包含域和包含的服务。
      * @returns json
      */
-    return this.makeHassRequest<Array<{ domain: string; services: string[] }>>("/api/services");
+    return this.makeHassRequest<Array<{ domain: string; services: string[] }>>(
+      "/api/services"
+    );
   }
 
   @Tool("获取过去一段时间内状态变化的数组")
   getHistory(
     @Param(
       z.object({
-        filter_entity_id: z.string().describe("筛选一个或多个实体，多个实体用逗号分隔"),
-        end_time: z.string().optional().describe("用于指定查询结束时间（URL 编码格式，默认为1天）"),
+        filter_entity_id: z
+          .string()
+          .describe("筛选一个或多个实体，多个实体用逗号分隔"),
+        end_time: z
+          .string()
+          .optional()
+          .describe("用于指定查询结束时间（URL 编码格式，默认为1天）"),
         minimal_response: z
           .boolean()
           .optional()
-          .describe("仅返回 first/last 状态外的 last_changed 和 state（速度更快）"),
-        no_attributes: z.boolean().optional().describe("跳过从数据库返回 attributes 字段（速度更快）"),
-        significant_changes_only: z.boolean().optional().describe("仅返回重要的状态变化"),
+          .describe(
+            "仅返回 first/last 状态外的 last_changed 和 state（速度更快）"
+          ),
+        no_attributes: z
+          .boolean()
+          .optional()
+          .describe("跳过从数据库返回 attributes 字段（速度更快）"),
+        significant_changes_only: z
+          .boolean()
+          .optional()
+          .describe("仅返回重要的状态变化"),
       }),
-      "查询参数",
+      "查询参数"
     )
     payload: {
       filter_entity_id: string;
@@ -108,7 +133,7 @@ class HassService {
       minimal_response?: boolean;
       no_attributes?: boolean;
       significant_changes_only?: boolean;
-    },
+    }
   ) {
     /**
      * 返回过去一段时间内状态变化的数组。每个对象包含实体的详细信息。
@@ -184,7 +209,7 @@ class HassService {
     return this.makeHassRequest<Array<HassHistory | HassMinimalHistory>>(
       `/api/history/period/${filter_entity_id}`,
       "GET",
-      queryParams,
+      queryParams
     );
   }
 
@@ -192,13 +217,23 @@ class HassService {
   getLogbook(
     @Param(
       z.object({
-        start_time: z.string().optional().describe("格式为 YYYY-MM-DDThh:mm:ssTZD 的开始的时间段的起始时间"),
+        start_time: z
+          .string()
+          .optional()
+          .describe("格式为 YYYY-MM-DDThh:mm:ssTZD 的开始的时间段的起始时间"),
         entity: z.string().optional().describe("用于筛选某个实体"),
-        end_time: z.string().optional().describe("格式为 YYYY-MM-DDThh:mm:ssTZD 的开始的时间段的结束时间"),
+        end_time: z
+          .string()
+          .optional()
+          .describe("格式为 YYYY-MM-DDThh:mm:ssTZD 的开始的时间段的结束时间"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload?: { start_time?: string; entity?: string; end_time?: string },
+    payload?: {
+      start_time?: string;
+      entity?: string;
+      end_time?: string;
+    }
   ) {
     /**
      * 返回一个日志条目的数组。
@@ -235,9 +270,14 @@ class HassService {
      * ]
      */
 
-    const { pathParams, queryParams } = separatePathParams(payload, ["start_time"]);
+    const { pathParams, queryParams } = separatePathParams(payload, [
+      "start_time",
+    ]);
 
-    const path = buildPath("/api/logbook/:start_time", pathParams as Record<string, string>);
+    const path = buildPath(
+      "/api/logbook/:start_time",
+      pathParams as Record<string, string>
+    );
 
     return this.makeHassRequest<HassLogbook[]>(path, "GET", queryParams);
   }
@@ -248,9 +288,11 @@ class HassService {
       z.object({
         entity_id: z.string().optional().describe("用于筛选某个实体"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload?: { entity_id?: string },
+    payload?: {
+      entity_id?: string;
+    }
   ) {
     /**
      * 获取 Home Assistant 中所有实体的状态信息
@@ -259,7 +301,10 @@ class HassService {
      * @returns 返回一个状态对象数组。每个状态对象包含以下属性：entity_id、state、last_changed 和 attributes。
      */
     if (payload?.entity_id) {
-      return this.makeHassRequest<HassState[]>(`/api/states/${payload.entity_id}`, "GET");
+      return this.makeHassRequest<HassState[]>(
+        `/api/states/${payload.entity_id}`,
+        "GET"
+      );
     }
     return this.makeHassRequest<HassState[]>("/api/states", "GET");
   }
@@ -282,18 +327,27 @@ class HassService {
       z.object({
         camera_entity_id: z.string().describe("用于指定 camera entity_id"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { camera_entity_id: string },
+    payload: {
+      camera_entity_id: string;
+    }
   ) {
     /**
      * 返回指定 camera entity_id 的数据（图像）。
      */
-    return this.makeHassRequest<string>(`/api/camera_proxy/${payload.camera_entity_id}`, "GET");
+    return this.makeHassRequest<string>(
+      `/api/camera_proxy/${payload.camera_entity_id}`,
+      "GET"
+    );
   }
 
   @Tool("返回 calendar entity 的列表")
-  async getCalendars(payload: { calendar_entity_id?: string; end_time?: string; start_time?: string }) {
+  async getCalendars(payload: {
+    calendar_entity_id?: string;
+    end_time?: string;
+    start_time?: string;
+  }) {
     /**
      * 返回 calendar entity 的列表。
      * 可以传递以下可选的 GET 参数：
@@ -312,10 +366,19 @@ class HassService {
      *   }
      * ]
      */
-    const { pathParams, queryParams } = separatePathParams(payload, ["calendar_entity_id"]);
+    const { pathParams, queryParams } = separatePathParams(payload, [
+      "calendar_entity_id",
+    ]);
 
-    const path = buildPath("/api/calendars/:calendar_entity_id", pathParams as Record<string, string>);
-    return this.makeHassRequest<{ entity_id: string; name: string }[]>(path, "GET", queryParams);
+    const path = buildPath(
+      "/api/calendars/:calendar_entity_id",
+      pathParams as Record<string, string>
+    );
+    return this.makeHassRequest<{ entity_id: string; name: string }[]>(
+      path,
+      "GET",
+      queryParams
+    );
   }
 
   @Tool("更新或创建一个状态")
@@ -323,11 +386,17 @@ class HassService {
     @Param(
       z.object({
         state: z.string().describe("用于指定状态"),
-        attributes: z.record(z.string(), z.unknown()).optional().describe("用于指定属性"),
+        attributes: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("用于指定属性"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { state: string; attributes?: Record<string, unknown> },
+    payload: {
+      state: string;
+      attributes?: Record<string, unknown>;
+    }
   ) {
     /**
      * 更新或创建一个状态。你可以创建任何你想要的状态，它不需要在 Home Assistant 中有对应的实体。
@@ -360,11 +429,17 @@ class HassService {
     @Param(
       z.object({
         event_type: z.string().describe("用于指定事件类型"),
-        event_data: z.record(z.string(), z.unknown()).optional().describe("用于指定事件数据"),
+        event_data: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("用于指定事件数据"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { event_type: string; event_data?: Record<string, unknown> },
+    payload: {
+      event_type: string;
+      event_data?: Record<string, unknown>;
+    }
   ) {
     /**
      * 触发一个指定 `event_type` 的事件。请注意事件数据结构，详见我们的 [数据表传送门](https://data.home-assistant.io/docs/events/#database-table)。
@@ -377,7 +452,11 @@ class HassService {
      *   "message": "Event download_file fired."
      * }
      */
-    return this.makeHassRequest<{ message: string }>(`/api/events/${payload.event_type}`, "POST", payload.event_data);
+    return this.makeHassRequest<{ message: string }>(
+      `/api/events/${payload.event_type}`,
+      "POST",
+      payload.event_data
+    );
   }
 
   @Tool("在指定域内调用一个服务")
@@ -386,11 +465,18 @@ class HassService {
       z.object({
         domain: z.string().describe("用于指定域"),
         service: z.string().describe("用于指定服务"),
-        service_data: z.record(z.string(), z.unknown()).optional().describe("用于指定服务数据"),
+        service_data: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("用于指定服务数据"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { domain: string; service: string; service_data?: Record<string, unknown> },
+    payload: {
+      domain: string;
+      service: string;
+      service_data?: Record<string, unknown>;
+    }
   ) {
     /**
      * 在指定域内调用一个服务。该方法会在服务执行完成后返回。
@@ -457,7 +543,11 @@ class HassService {
     return this.makeHassRequest<{
       changed_states: HassState[];
       service_response: Record<string, unknown>;
-    }>(`/api/services/${payload.domain}/${payload.service}`, "POST", payload.service_data);
+    }>(
+      `/api/services/${payload.domain}/${payload.service}`,
+      "POST",
+      payload.service_data
+    );
   }
 
   @Tool("触发对 configuration.yaml 的检查")
@@ -491,19 +581,27 @@ class HassService {
       z.object({
         entity_id: z.string().describe("用于指定实体ID"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { entity_id: string },
+    payload: {
+      entity_id: string;
+    }
   ) {
     /**
      * 删除具有指定 entity_id 的实体。
      */
-    return this.makeHassRequest<void>(`/api/states/${payload.entity_id}`, "DELETE");
+    return this.makeHassRequest<void>(
+      `/api/states/${payload.entity_id}`,
+      "DELETE"
+    );
   }
 }
 
 // 创建 MCP 服务器实例
-const mcp = new BestMCP("智能家居 MCP 服务", getPackageVersion());
+const mcp = new BestMCP({
+  name: "智能家居 MCP 服务",
+  version: getPackageVersion(),
+});
 
 // 创建 HassService 实例用于灯光控制服务
 const hassService = new HassService();
