@@ -41,8 +41,7 @@
   "pnpm": {
     "overrides": {
       "@conventional-changelog/git-client": ">=2.0.0",
-      "esbuild": ">=0.25.0",
-      "bestmcp": "link:../../../Library/pnpm/global/5/node_modules/bestmcp"
+      "esbuild": ">=0.25.0"
     }
   },
   "dependencies": {

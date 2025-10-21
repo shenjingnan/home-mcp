@@ -54,7 +54,7 @@ jobs:
 
     # 根目录代码质量检查
     - name: 类型检查
-      run: pnpm run type:check:all
+      run: pnpm run type:check
 
     - name: Biome 代码检查
       run: pnpm run check
@@ -70,7 +70,6 @@ jobs:
         retry_on: error
         command: |
           pnpm run build
-          pnpm --filter bestmcp run build
 
     - name: 运行测试并生成覆盖率报告
       uses: nick-invision/retry@v3
