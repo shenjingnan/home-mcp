@@ -29,9 +29,9 @@
     }
   },
   "hooks": {
-    "before:init": ["pnpm audit --audit-level moderate"],
-    "after:bump": ["pnpm run build"],
-    "before:release": "echo \"📦 准备发布版本 v${version}\"",
-    "after:release": "echo \"🎉 版本 v${version} 发布完成！\""
+    "before:init": ["pnpm audit --audit-level moderate", "pnpm test", "pnpm type:check", "pnpm check:fix"],
+    "before:release": ["pnpm clean", "pnpm build"],
+    "after:bump": ["pnpm build"],
+    "after:release": ["echo \"🎉 版本 v${version} 发布完成！\""]
   }
 }
