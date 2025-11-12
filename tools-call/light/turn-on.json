@@ -1,0 +1,14 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "controlLight",
+    "arguments": {
+      "params": {
+        "entity_id": "<entity_id>",
+        "action": "turn_on"
+      }
+    }
+  }
+}

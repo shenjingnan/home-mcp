@@ -1,5 +1,7 @@
 export interface HassState {
-  attributes: Record<string, unknown>;
+  attributes: Record<string, unknown> & {
+    friendly_name?: string;
+  };
   entity_id: string;
   last_changed: string;
   state: string;
