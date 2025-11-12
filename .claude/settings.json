@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(node:*)",
+      "Bash(pnpm add:*)",
+      "Bash(git symbolic-ref:*)",
+      "Bash(git fetch:*)",
+      "Bash(git --no-pager diff:*)",
+      "Bash(git config:*)",
+      "Bash(git --no-pager log:*)",
+      "Bash(git --no-pager status)",
+      "Bash(find:*)",
+      "Bash(git --no-pager show:*)",
+      "WebFetch",
+      "WebSearch",
+      "Bash(env)",
+      "Bash(sed:*)"
+    ],
+    "deny": ["Bash(git commit:*)", "Bash(git push:*)"],
+    "ask": [],
+    "additionalDirectories": []
+  }
+}
