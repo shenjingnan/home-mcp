@@ -1,3 +1,117 @@
-# 介绍
+import { Callout, Tabs } from 'nextra/components'
 
-Home MCP 是一个开源的智能家居 MCP 服务。
+# Home-MCP
+
+<div className="flex gap-2" style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: 8 }}>
+  <img src="https://img.shields.io/badge/version-0.0.2-blue.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License" />
+  <img src="https://img.shields.io/badge/TypeScript-5.5.4-blue.svg" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Node.js-22+-green.svg" alt="Node.js" />
+</div>
+
+Home-MCP 是一个基于 **Model Context Protocol (MCP)** 的开源智能家居集成服务器，专为 AI 助手提供标准化的 Home Assistant 设备控制接口。通过语义化的 API 和完整的 Home Assistant 功能覆盖，让 AI 能够自然地理解和控制智能家居设备。
+
+## ✨ 核心特性
+
+### 🤖 AI 优先设计
+- **语义化控制**: 通过自然语言描述的 API，让 AI 更容易理解和使用
+- **智能设备匹配**: 支持模糊匹配设备名称，提供更自然的交互体验
+- **标准化协议**: 基于 MCP 协议，与各种 AI 助手无缝集成
+
+### 🏠 完整的 Home Assistant 集成
+- **全面 API 覆盖**: 支持设备控制、状态查询、历史数据、日志查看等 20+ 工具
+- **实时状态同步**: 获取设备的实时状态和历史变化数据
+- **安全认证**: 支持长期访问令牌，确保连接安全
+
+### 🔧 开发者友好
+- **类型安全**: 完整的 TypeScript 类型定义和运行时验证
+- **易于扩展**: 模块化架构，支持自定义工具开发
+- **详细文档**: 完善的使用文档和示例代码
+
+## 🚀 快速体验
+
+<Callout type="info" emoji="🎯">
+  **30秒快速体验**: 如果你有 Home Assistant 实例，可以立即开始使用
+</Callout>
+
+<Tabs items={['Claude Desktop', '其他 AI 助手']}>
+  <Tabs.Tab>
+    **1. 添加 MCP 配置**
+
+    在 Claude Desktop 配置文件中添加：
+
+    ```json
+    {
+      "mcpServers": {
+        "home-mcp": {
+          "command": "npx",
+          "args": ["home-mcp"],
+          "env": {
+            "HA_TOKEN": "你的长期访问令牌",
+            "HA_BASE_URL": "你的Home Assistant 地址，一般是 http://localhost:8123"
+          }
+        }
+      }
+    }
+    ```
+
+    **2. 重启 Claude Desktop**
+
+    **3. 开始对话**
+
+    ```
+    用户: 帮我把书房的灯调到80%亮度
+    Claude: 好的，我来帮您调节书房灯光。
+    ```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+    **1. 安装 Home-MCP**
+
+    ```bash
+    npx home-mcp
+    ```
+
+    **2. 配置环境变量**
+
+    ```bash
+    export HA_TOKEN="你的长期访问令牌"
+    export HA_BASE_URL="http://localhost:8123"
+    ```
+
+    **3. 集成到你的 AI 应用**
+
+    通过 MCP 客户端连接到 Home-MCP 服务，即可获得完整的智能家居控制能力。
+  </Tabs.Tab>
+</Tabs>
+
+## 💡 使用场景
+
+### 🏡 家庭用户
+通过 AI 助手用自然语言控制家居设备：
+
+```bash
+# 语音控制示例
+"把客厅的灯调暗一点"
+"打开卧室的空调到26度"
+"查看家里的温度和湿度"
+```
+
+## 📖 文档导航
+
+- **[快速上手](/quickstart)** - 详细的安装和配置指南
+- **[使用场景](/use-cases)** - 更多实际应用案例
+- **[配置指南](/configuration)** - 完整的配置选项说明
+- **[MCP工具](/mcp-tools)** - 所有可用工具的详细文档
+
+## 🤝 社区支持
+
+- **GitHub**: [shenjingnan/home-mcp](https://github.com/shenjingnan/home-mcp)
+- **问题反馈**: [Issues](https://github.com/shenjingnan/home-mcp/issues)
+- **贡献指南**: 查看 [开发文档](/development)
+
+---
+
+<Callout type="default" emoji="⭐">
+  **开源项目**: Home-MCP 基于 MIT 许可证开源，欢迎贡献代码和提出建议！
+</Callout>
