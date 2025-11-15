@@ -20,11 +20,7 @@ import type { HassState } from "../types";
  */
 interface IHassService {
   getStates(params?: { entity_id?: string }): Promise<HassState[]>;
-  callServices(params: {
-    domain: string;
-    service: string;
-    service_data: Record<string, unknown>;
-  }): Promise<{
+  callServices(params: { domain: string; service: string; service_data: Record<string, unknown> }): Promise<{
     changed_states?: HassState[];
   }>;
 }
@@ -48,30 +44,12 @@ export class LightControlService {
   public async LightControl(
     @Param(z.string().describe("灯光设备名称"))
     name: string,
-    @Param(
-      z
-        .enum(["turn_on", "turn_off"])
-        .describe("控制动作 枚举值：turn_on | turn_off")
-    )
+    @Param(z.enum(["turn_on", "turn_off"]).describe("控制动作 枚举值：turn_on | turn_off"))
     action: "turn_on" | "turn_off",
-    @Param(
-      z
-        .number()
-        .min(1)
-        .max(100)
-        .optional()
-        .describe("亮度百分比 (1-100)，可选参数")
-    )
+    @Param(z.number().min(1).max(100).optional().describe("亮度百分比 (1-100)，可选参数"))
     brightness_pct?: number,
-    @Param(
-      z
-        .number()
-        .min(1)
-        .max(100)
-        .optional()
-        .describe("色温百分比 (1-100)，基于设备支持的色温范围，可选参数")
-    )
-    temperature_pct?: number
+    @Param(z.number().min(1).max(100).optional().describe("色温百分比 (1-100)，基于设备支持的色温范围，可选参数"))
+    temperature_pct?: number,
   ) {
     const hassService = this.getHassService();
 
@@ -87,9 +65,7 @@ export class LightControlService {
         msg: "找到多个设备，请问需要控制哪一个？",
         entities: entities.map((entity) => ({
           entity_id: entity.entity_id,
-          friendly_name:
-            (entity.attributes as Record<string, unknown>)?.["friendly_name"] ||
-            entity.entity_id,
+          friendly_name: (entity.attributes as Record<string, unknown>)?.["friendly_name"] || entity.entity_id,
         })),
       };
     }
@@ -108,10 +84,8 @@ export class LightControlService {
       if (!capabilities.supportsBrightness) {
         errors.push(
           `设备 ${
-            (selectedEntity.attributes as Record<string, unknown>)?.[
-              "friendly_name"
-            ] || entityId
-          } 不支持亮度调节`
+            (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId
+          } 不支持亮度调节`,
         );
       }
     }
@@ -121,18 +95,14 @@ export class LightControlService {
       if (!capabilities.supportsColorTemp) {
         errors.push(
           `设备 ${
-            (selectedEntity.attributes as Record<string, unknown>)?.[
-              "friendly_name"
-            ] || entityId
-          } 不支持色温调节`
+            (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId
+          } 不支持色温调节`,
         );
       } else if (!capabilities.minColorTemp || !capabilities.maxColorTemp) {
         errors.push(
           `无法获取设备 ${
-            (selectedEntity.attributes as Record<string, unknown>)?.[
-              "friendly_name"
-            ] || entityId
-          } 的色温范围信息`
+            (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId
+          } 的色温范围信息`,
         );
       }
     }
@@ -143,10 +113,7 @@ export class LightControlService {
         success: false,
         entity_id: entityId,
         errors,
-        friendly_name:
-          (selectedEntity.attributes as Record<string, unknown>)?.[
-            "friendly_name"
-          ] || entityId,
+        friendly_name: (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId,
       };
     }
 
@@ -160,8 +127,7 @@ export class LightControlService {
       if (action === "turn_on") {
         // 添加亮度控制
         if (brightness_pct !== undefined && capabilities.supportsBrightness) {
-          serviceData["brightness"] =
-            this.convertBrightnessPercentage(brightness_pct);
+          serviceData["brightness"] = this.convertBrightnessPercentage(brightness_pct);
         }
 
         // 添加色温控制
@@ -174,7 +140,7 @@ export class LightControlService {
           const kelvinTemp = this.convertTemperaturePercentage(
             temperature_pct,
             capabilities.minColorTemp,
-            capabilities.maxColorTemp
+            capabilities.maxColorTemp,
           );
           serviceData["color_temp_kelvin"] = kelvinTemp;
         }
@@ -191,18 +157,13 @@ export class LightControlService {
       return {
         success: true,
         entity_id: entityId,
-        friendly_name:
-          (selectedEntity.attributes as Record<string, unknown>)?.[
-            "friendly_name"
-          ] || entityId,
+        friendly_name: (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId,
         action,
         ...(brightness_pct !== undefined ? { brightness_pct } : {}),
         ...(temperature_pct !== undefined ? { temperature_pct } : {}),
         changed_states: result.changed_states || [],
         message: `成功${action === "turn_on" ? "开启" : "关闭"}设备 ${
-          (selectedEntity.attributes as Record<string, unknown>)?.[
-            "friendly_name"
-          ] || entityId
+          (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId
         }${brightness_pct ? `，亮度设置为 ${brightness_pct}%` : ""}${
           temperature_pct ? `，色温设置为 ${temperature_pct}%` : ""
         }`,
@@ -211,22 +172,15 @@ export class LightControlService {
       return {
         success: false,
         entity_id: entityId,
-        friendly_name:
-          (selectedEntity.attributes as Record<string, unknown>)?.[
-            "friendly_name"
-          ] || entityId,
-        errors: [
-          `控制失败: ${error instanceof Error ? error.message : "未知错误"}`,
-        ],
+        friendly_name: (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId,
+        errors: [`控制失败: ${error instanceof Error ? error.message : "未知错误"}`],
       };
     }
   }
 
   private getHassService() {
     if (!LightControlService.hassServiceInstance) {
-      throw new Error(
-        "HassService 实例未设置，请先调用 LightControlService.setHassService()"
-      );
+      throw new Error("HassService 实例未设置，请先调用 LightControlService.setHassService()");
     }
     return LightControlService.hassServiceInstance;
   }
@@ -236,7 +190,7 @@ export class LightControlService {
     const allStates = await hassService.getStates();
     const filteredStates = allStates.filter((state: HassState) =>
       // @ts-expect-error
-      state.attributes?.["friendly_name"]?.includes(name)
+      state.attributes?.["friendly_name"]?.includes(name),
     );
     return filteredStates;
   }
@@ -251,11 +205,7 @@ export class LightControlService {
   /**
    * 将色温百分比转换为设备的实际色温值
    */
-  private convertTemperaturePercentage(
-    temperaturePct: number,
-    minTemp: number,
-    maxTemp: number
-  ): number {
+  private convertTemperaturePercentage(temperaturePct: number, minTemp: number, maxTemp: number): number {
     // 计算色温范围
     const range = maxTemp - minTemp;
     // 计算实际色温值
@@ -278,9 +228,7 @@ export class LightControlService {
       supportsBrightness: true, // 大部分灯光都支持亮度调节
       supportsColorTemp:
         Array.isArray(attributes["supported_color_modes"]) &&
-        (attributes["supported_color_modes"] as string[]).includes(
-          "color_temp"
-        ),
+        (attributes["supported_color_modes"] as string[]).includes("color_temp"),
       supportsColor:
         Array.isArray(attributes["supported_color_modes"]) &&
         ((attributes["supported_color_modes"] as string[]).includes("rgb") ||
