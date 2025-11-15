@@ -2,18 +2,6 @@ import { Param, Tool } from "bestmcp";
 import { z } from "zod";
 import type { HassState } from "../types";
 
-// import {
-//   type HassLightServiceParams,
-//   LightControlError,
-//   LightControlErrorCodes,
-//   type LightControlParams,
-//   type LightControlResult,
-//   type LightDeviceInfo,
-//   LightSceneConfigs,
-//   type LightStatusQueryParams,
-//   type LightStatusResult,
-// } from "../types/light";
-
 /**
  * 灯光控制服务类
  * 提供语义化的灯光控制功能，封装 Home Assistant Light API 调用
