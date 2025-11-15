@@ -1,0 +1,8 @@
+@baseUrl = {{$dotenv HA_BASE_URL}}
+@token = {{$dotenv HA_TOKEN}}
+@deviceId = light.yeelink_cn_1132894958_mbulb3_s_2
+
+### 获取灯光状态
+GET {{baseUrl}}/api/states/{{deviceId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
