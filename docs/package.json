@@ -1,7 +1,7 @@
 {
   "name": "docs",
   "version": "1.0.0",
-  "description": "BestMCP 文档",
+  "description": "Home-MCP 文档",
   "main": "index.js",
   "scripts": {
     "dev": "next",
@@ -10,7 +10,7 @@
     "postbuild": "pagefind --site .next/server/app --output-path out/_pagefind"
   },
   "keywords": [
-    "bestmcp"
+    "home-mcp"
   ],
   "author": "shenjingnan <sjn.code@gmail.com>",
   "license": "MIT",
