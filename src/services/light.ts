@@ -25,7 +25,7 @@ export class LightService {
    * 通过名称控制灯光设备
    * @param name 灯光设备名称
    * @param action 控制动作 枚举值：turn_on | turn_off
-   * @param brightness_pct 亮度百分比 (1-100)，可选参数
+   * @param brightnessPct 亮度百分比 (1-100)，可选参数
    * @param temperature_pct 色温百分比 (1-100)，基于设备支持的色温范围，可选参数
    */
   @Tool("控制灯光设备 - 支持通过名称控制灯光设备的开关、亮度和色温")
@@ -35,9 +35,9 @@ export class LightService {
     @Param(z.enum(["turn_on", "turn_off"]).describe("控制动作 枚举值：turn_on | turn_off"))
     action: "turn_on" | "turn_off",
     @Param(z.number().min(1).max(100).optional().describe("亮度百分比 (1-100)，可选参数"))
-    brightness_pct?: number,
+    brightnessPct?: number,
     @Param(z.number().min(1).max(100).optional().describe("色温百分比 (1-100)，基于设备支持的色温范围，可选参数"))
-    temperature_pct?: number,
+    temperaturePct?: number,
   ) {
     const hassService = this.getHassService();
 
@@ -68,7 +68,7 @@ export class LightService {
     const errors: string[] = [];
 
     // 验证亮度参数
-    if (brightness_pct !== undefined) {
+    if (brightnessPct !== undefined) {
       if (!capabilities.supportsBrightness) {
         errors.push(
           `设备 ${
@@ -79,7 +79,7 @@ export class LightService {
     }
 
     // 验证色温参数
-    if (temperature_pct !== undefined) {
+    if (temperaturePct !== undefined) {
       if (!capabilities.supportsColorTemp) {
         errors.push(
           `设备 ${
@@ -114,19 +114,19 @@ export class LightService {
       // 如果是开灯操作，添加控制参数
       if (action === "turn_on") {
         // 添加亮度控制
-        if (brightness_pct !== undefined && capabilities.supportsBrightness) {
-          serviceData["brightness"] = this.convertBrightnessPercentage(brightness_pct);
+        if (brightnessPct !== undefined && capabilities.supportsBrightness) {
+          serviceData["brightness"] = this.convertBrightnessPercentage(brightnessPct);
         }
 
         // 添加色温控制
         if (
-          temperature_pct !== undefined &&
+          temperaturePct !== undefined &&
           capabilities.supportsColorTemp &&
           capabilities.minColorTemp &&
           capabilities.maxColorTemp
         ) {
           const kelvinTemp = this.convertTemperaturePercentage(
-            temperature_pct,
+            temperaturePct,
             capabilities.minColorTemp,
             capabilities.maxColorTemp,
           );
@@ -147,13 +147,13 @@ export class LightService {
         entity_id: entityId,
         friendly_name: (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId,
         action,
-        ...(brightness_pct !== undefined ? { brightness_pct } : {}),
-        ...(temperature_pct !== undefined ? { temperature_pct } : {}),
+        ...(brightnessPct !== undefined ? { brightness_pct: brightnessPct } : {}),
+        ...(temperaturePct !== undefined ? { temperature_pct: temperaturePct } : {}),
         changed_states: result.changed_states || [],
         message: `成功${action === "turn_on" ? "开启" : "关闭"}设备 ${
           (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId
-        }${brightness_pct ? `，亮度设置为 ${brightness_pct}%` : ""}${
-          temperature_pct ? `，色温设置为 ${temperature_pct}%` : ""
+        }${brightnessPct ? `，亮度设置为 ${brightnessPct}%` : ""}${
+          temperaturePct ? `，色温设置为 ${temperaturePct}%` : ""
         }`,
       };
     } catch (error) {
