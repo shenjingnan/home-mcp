@@ -1,8 +1,10 @@
+import { generateDefinition, TSDoc } from 'nextra/tsdoc'
+
 # LightControl
 
 ## 工具介绍
 
-> TODO: 请帮我完善
+LightControl 是一个语义化的智能家居灯光控制工具，它封装了 Home Assistant 的 Light API，提供了直观且用户友好的灯光设备控制接口。
 
 ## 参数定义
 
@@ -45,9 +47,18 @@ LightControl("书房小灯", "turn_on", undefined, 50);
 LightControl("书房小灯", "turn_on", 70, 30, 2);
 ```
 
-## 错误提示
+## 错误信息
 
-> TODO: 请帮我完善
+### 错误类型汇总
+
+| 错误类型 | 错误信息 | 处理建议 |
+|----------|----------|---------------|
+| **设备未找到** | 没有找到任何匹配的灯光设备 | 检查设备名称拼写，确保设备已正确接入 Home Assistant，使用更精确的设备名称 |
+| **多设备匹配** | 找到多个匹配的灯光设备 | 使用更精确的设备名称进行匹配，或根据返回的实体列表选择具体设备 |
+| **设备不支持亮度调节** | 尝试在不支持亮度调节的设备上设置 brightnessPct 参数 | 移除亮度参数，仅使用开关控制，或换用支持亮度调节的设备 |
+| **设备不支持色温调节** | 尝试在不支持色温调节的设备上设置 temperaturePct 参数 | 移除色温参数，仅使用亮度和开关控制，或换用支持色温调节的设备 |
+| **无法获取色温范围** | 设备支持色温但无法获取 min_color_temp_kelvin 或 max_color_temp_kelvin 属性 | 检查 Home Assistant 中设备的配置是否完整，或重新配置设备属性 |
+| **服务调用失败** | Home Assistant 服务调用失败（网络问题、服务不可用等） | 检查 Home Assistant 服务状态，确认网络连接正常，或稍后重试 |
 
 ## 返回值格式
 
@@ -73,22 +84,5 @@ LightControl("书房小灯", "turn_on", 70, 30, 2);
   entity_id: "light.yeelink_cn_1132894958_mbulb3_s_2",
   friendly_name: "书房小灯",
   errors: ["设备 书房小灯 不支持色温调节"]
-}
-```
-
-### 多设备匹配
-```typescript
-{
-  msg: "找到多个设备，请问需要控制哪一个？",
-  entities: [
-    {
-      entity_id: "light.study_main",
-      friendly_name: "书房主灯"
-    },
-    {
-      entity_id: "light.study_desk",
-      friendly_name: "书房台灯"
-    }
-  ]
 }
 ```
