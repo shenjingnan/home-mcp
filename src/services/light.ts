@@ -13,12 +13,12 @@ interface IHassService {
   }>;
 }
 
-export class LightControlService {
+export class LightService {
   private static hassServiceInstance: IHassService | null = null;
 
   // 设置 HassService 实例（在注册前调用）
   public static setHassService(hassService: IHassService) {
-    LightControlService.hassServiceInstance = hassService;
+    LightService.hassServiceInstance = hassService;
   }
 
   /**
@@ -167,10 +167,10 @@ export class LightControlService {
   }
 
   private getHassService() {
-    if (!LightControlService.hassServiceInstance) {
+    if (!LightService.hassServiceInstance) {
       throw new Error("HassService 实例未设置，请先调用 LightControlService.setHassService()");
     }
-    return LightControlService.hassServiceInstance;
+    return LightService.hassServiceInstance;
   }
 
   private async getEntitiesByName(name: string): Promise<HassState[]> {
