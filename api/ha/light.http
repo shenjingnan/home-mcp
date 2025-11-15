@@ -37,6 +37,16 @@ Content-Type: application/json
   "color_temp": 100
 }
 
+### 控制色温(开尔文单位)
+POST {{baseUrl}}/api/services/light/turn_on
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "entity_id": "{{deviceId}}",
+  "color_temp_kelvin": 2700
+}
+
 ### 控制亮度
 POST {{baseUrl}}/api/services/light/turn_on
 Authorization: Bearer {{token}}
