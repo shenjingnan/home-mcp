@@ -1,0 +1,86 @@
+# LightControl
+
+## 工具介绍
+
+LightControl 是一个语义化的智能家居灯光控制工具，它封装了 Home Assistant 的 Light API，提供了直观且用户友好的灯光设备控制接口。
+
+## 参数定义
+
+| 参数 | 类型 | 范围 | 说明 |
+|------|------|------|------|
+| `name` | string | - | 灯光设备名称，支持模糊匹配 |
+| `action` | "turn_on" \| "turn_off" | - | 控制动作 |
+| `brightnessPct` | number (可选) | 1-100 | 亮度百分比 |
+| `temperaturePct` | number (可选) | 1-100 | 色温百分比（基于设备支持的色温范围） |
+
+## 使用示例
+
+### 基础开关控制
+```typescript
+// 开灯
+LightControl("书房小灯", "turn_on");
+
+// 关灯
+LightControl("书房小灯", "turn_off");
+```
+
+### 亮度控制
+```typescript
+// 开灯并设置亮度为 80%
+LightControl("书房小灯", "turn_on", 80);
+
+// 仅设置亮度（假设灯已开启）
+LightControl("书房小灯", "turn_on", 50);
+```
+
+### 色温控制
+```typescript
+// 开灯并设置色温为 50%（基于设备支持的色温范围）
+LightControl("书房小灯", "turn_on", undefined, 50);
+```
+
+### 综合控制
+```typescript
+// 开灯，设置亮度 70%，色温 30%，渐变时间 2 秒
+LightControl("书房小灯", "turn_on", 70, 30, 2);
+```
+
+## 错误信息
+
+### 错误类型汇总
+
+| 错误类型 | 错误信息 | 处理建议 |
+|----------|----------|---------------|
+| **设备未找到** | 没有找到任何匹配的灯光设备 | 检查设备名称拼写，确保设备已正确接入 Home Assistant，使用更精确的设备名称 |
+| **多设备匹配** | 找到多个匹配的灯光设备 | 使用更精确的设备名称进行匹配，或根据返回的实体列表选择具体设备 |
+| **设备不支持亮度调节** | 尝试在不支持亮度调节的设备上设置 brightnessPct 参数 | 移除亮度参数，仅使用开关控制，或换用支持亮度调节的设备 |
+| **设备不支持色温调节** | 尝试在不支持色温调节的设备上设置 temperaturePct 参数 | 移除色温参数，仅使用亮度和开关控制，或换用支持色温调节的设备 |
+| **无法获取色温范围** | 设备支持色温但无法获取 min_color_temp_kelvin 或 max_color_temp_kelvin 属性 | 检查 Home Assistant 中设备的配置是否完整，或重新配置设备属性 |
+| **服务调用失败** | Home Assistant 服务调用失败（网络问题、服务不可用等） | 检查 Home Assistant 服务状态，确认网络连接正常，或稍后重试 |
+
+## 返回值格式
+
+### 成功响应
+```typescript
+{
+  success: true,
+  entity_id: "light.yeelink_cn_1132894958_mbulb3_s_2",
+  friendly_name: "书房小灯",
+  action: "turn_on",
+  brightness_pct: 80,
+  temperature_pct: 50,
+  transition: 2,
+  changed_states: [...],
+  message: "成功开启设备 书房小灯，亮度设置为 80%，色温设置为 50%"
+}
+```
+
+### 错误响应
+```typescript
+{
+  success: false,
+  entity_id: "light.yeelink_cn_1132894958_mbulb3_s_2",
+  friendly_name: "书房小灯",
+  errors: ["设备 书房小灯 不支持色温调节"]
+}
+```

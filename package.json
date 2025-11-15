@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "nodemon --watch \"src/**/*\" --ext ts,js --exec \"tsc && node dist/index.js\"",
+    "dev:docs": "cd docs && pnpm run dev",
     "build": "tsc",
     "test": "vitest run",
     "test:silent": "vitest run --silent",
@@ -18,8 +19,7 @@
     "spell:check": "cspell \"**/*.{ts,js,json,md,yaml}\"",
     "check": "biome check .",
     "check:fix": "biome check --write --unsafe .",
-    "check:all": "pnpm check && pnpm type:check && pnpm spell:check",
-    "docs:dev": "cd docs && pnpm run dev"
+    "check:all": "pnpm check && pnpm type:check && pnpm spell:check"
   },
   "keywords": [
     "homeassistant",

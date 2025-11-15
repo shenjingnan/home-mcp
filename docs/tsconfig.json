@@ -9,7 +9,7 @@
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -19,6 +19,6 @@
       }
     ]
   },
-  "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx", "app/layout.jsx"],
+  "include": ["**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/layout.tsx", "next-env.d.ts", "out/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

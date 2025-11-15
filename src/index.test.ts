@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // 环境变量配置接口
 interface EnvironmentConfig {
-  HASS_TOKEN: string;
-  HASS_URL: string;
+  HA_TOKEN: string;
+  HA_BASE_URL: string;
 }
 
 // 扩展全局类型
@@ -432,13 +432,13 @@ describe("MCP Server", () => {
 
       beforeEach(() => {
         // 模拟环境变量和 fetch
-        process.env["HASS_TOKEN"] = "test-token";
-        process.env["HASS_URL"] = "http://localhost:8123";
+        process.env["HA_TOKEN"] = "test-token";
+        process.env["HA_BASE_URL"] = "http://localhost:8123";
 
         // 设置全局环境配置
         global.envConfig = {
-          HASS_TOKEN: "test-token",
-          HASS_URL: "http://localhost:8123",
+          HA_TOKEN: "test-token",
+          HA_BASE_URL: "http://localhost:8123",
         };
 
         mockCallToolHandler = vi.fn().mockImplementation(async (request: { params: CallToolRequest["params"] }) => {
@@ -447,8 +447,8 @@ describe("MCP Server", () => {
           try {
             switch (name) {
               case "get_states": {
-                if (!global.envConfig?.HASS_TOKEN || !global.envConfig?.HASS_URL) {
-                  throw new Error("未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
+                if (!global.envConfig?.HA_TOKEN || !global.envConfig?.HA_BASE_URL) {
+                  throw new Error("未配置 Home Assistant 凭据，请设置 HA_TOKEN 和 HA_BASE_URL 环境变量");
                 }
 
                 // 模拟 fetch 响应
@@ -499,8 +499,8 @@ describe("MCP Server", () => {
 
       afterEach(() => {
         // 清理环境变量
-        delete process.env["HASS_TOKEN"];
-        delete process.env["HASS_URL"];
+        delete process.env["HA_TOKEN"];
+        delete process.env["HA_BASE_URL"];
       });
 
       it("应该成功获取实体状态", async () => {
@@ -520,11 +520,11 @@ describe("MCP Server", () => {
 
       it("应该处理缺少环境变量的情况", async () => {
         // 删除环境变量
-        delete process.env["HASS_TOKEN"];
-        delete process.env["HASS_URL"];
+        delete process.env["HA_TOKEN"];
+        delete process.env["HA_BASE_URL"];
         global.envConfig = {
-          HASS_TOKEN: "",
-          HASS_URL: "",
+          HA_TOKEN: "",
+          HA_BASE_URL: "",
         };
 
         const request = {
@@ -538,7 +538,7 @@ describe("MCP Server", () => {
 
         expect(result.isError).toBe(true);
         expect(result.content[0]?.text).toBe(
-          "错误: 未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量",
+          "错误: 未配置 Home Assistant 凭据，请设置 HA_TOKEN 和 HA_BASE_URL 环境变量",
         );
       });
 

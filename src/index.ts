@@ -7,8 +7,8 @@ import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassStat
 import { buildPath, getPackageVersion, separatePathParams } from "./utils";
 
 class HassService {
-  hassToken = (process.env["HASS_TOKEN"] ?? "").trim();
-  hassUrl = (process.env["HASS_URL"] ?? "").trim();
+  hassToken = (process.env["HA_TOKEN"] ?? "").trim();
+  hassUrl = (process.env["HA_BASE_URL"] ?? "").trim();
 
   private async makeHassRequest<T>(
     endpoint: string,
@@ -16,7 +16,7 @@ class HassService {
     body?: unknown,
   ): Promise<T> {
     if (!this.hassToken || !this.hassUrl) {
-      throw new Error("未配置 Home Assistant 凭据，请设置 HASS_TOKEN 和 HASS_URL 环境变量");
+      throw new Error("未配置 Home Assistant 凭据，请设置 HA_TOKEN 和 HA_BASE_URL 环境变量");
     }
 
     try {
