@@ -221,6 +221,7 @@ export class LightControlService {
     const hassService = this.getHassService();
     const allStates = await hassService.getStates();
     const filteredStates = allStates.filter((state: HassState) =>
+      // @ts-ignore
       state.attributes?.["friendly_name"]?.includes(name)
     );
     return filteredStates;
