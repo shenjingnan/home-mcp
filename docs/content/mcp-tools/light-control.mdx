@@ -1,0 +1,94 @@
+# LightControl
+
+## 工具介绍
+
+> TODO: 请帮我完善
+
+## 参数定义
+
+| 参数 | 类型 | 范围 | 说明 |
+|------|------|------|------|
+| `name` | string | - | 灯光设备名称，支持模糊匹配 |
+| `action` | "turn_on" \| "turn_off" | - | 控制动作 |
+| `brightnessPct` | number (可选) | 1-100 | 亮度百分比 |
+| `temperaturePct` | number (可选) | 1-100 | 色温百分比（基于设备支持的色温范围） |
+
+## 使用示例
+
+### 基础开关控制
+```typescript
+// 开灯
+LightControl("书房小灯", "turn_on");
+
+// 关灯
+LightControl("书房小灯", "turn_off");
+```
+
+### 亮度控制
+```typescript
+// 开灯并设置亮度为 80%
+LightControl("书房小灯", "turn_on", 80);
+
+// 仅设置亮度（假设灯已开启）
+LightControl("书房小灯", "turn_on", 50);
+```
+
+### 色温控制
+```typescript
+// 开灯并设置色温为 50%（基于设备支持的色温范围）
+LightControl("书房小灯", "turn_on", undefined, 50);
+```
+
+### 综合控制
+```typescript
+// 开灯，设置亮度 70%，色温 30%，渐变时间 2 秒
+LightControl("书房小灯", "turn_on", 70, 30, 2);
+```
+
+## 错误提示
+
+> TODO: 请帮我完善
+
+## 返回值格式
+
+### 成功响应
+```typescript
+{
+  success: true,
+  entity_id: "light.yeelink_cn_1132894958_mbulb3_s_2",
+  friendly_name: "书房小灯",
+  action: "turn_on",
+  brightness_pct: 80,
+  temperature_pct: 50,
+  transition: 2,
+  changed_states: [...],
+  message: "成功开启设备 书房小灯，亮度设置为 80%，色温设置为 50%"
+}
+```
+
+### 错误响应
+```typescript
+{
+  success: false,
+  entity_id: "light.yeelink_cn_1132894958_mbulb3_s_2",
+  friendly_name: "书房小灯",
+  errors: ["设备 书房小灯 不支持色温调节"]
+}
+```
+
+### 多设备匹配
+```typescript
+{
+  msg: "找到多个设备，请问需要控制哪一个？",
+  entities: [
+    {
+      entity_id: "light.study_main",
+      friendly_name: "书房主灯"
+    },
+    {
+      entity_id: "light.study_desk",
+      friendly_name: "书房台灯"
+    }
+  ]
+}
+```
