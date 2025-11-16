@@ -41,7 +41,8 @@
   "pnpm": {
     "overrides": {
       "@conventional-changelog/git-client": ">=2.0.0",
-      "esbuild": ">=0.25.0"
+      "esbuild": ">=0.25.0",
+      "vite@>=5.2.6 <=5.4.20": ">=5.4.21"
     }
   },
   "dependencies": {

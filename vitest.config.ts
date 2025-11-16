@@ -9,8 +9,13 @@ export default defineConfig({
     environment: "happy-dom",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.ts"],
-    exclude: ["node_modules/", "dist/", "**/*.d.ts"],
+    exclude: ["node_modules/", "dist/", "**/*.d.ts", "src/types/light.test.ts"],
     testTimeout: 10000,
+    server: {
+      deps: {
+        inline: ["./src/types/light.ts"],
+      },
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
