@@ -11,6 +11,7 @@
     "dev": "nodemon --watch \"src/**/*\" --ext ts,js --exec \"tsc && node dist/index.js\"",
     "dev:docs": "cd docs && pnpm run dev",
     "build": "tsc",
+    "clean": "rm -rf dist",
     "test": "vitest run",
     "test:silent": "vitest run --silent",
     "test:watch": "vitest",
