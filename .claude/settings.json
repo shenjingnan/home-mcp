@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(git symbolic-ref:*)",
+      "Bash(git --no-pager show:*)",
+      "Bash(git --no-pager log:*)",
+      "Bash(git show:*)",
+      "Bash(git log:*)",
+      "Bash(git --no-pager diff:*)",
+      "Bash(pnpm run:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm format:*)",
+      "Bash(pnpm duplicate:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm type:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm check:*)",
+      "Bash(pnpm spell:*)",
+      "Bash(pnpm list:*)",
+      "Bash(docker build:*)",
+      "Bash(docker buildx build:*)",
+      "Bash(docker run:*)",
+      "Bash(docker-compose:*)",
+      "Bash(sed:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh api:*)",
+      "Bash(node:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(xargs sed:*)",
+      "Bash(nr:*)",
+      "Bash(cat:*)",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "deny": ["Bash(git commit:*)", "Bash(git push:*)"],
+    "ask": []
+  }
+}
