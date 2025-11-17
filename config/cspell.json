@@ -17,12 +17,12 @@
   "dictionaryDefinitions": [
     {
       "name": "project-words",
-      "path": "./.cspell/project-words.txt",
+      "path": "../.cspell/project-words.txt",
       "addWords": true
     },
     {
       "name": "tech-terms",
-      "path": "./.cspell/tech-terms.txt",
+      "path": "../.cspell/tech-terms.txt",
       "addWords": true
     }
   ],
@@ -103,7 +103,7 @@
       "dictionaryDefinitions": [
         {
           "name": "markdown-words",
-          "path": "./.cspell/markdown-words.txt",
+          "path": "../.cspell/markdown-words.txt",
           "addWords": true
         }
       ],
