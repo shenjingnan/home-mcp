@@ -6,8 +6,8 @@
     "useIgnoreFile": false
   },
   "files": {
-    "ignoreUnknown": true,
-    "includes": ["src", "api", "docs", "config"]
+    "ignoreUnknown": false,
+    "includes": ["src/**/*", "api/**/*", "config/**/*"]
   },
   "formatter": {
     "enabled": true,
@@ -42,6 +42,9 @@
     }
   },
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "quoteStyle": "double",
       "semicolons": "always",

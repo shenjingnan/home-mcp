@@ -1,0 +1,193 @@
+# 日志记录
+
+## 工具介绍
+
+日志记录工具提供访问 Home Assistant 日志系统的功能，允许查询系统事件、设备操作记录和用户操作历史。
+
+## 参数定义
+
+| 参数 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `start_time` | string (可选) | 否 | 日志查询开始时间，ISO 8601 格式 |
+| `entity` | string (可选) | 否 | 筛选特定实体的日志记录 |
+| `end_time` | string (可选) | 否 | 日志查询结束时间，ISO 8601 格式 |
+
+## 使用示例
+
+### 获取最新日志
+```typescript
+// 获取最近的日志记录（默认24小时）
+const logbook = await getLogbook();
+```
+
+### 时间范围查询
+```typescript
+// 查询特定时间段的日志
+const logbook = await getLogbook({
+  start_time: "2025-01-15T00:00:00+00:00",
+  end_time: "2025-01-15T23:59:59+00:00"
+});
+```
+
+### 实体筛选
+```typescript
+// 查询特定设备的日志
+const logbook = await getLogbook({
+  entity: "light.living_room"
+});
+```
+
+### 组合查询
+```typescript
+// 查询特定设备在特定时间段的日志
+const logbook = await getLogbook({
+  entity: "sensor.temperature",
+  start_time: "2025-01-15T08:00:00+00:00",
+  end_time: "2025-01-15T18:00:00+00:00"
+});
+```
+
+## 返回值格式
+
+### 完整日志条目示例
+```json
+[
+  {
+    "entity_id": "light.living_room",
+    "message": "changed to on",
+    "name": "Living Room Light",
+    "when": "2025-01-15T14:30:25.123456+00:00"
+  },
+  {
+    "entity_id": "switch.kitchen_appliance",
+    "message": "turned on",
+    "name": "Kitchen Appliance",
+    "when": "2025-01-15T14:28:15.654321+00:00"
+  },
+  {
+    "entity_id": "automation.evening_lights",
+    "message": "triggered",
+    "name": "Evening Lights Automation",
+    "when": "2025-01-15T14:25:00.000000+00:00"
+  }
+]
+```
+
+## 日志类型
+
+### 设备状态变化
+```json
+{
+  "entity_id": "light.bedroom",
+  "message": "changed to on",
+  "name": "Bedroom Light",
+  "when": "2025-01-15T20:00:00+00:00"
+}
+```
+
+### 自动化触发
+```json
+{
+  "entity_id": "automation.good_morning",
+  "message": "triggered",
+  "name": "Good Morning Automation",
+  "when": "2025-01-15T07:00:00+00:00"
+}
+```
+
+### 系统事件
+```json
+{
+  "entity_id": "homeassistant.start",
+  "message": "started",
+  "name": "Home Assistant",
+  "when": "2025-01-15T06:30:00+00:00"
+}
+```
+
+## 时间格式
+
+- **ISO 8601**: YYYY-MM-DDThh:mm:ssTZD
+- **默认范围**: 未指定时返回最近24小时
+- **时区**: 始终使用 UTC 时区
+
+## 常见用例
+
+### 设备使用分析
+```typescript
+// 分析特定设备的使用频率
+const deviceLogs = await getLogbook({
+  entity: "light.bedroom",
+  start_time: "2025-01-01T00:00:00+00:00"
+});
+
+// 统计开关次数
+const onCount = deviceLogs.filter(log =>
+  log.message.includes("on")
+).length;
+```
+
+### 自动化监控
+```typescript
+// 查看自动化执行情况
+const automationLogs = await getLogbook({
+  start_time: "2025-01-15T00:00:00+00:00"
+}).filter(log =>
+  log.entity_id.startsWith("automation.")
+);
+```
+
+### 故障排查
+```typescript
+// 查找特定时间段的异常
+const suspiciousLogs = await getLogbook({
+  start_time: "2025-01-15T22:00:00+00:00",
+  end_time: "2025-01-15T23:00:00+00:00"
+});
+
+// 查找可能的错误模式
+const errors = suspiciousLogs.filter(log =>
+  log.message.includes("error") ||
+  log.message.includes("failed")
+);
+```
+
+## 日志筛选模式
+
+### 按消息内容筛选
+```typescript
+// 筛选特定类型的日志
+const onEvents = logs.filter(log => log.message === "changed to on");
+const triggers = logs.filter(log => log.message === "triggered");
+const errors = logs.filter(log => log.message.includes("error"));
+```
+
+### 按实体类型筛选
+```typescript
+// 筛选不同类型的实体
+const lights = logs.filter(log => log.entity_id.startsWith("light."));
+const sensors = logs.filter(log => log.entity_id.startsWith("sensor."));
+const automations = logs.filter(log => log.entity_id.startsWith("automation."));
+```
+
+## 性能考虑
+
+- 日志查询建议限制在合理的时间范围内
+- 大量日志查询可能影响系统性能
+- 考虑使用特定的实体筛选来减少返回数据量
+
+## 注意事项
+
+- 日志记录需要在 Home Assistant 中启用 `logbook` 集成
+- 某些内部系统事件可能不会记录在日志中
+- 日志保留期取决于 Home Assistant 配置
+- 频繁的日志查询可能影响系统性能
+
+## 错误处理
+
+| 错误类型 | 可能原因 | 解决方案 |
+|----------|----------|----------|
+| 时间格式错误 | start_time/end_time 格式不正确 | 使用正确的 ISO 8601 格式 |
+| 实体不存在 | 指定的实体ID不存在 | 检查实体ID拼写 |
+| 权限不足 | 用户没有查看日志的权限 | 检查 Home Assistant 用户权限 |
+| 无日志数据 | 日志功能未启用或时间范围内无数据 | 启用 logbook 集成或调整查询范围 |

@@ -1,9 +1,4 @@
 import { describe, expect, it } from "vitest";
-import {
-  LightControlError,
-  LightControlErrorCodes,
-  LightSceneConfigs,
-} from "./light";
 import type {
   LightControlParams,
   LightControlResult,
@@ -12,6 +7,7 @@ import type {
   LightStatusResult,
   RGBColor,
 } from "./light";
+import { LightControlError, LightControlErrorCodes, LightSceneConfigs } from "./light";
 
 describe("Light Types", () => {
   describe("LightControlError", () => {
@@ -20,7 +16,7 @@ describe("Light Types", () => {
         "Test error message",
         LightControlErrorCodes.INVALID_BRIGHTNESS,
         "light.test",
-        "brightness",
+        "brightness"
       );
 
       expect(error).toBeInstanceOf(Error);
@@ -155,7 +151,7 @@ describe("Light Types", () => {
 
       expect(result.lights).toHaveLength(1);
       expect(result.total_count).toBe(1);
-      expect(result.groups?.["living"]).toBeDefined();
+      expect(result.groups?.living).toBeDefined();
     });
   });
 

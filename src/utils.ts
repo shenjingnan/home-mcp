@@ -21,7 +21,7 @@ export function getPackageVersion(): string {
  */
 export function separatePathParams<T extends Record<string, unknown>>(
   params: T | undefined,
-  pathKeys: (keyof T)[],
+  pathKeys: (keyof T)[]
 ): {
   pathParams: Partial<T>;
   queryParams: Partial<T>;
