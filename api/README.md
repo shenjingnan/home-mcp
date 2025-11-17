@@ -4,7 +4,7 @@
 
 ## 概述
 
-本目录包含用于测试 Home Assistant API 的 REST Client 文件，基于 [humao.rest-client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) VS Code 插件实现。这些文件可以帮助您快速验证 Home Assistant 的各项功能，包括设备控制、状态查询、历史数据获取等。
+本目录包含用于测试 Home Assistant API 的 REST Client 文件，基于 [rest-client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) VS Code 插件实现。这些文件可以帮助您快速验证 Home Assistant 的各项功能，包括设备控制、状态查询、历史数据获取等。
 
 ### 文件结构
 
@@ -19,7 +19,7 @@ api/ha/
 
 ### 1. 安装 REST Client 插件
 
-在 VS Code 中搜索并安装 `humao.rest-client` 插件。
+在 VS Code 中搜索并安装 `rest-client` 插件。
 
 ### 2. 配置环境变量
 
