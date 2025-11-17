@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "type:check": "tsc --project config/tsconfig.typecheck.json",
-    "spell:check": "cspell --config config/cspell.json \"**/*.{ts,js,json,md,yaml}\"",
+    "spell:check": "cspell --config config/cspell.json \"**/*.{ts,js,json,md,yml,yaml,toml}\"",
     "format": "biome format --write .",
     "lint": "biome lint --write .",
     "check": "biome check .",
