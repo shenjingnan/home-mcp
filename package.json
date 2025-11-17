@@ -8,7 +8,7 @@
     "home-mcp": "./dist/index.js"
   },
   "scripts": {
-    "dev": "nodemon --watch \"src/**/*\" --ext ts,js --exec \"tsc && node dist/index.js\"",
+    "dev": "nodemon --watch \"src/**/*\" --ext ts,js --exec \"tsc --project config/tsconfig.json && node dist/index.js\"",
     "dev:docs": "cd docs && pnpm run dev",
     "build": "tsc --project config/tsconfig.json",
     "clean": "rm -rf dist",
