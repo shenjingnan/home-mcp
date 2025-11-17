@@ -1,10 +1,10 @@
 @baseUrl = {{$dotenv HA_BASE_URL}}
 @token = {{$dotenv HA_TOKEN}}
-@deviceId = light.yeelink_cn_1132894958_mbulb3_s_2
+@entityId = {{$dotenv HA_LIGHT_ENTITY_ID}}
 
 
 ### 获取灯光状态
-GET {{baseUrl}}/api/states/{{deviceId}}
+GET {{baseUrl}}/api/states/{{entityId}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -15,7 +15,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "entity_id": "{{deviceId}}"
+  "entity_id": "{{entityId}}"
 }
 
 ### 关灯
@@ -24,7 +24,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "entity_id": "{{deviceId}}"
+  "entity_id": "{{entityId}}"
 }
 
 ### 控制色温
@@ -33,7 +33,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "entity_id": "{{deviceId}}",
+  "entity_id": "{{entityId}}",
   "color_temp": 100
 }
 
@@ -43,7 +43,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "entity_id": "{{deviceId}}",
+  "entity_id": "{{entityId}}",
   "color_temp_kelvin": 2700
 }
 
@@ -53,12 +53,6 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "entity_id": "{{deviceId}}",
+  "entity_id": "{{entityId}}",
   "brightness": 10
 }
-
-
-### 获取所有状态
-GET {{baseUrl}}/api/states
-Authorization: Bearer {{token}}
-Content-Type: application/json
