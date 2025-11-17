@@ -3,6 +3,8 @@
  * 基于 Home Assistant Light API 规范
  */
 
+import type { HassState } from "../types";
+
 // 灯光控制操作类型
 export type LightActionType =
   | "turn_on" // 开灯
@@ -90,7 +92,7 @@ export interface LightStatusResult {
 export interface LightControlResult {
   success: boolean;
   affected_entities: string[]; // 受影响的实体ID列表
-  updated_states: import("../types").HassState[]; // 更新后的状态
+  updated_states: HassState[]; // 更新后的状态
   errors?: string[]; // 错误信息列表
   execution_time: number; // 执行时间（毫秒）
 }

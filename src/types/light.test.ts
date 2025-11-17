@@ -2,13 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   LightControlError,
   LightControlErrorCodes,
-  type LightControlParams,
-  type LightControlResult,
-  type LightDeviceInfo,
   LightSceneConfigs,
-  type LightStatusQueryParams,
-  type LightStatusResult,
-  type RGBColor,
+} from "./light";
+import type {
+  LightControlParams,
+  LightControlResult,
+  LightDeviceInfo,
+  LightStatusQueryParams,
+  LightStatusResult,
+  RGBColor,
 } from "./light";
 
 describe("Light Types", () => {
