@@ -1,0 +1,107 @@
+@baseUrl = {{$dotenv HA_BASE_URL}}
+@token = {{$dotenv HA_TOKEN}}
+
+### 判断HomeAssistant是否正常运行
+GET {{baseUrl}}/api/
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 获取配置
+GET {{baseUrl}}/api/config
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 获取当前已经加载的组件
+GET {{baseUrl}}/api/components
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 返回事件对象数组。每个事件对象包含事件名称和侦听器计数。
+GET {{baseUrl}}/api/events
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 返回一个服务对象数组。每个对象都包含域及其包含的服务。
+GET {{baseUrl}}/api/services
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 返回过去状态变化的数组。每个对象包含实体的详细信息。
+### <timestamp> (YYYY-MM-DDThh:mm:ssTZD) 是可选的，默认为请求时间前1天。它决定了时间段的开始。
+### 
+### 以下参数是必需的：
+### 
+### filter_entity_id=<entity_ids> 用于筛选一个或多个实体 - 逗号分隔。
+### 您可以传递以下可选的GET参数：
+### 
+### end_time=<timestamp> 选择时间段的结束时间，使用URL编码格式（默认为1天）。
+### minimal_response 仅返回除第一个和最后一个状态之外的状态的last_changed和state（速度更快）。
+### no_attributes 跳过从数据库返回属性（速度更快）。
+### significant_changes_only 仅返回重要的状态变化。
+### 不使用minimal_response的示例
+
+### 不使用minimal_response
+GET {{baseUrl}}/api/history/period?filter_entity_id=sensor.temperature
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 使用minimal_response
+GET {{baseUrl}}/api/history/period/{{$datetime iso8601}}?filter_entity_id=sensor.temperature,sensor.kitchen_temperature&minimal_response
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 获取实体 'sensor.temperature' 在 2021-09-04 到 2023-09-04 期间的历史记录
+### 使用 URL 编码的时间戳
+GET {{baseUrl}}/api/history/period/{{$datetime iso8601}}?end_time=2023-09-04T00%3A00%3A00%2B02%3A00&filter_entity_id=sensor.temperature
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 返回日志条目数组。
+### <timestamp> (YYYY-MM-DDThh:mm:ssTZD) 是可选的，默认为请求时间前1天。它决定了时间段的开始。
+### 您可以传递以下可选的GET参数：
+### entity=<entity_id> 用于筛选单个实体。
+### end_time=<timestamp> 选择从<timestamp>开始的时间段结束时间，使用URL编码格式。
+GET {{baseUrl}}/api/logbook/{{$datetime iso8601}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 获取实体 'sensor.temperature' 在 2021-09-04 到 2023-09-04 期间的历史记录
+GET {{baseUrl}}/api/logbook/{{$datetime iso8601}}?end_time=2023-09-04T00%3A00%3A00%2B02%3A00&entity=sensor.temperature
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 获取实体 'sensor.temperature' 在 2021-09-04 到 2023-09-04 期间的历史记录
+GET {{baseUrl}}/api/logbook/{{$datetime iso8601}}?end_time=2099-12-31T00%3A00%3A00%2B02%3A00
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 获取所有状态
+GET {{baseUrl}}/api/states
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 返回指定 entity_id 的状态对象。如果未找到则返回 404。
+GET {{baseUrl}}/api/states/sensor.kitchen_temperature
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 获取当前 Home Assistant 会话期间记录的所有错误，以纯文本形式返回。
+GET {{baseUrl}}/api/error_log
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 返回指定摄像头实体ID的数据（图像）。
+GET {{baseUrl}}/api/camera_proxy/camera.my_sample_camera?time=1462653861261
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 返回日历实体列表。
+GET {{baseUrl}}/api/calendars
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 返回指定日历实体ID在开始和结束时间之间（不包含结束时间）的日历事件列表。
+### 响应中的事件包含 start 和 end 字段，对于全天事件包含 dateTime 或 date。
+GET {{baseUrl}}/api/calendars/calendar.holidays?start=2022-05-01T07:00:00.000Z&end=2022-06-12T07:00:00.000Z
+Authorization: Bearer {{token}}
+Content-Type: application/json
