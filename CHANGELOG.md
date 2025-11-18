@@ -1,23 +1,5 @@
 # Changelog
 
-## [0.0.3](https://github.com/shenjingnan/home-mcp/compare/v0.0.2...v0.0.3) (2025-11-16)
-
-### Features
-
-* **bestmcp:** Param 装饰器支持对象字段的描述信息 ([#22](https://github.com/shenjingnan/home-mcp/issues/22)) ([aec7daa](https://github.com/shenjingnan/home-mcp/commit/aec7daa3de5e3cf57d3d6b6742e89d0080209698))
-* **bestmcp:** 重构单文件架构为模块化架构 ([#25](https://github.com/shenjingnan/home-mcp/issues/25)) ([cc55754](https://github.com/shenjingnan/home-mcp/commit/cc557540fe1366ca86e33c660d0733833464da8a))
-* **ci:** 重构GitHub发布工作流并添加清理脚本 ([#37](https://github.com/shenjingnan/home-mcp/issues/37)) ([b3e7bfe](https://github.com/shenjingnan/home-mcp/commit/b3e7bfe645b1f79bf503ff61e9fb8c183961d667))
-* **cli:** 完善 Claude 命令配置支持中文 ([#23](https://github.com/shenjingnan/home-mcp/issues/23)) ([1eea7d4](https://github.com/shenjingnan/home-mcp/commit/1eea7d44d3580fe5ea64ab6ffed6651622f295ad))
-* **deps:** 升级 bestmcp 包并重构 Claude 命令体系 ([#33](https://github.com/shenjingnan/home-mcp/issues/33)) ([1aa121a](https://github.com/shenjingnan/home-mcp/commit/1aa121a8314c961f0154edf4cf78490126ef1b20))
-* **deps:** 集成外部 bestmcp 包并重构依赖管理 ([#32](https://github.com/shenjingnan/home-mcp/issues/32)) ([b8cdd17](https://github.com/shenjingnan/home-mcp/commit/b8cdd17395a80ba9999b89587903f77826fc5778))
-* **docs:** 完善 HTTP 传输层文档和示例体系 ([#30](https://github.com/shenjingnan/home-mcp/issues/30)) ([1b581e0](https://github.com/shenjingnan/home-mcp/commit/1b581e0cea3366c4066eea9000d6af1ee915ab1c))
-* **light:** 新增专用灯光控制MCP工具系统 ([#28](https://github.com/shenjingnan/home-mcp/issues/28)) ([d139ebe](https://github.com/shenjingnan/home-mcp/commit/d139ebe7497bd1799dcb48091c7564016b02b164))
-
-### Bug Fixes
-
-* **deps:** 升级 happy-dom 至 v20.0.0 修复关键 VM Context Escape 安全漏洞 ([#27](https://github.com/shenjingnan/home-mcp/issues/27)) ([077e81b](https://github.com/shenjingnan/home-mcp/commit/077e81b4be6953e43cb24fb62a2fc0e17734dc7a))
-* **security:** 修复Vite安全漏洞并解决测试兼容性问题 ([#36](https://github.com/shenjingnan/home-mcp/issues/36)) ([1fdadd6](https://github.com/shenjingnan/home-mcp/commit/1fdadd6977f6094f121eca0187f6cd1aae1a5beb))
-
 ## 0.0.2 (2025-10-09)
 
 ### Features
