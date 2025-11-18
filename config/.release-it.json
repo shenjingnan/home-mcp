@@ -54,6 +54,7 @@
       ],
       "types": {
         "feat": {
+          "title": "✨ 新功能",
           "section": "✨ 新功能"
         },
         "fix": {
