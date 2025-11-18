@@ -21,7 +21,7 @@
   },
   "plugins": {
     "@release-it/conventional-changelog": {
-      "preset": "atom",
+      "preset": "codemirror",
       "infile": "docs/content/changelog.mdx",
       "releaseCommitMessageFormat": "chore: release v${version}",
       "ignoreRecommendedBump": false,
