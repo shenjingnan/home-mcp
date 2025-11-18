@@ -71,7 +71,7 @@ module.exports = {
         commitsSort: ["scope", "subject"],
         groupBy: false,
         commitPartial: "* {{type}}{{#if scope}}({{scope}}){{/if}}: {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}{{#if references}}{{#each references}}{{#if this.issue}} ([#{{this.issue}}]({{href}})){{/if}}{{/each}}{{else}} ([{{shortHash}}]({{href}})){{/if}}",
-        headerPartial: `# 更新日志\n\n`,
+        header: "# 更新日志\n\n",
         footerPartial: "",
       },
     },
@@ -81,7 +81,7 @@ module.exports = {
       "pnpm audit --audit-level moderate",
       "pnpm test",
       "pnpm type:check",
-      "pnpm check", // 只检查不修复，避免文件被修改
+      "pnpm check",
     ],
     "before:release": [
       'git status --porcelain || echo "Git状态检查完成"',
