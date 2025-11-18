@@ -72,7 +72,6 @@
         "commitsSort": ["scope", "subject"],
         "groupBy": false,
         "commitPartial": "* {{type}}{{#if scope}}({{scope}}){{/if}}: {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}{{#if references}}{{#each references}}{{#if this.issue}} ([#{{this.issue}}]({{href}})){{/if}}{{/each}}{{else}} ([{{shortHash}}]({{href}})){{/if}}",
-        "header": "# 更新日志\n\n",
         "footerPartial": ""
       }
     }
