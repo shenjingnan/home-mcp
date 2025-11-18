@@ -69,6 +69,8 @@ module.exports = {
             type: "revert",
           },
         ],
+        issueUrlFormat: "https://github.com/shenjingnan/home-mcp/pull/{{id}}",
+        commitUrlFormat: "https://github.com/shenjingnan/home-mcp/commit/{{hash}}",
       },
       writerOpts: {
         commitsSort: ["scope", "subject"],
