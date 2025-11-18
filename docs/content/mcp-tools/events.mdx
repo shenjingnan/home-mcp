@@ -1,0 +1,557 @@
+# 事件系统
+
+## 工具介绍
+
+事件系统工具提供了与 Home Assistant 事件系统交互的完整功能，包括事件触发、监听和管理，实现组件间的解耦通信和自动化流程。
+
+## 事件类型
+
+### 系统事件
+- `homeassistant_start`: Home Assistant 启动
+- `homeassistant_stop`: Home Assistant 停止
+- `service_registered`: 服务注册
+- `component_loaded`: 组件加载
+
+### 设备事件
+- `state_changed`: 实体状态变更
+- `device_automation_triggered`: 设备自动化触发
+- `device_registry_updated`: 设备注册表更新
+
+### 用户事件
+- `automation_triggered`: 自动化触发
+- `scene_turned_on`: 场景启动
+- `script_started`: 脚本开始执行
+
+### 自定义事件
+- 用户定义的事件类型
+- 应用程序特定的事件
+- 第三方集成事件
+
+## 事件触发
+
+### 基础事件触发
+```typescript
+// 触发自定义通知事件
+await fireEvents({
+  event_type: "custom_notification",
+  event_data: {
+    message: "系统维护完成",
+    level: "info",
+    timestamp: new Date().toISOString()
+  }
+});
+
+// 触发设备状态事件
+await fireEvents({
+  event_type: "device_status_update",
+  event_data: {
+    device_id: "sensor.temperature_001",
+    status: "online",
+    battery_level: 85,
+    last_seen: new Date().toISOString()
+  }
+});
+```
+
+### 带复杂数据的事件
+```typescript
+// 触发传感器数据事件
+await fireEvents({
+  event_type: "sensor_data_received",
+  event_data: {
+    sensor_id: "env_sensor_001",
+    readings: {
+      temperature: 22.5,
+      humidity: 45.2,
+      pressure: 1013.25,
+      co2: 420
+    },
+    location: {
+      room: "living_room",
+      floor: "ground"
+    },
+    quality: "good",
+    timestamp: new Date().toISOString()
+  }
+});
+```
+
+### 批量事件触发
+```typescript
+// 批量触发相关事件
+const eventData = [
+  {
+    event_type: "security_motion_detected",
+    event_data: {
+      sensor_id: "motion_front_door",
+      confidence: 0.95,
+      location: "front_door"
+    }
+  },
+  {
+    event_type: "security_alert_level_changed",
+    event_data: {
+      level: "medium",
+      reason: "motion_detected",
+      area: "entrance"
+    }
+  }
+];
+
+for (const event of eventData) {
+  await fireEvents(event);
+}
+```
+
+## 事件监听模式
+
+### 创建事件处理器
+```typescript
+// 在 Home Assistant 中设置事件监听
+// configuration.yaml
+event_listener:
+  custom_notification:
+    action:
+      - service: notify.mobile_app
+        data:
+          message: "{{ event.data.message }}"
+          title: "自定义通知"
+```
+
+### 事件驱动的自动化
+```typescript
+// 触发自动化执行事件
+await fireEvents({
+  event_type: "automation_trigger",
+  event_data: {
+    automation_id: "evening_lighting",
+    trigger_type: "time",
+    context: {
+      sunset: true,
+      weather: "clear"
+    }
+  }
+});
+```
+
+## 高级事件模式
+
+### 事件链
+```typescript
+// 创建事件链，一个事件触发另一个事件
+async function createEventChain() {
+  try {
+    // 第一个事件：系统状态检查
+    await fireEvents({
+      event_type: "system_health_check",
+      event_data: {
+        check_id: generateUUID(),
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    // 第二个事件：健康检查结果
+    const healthStatus = await performHealthCheck();
+    await fireEvents({
+      event_type: "system_health_result",
+      event_data: {
+        check_id: healthStatus.checkId,
+        status: healthStatus.status,
+        issues: healthStatus.issues,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    // 第三个事件：根据健康状态采取行动
+    if (healthStatus.status === "warning") {
+      await fireEvents({
+        event_type: "system_maintenance_required",
+        event_data: {
+          urgency: "medium",
+          tasks: healthStatus.requiredActions
+        }
+      });
+    }
+  } catch (error) {
+    await fireEvents({
+      event_type: "system_error",
+      event_data: {
+        error: error.message,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+}
+```
+
+### 事件聚合
+```typescript
+// 聚合多个传感器数据到单个事件
+async function aggregateSensorData() {
+  const sensors = [
+    "sensor.temp_living_room",
+    "sensor.temp_bedroom",
+    "sensor.temp_kitchen"
+  ];
+
+  const readings = [];
+
+  for (const sensorId of sensors) {
+    try {
+      const state = await getStates({ entity_id: sensorId });
+      if (state && state.length > 0) {
+        readings.push({
+          sensor_id: sensorId,
+          value: parseFloat(state[0].state),
+          unit: state[0].attributes.unit_of_measurement || "°C",
+          timestamp: state[0].last_updated
+        });
+      }
+    } catch (error) {
+      console.error(`读取 ${sensorId} 失败:`, error);
+    }
+  }
+
+  // 计算平均值和统计信息
+  const values = readings.map(r => r.value);
+  const average = values.reduce((a, b) => a + b, 0) / values.length;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+
+  // 触发聚合数据事件
+  await fireEvents({
+    event_type: "temperature_aggregate",
+    event_data: {
+      source: "home_sensors",
+      count: readings.length,
+      average: Math.round(average * 10) / 10,
+      min,
+      max,
+      readings,
+      timestamp: new Date().toISOString()
+    }
+  });
+}
+```
+
+### 条件事件触发
+```typescript
+// 基于条件触发事件
+async function conditionalEventTrigger() {
+  const conditions = await evaluateSystemConditions();
+
+  if (conditions.temperature > 30) {
+    await fireEvents({
+      event_type: "high_temperature_alert",
+      event_data: {
+        temperature: conditions.temperature,
+        threshold: 30,
+        recommendation: "开启空调或风扇"
+      }
+    });
+  }
+
+  if (conditions.energy_usage > conditions.dailyAverage * 1.5) {
+    await fireEvents({
+      event_type: "energy_usage_spike",
+      event_data: {
+        current_usage: conditions.energyUsage,
+        daily_average: conditions.dailyAverage,
+        increase_percentage: ((conditions.energyUsage / conditions.dailyAverage - 1) * 100).toFixed(1)
+      }
+    });
+  }
+
+  if (conditions.securityMode === "away" && conditions.lastMotion > 2 * 60 * 60 * 1000) {
+    await fireEvents({
+      event_type: "extended_absence_detected",
+      event_data: {
+        last_activity: new Date(Date.now() - conditions.lastMotion).toISOString(),
+        absence_duration: conditions.lastMotion
+      }
+    });
+  }
+}
+```
+
+## 事件数据结构
+
+### 标准事件格式
+```json
+{
+  "event_type": "custom_event_name",
+  "data": {
+    "key1": "value1",
+    "key2": "value2"
+  },
+  "origin": "LOCAL",
+  "time_fired": "2025-01-15T14:30:25.123456+00:00",
+  "context": {
+    "id": "01J8A2B3C4D5E6F7G8H9I0J1K2",
+    "parent_id": null,
+    "user_id": "c1234567890abcdef1234567890abcdef"
+  }
+}
+```
+
+### 复杂事件数据
+```json
+{
+  "event_type": "device_status_batch_update",
+  "data": {
+    "batch_id": "batch_20250115_1430",
+    "devices": [
+      {
+        "device_id": "light.living_room_001",
+        "status": "online",
+        "attributes": {
+          "brightness": 200,
+          "color_temp": 3000,
+          "power_consumption": 12.5
+        },
+        "last_seen": "2025-01-15T14:30:20+00:00"
+      },
+      {
+        "device_id": "sensor.temperature_002",
+        "status": "online",
+        "measurements": {
+          "temperature": 22.5,
+          "humidity": 45.2,
+          "battery_level": 85
+        }
+      }
+    ],
+    "summary": {
+      "total_devices": 2,
+      "online_devices": 2,
+      "offline_devices": 0,
+      "alerts": []
+    }
+  }
+}
+```
+
+## 事件驱动的架构
+
+### 发布-订阅模式
+```typescript
+class EventBus {
+  constructor() {
+    this.subscribers = new Map();
+  }
+
+  // 订阅事件
+  subscribe(eventType, callback) {
+    if (!this.subscribers.has(eventType)) {
+      this.subscribers.set(eventType, []);
+    }
+    this.subscribers.get(eventType).push(callback);
+  }
+
+  // 发布事件
+  async publish(eventType, data) {
+    await fireEvents({
+      event_type: eventType,
+      event_data: data
+    });
+
+    // 执行本地订阅者
+    const subscribers = this.subscribers.get(eventType) || [];
+    for (const callback of subscribers) {
+      try {
+        await callback(data);
+      } catch (error) {
+        console.error(`事件处理器执行失败: ${eventType}`, error);
+      }
+    }
+  }
+
+  // 取消订阅
+  unsubscribe(eventType, callback) {
+    if (this.subscribers.has(eventType)) {
+      const callbacks = this.subscribers.get(eventType);
+      const index = callbacks.indexOf(callback);
+      if (index > -1) {
+        callbacks.splice(index, 1);
+      }
+    }
+  }
+}
+
+// 使用示例
+const eventBus = new EventBus();
+
+// 订阅传感器数据事件
+eventBus.subscribe("sensor_data_received", async (data) => {
+  if (data.readings.temperature > 35) {
+    await eventBus.publish("temperature_alert", {
+      temperature: data.readings.temperature,
+      sensor_id: data.sensor_id
+    });
+  }
+});
+```
+
+### 事件状态机
+```typescript
+class DeviceStateMachine {
+  constructor(deviceId) {
+    this.deviceId = deviceId;
+    this.state = "idle";
+    this.transitions = {
+      idle: ["starting", "error"],
+      starting: ["running", "error"],
+      running: ["stopping", "error"],
+      stopping: ["idle", "error"],
+      error: ["idle"]
+    };
+  }
+
+  async transition(newState, reason = "") {
+    if (!this.transitions[this.state].includes(newState)) {
+      throw new Error(`无效状态转换: ${this.state} -> ${newState}`);
+    }
+
+    const oldState = this.state;
+    this.state = newState;
+
+    // 触发状态变更事件
+    await fireEvents({
+      event_type: "device_state_changed",
+      event_data: {
+        device_id: this.deviceId,
+        old_state: oldState,
+        new_state: newState,
+        reason,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    return this.state;
+  }
+}
+```
+
+## 事件监控和分析
+
+### 事件统计
+```typescript
+class EventMonitor {
+  constructor() {
+    this.eventCounts = new Map();
+    this.errorCounts = new Map();
+    this.lastHour = new Map();
+  }
+
+  recordEvent(eventType, isError = false) {
+    const hour = new Date().getHours();
+    const key = `${hour}:${eventType}`;
+
+    // 更新总计数
+    this.eventCounts.set(eventType, (this.eventCounts.get(eventType) || 0) + 1);
+
+    // 更新小时计数
+    this.lastHour.set(key, (this.lastHour.get(key) || 0) + 1);
+
+    // 更新错误计数
+    if (isError) {
+      this.errorCounts.set(eventType, (this.errorCounts.get(eventType) || 0) + 1);
+    }
+  }
+
+  getReport() {
+    return {
+      total_events: Array.from(this.eventCounts.values()).reduce((a, b) => a + b, 0),
+      event_types: this.eventCounts.size,
+      error_rate: this.calculateErrorRate(),
+      busiest_hour: this.getBusiestHour(),
+      top_events: this.getTopEvents(5)
+    };
+  }
+
+  calculateErrorRate() {
+    const totalEvents = Array.from(this.eventCounts.values()).reduce((a, b) => a + b, 0);
+    const totalErrors = Array.from(this.errorCounts.values()).reduce((a, b) => a + b, 0);
+    return totalEvents > 0 ? (totalErrors / totalEvents * 100).toFixed(2) + "%" : "0%";
+  }
+}
+```
+
+### 事件日志
+```typescript
+// 创建详细的事件日志
+async function logDetailedEvent(eventType, eventData, context = {}) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    event_type: eventType,
+    data: eventData,
+    context: {
+      user: context.user || "system",
+      source: context.source || "mcp_server",
+      correlation_id: generateUUID(),
+      ...context
+    }
+  };
+
+  // 触发日志事件
+  await fireEvents({
+    event_type: "event_log",
+    event_data: logEntry
+  });
+
+  // 可选：保存到持久化存储
+  await saveToEventLog(logEntry);
+}
+```
+
+## 最佳实践
+
+### 事件命名规范
+- 使用描述性的事件类型名
+- 采用一致的命名约定（如：`component_action_result`）
+- 避免过于通用的事件名称
+- 使用下划线分隔词汇
+
+### 事件数据设计
+- 保持数据结构简单和一致
+- 包含必要的上下文信息
+- 使用标准的数据类型
+- 避免嵌套过深的结构
+
+### 错误处理
+```typescript
+async function safeEventFire(eventType, eventData) {
+  try {
+    await fireEvents({
+      event_type: eventType,
+      event_data: eventData
+    });
+  } catch (error) {
+    console.error(`触发事件失败: ${eventType}`, error);
+
+    // 触发错误日志事件
+    await fireEvents({
+      event_type: "event_trigger_error",
+      event_data: {
+        failed_event: eventType,
+        error: error.message,
+        original_data: eventData
+      }
+    });
+  }
+}
+```
+
+## 注意事项
+
+- 避免创建过多的事件类型，保持系统简洁
+- 事件数据大小应该合理，避免过大的数据包
+- 考虑事件的频率，避免事件风暴
+- 定期清理不必要的事件监听器
+
+## 相关工具
+
+- **Services**: 调用各种服务来响应事件
+- **States**: 更新实体状态来反映事件影响
+- **Automation**: 基于事件创建自动化流程
+- **History**: 查看事件相关的历史数据

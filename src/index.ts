@@ -7,13 +7,13 @@ import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassStat
 import { buildPath, getPackageVersion, separatePathParams } from "./utils";
 
 class HassService {
-  hassToken = (process.env["HA_TOKEN"] ?? "").trim();
-  hassUrl = (process.env["HA_BASE_URL"] ?? "").trim();
+  hassToken = (process.env.HA_TOKEN ?? "").trim();
+  hassUrl = (process.env.HA_BASE_URL ?? "").trim();
 
   private async makeHassRequest<T>(
     endpoint: string,
     method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
-    body?: unknown,
+    body?: unknown
   ): Promise<T> {
     if (!this.hassToken || !this.hassUrl) {
       throw new Error("未配置 Home Assistant 凭据，请设置 HA_TOKEN 和 HA_BASE_URL 环境变量");
@@ -88,7 +88,7 @@ class HassService {
   }
 
   @Tool("获取过去一段时间内状态变化的数组")
-  getHistory(
+  async getHistory(
     @Param(
       z.object({
         filter_entity_id: z.string().describe("筛选一个或多个实体，多个实体用逗号分隔"),
@@ -100,7 +100,7 @@ class HassService {
         no_attributes: z.boolean().optional().describe("跳过从数据库返回 attributes 字段（速度更快）"),
         significant_changes_only: z.boolean().optional().describe("仅返回重要的状态变化"),
       }),
-      "查询参数",
+      "查询参数"
     )
     payload: {
       filter_entity_id: string;
@@ -108,7 +108,7 @@ class HassService {
       minimal_response?: boolean;
       no_attributes?: boolean;
       significant_changes_only?: boolean;
-    },
+    }
   ) {
     /**
      * 返回过去一段时间内状态变化的数组。每个对象包含实体的详细信息。
@@ -184,21 +184,21 @@ class HassService {
     return this.makeHassRequest<Array<HassHistory | HassMinimalHistory>>(
       `/api/history/period/${filter_entity_id}`,
       "GET",
-      queryParams,
+      queryParams
     );
   }
 
   @Tool("获取日志条目")
-  getLogbook(
+  async getLogbook(
     @Param(
       z.object({
         start_time: z.string().optional().describe("格式为 YYYY-MM-DDThh:mm:ssTZD 的开始的时间段的起始时间"),
         entity: z.string().optional().describe("用于筛选某个实体"),
         end_time: z.string().optional().describe("格式为 YYYY-MM-DDThh:mm:ssTZD 的开始的时间段的结束时间"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload?: { start_time?: string; entity?: string; end_time?: string },
+    payload?: { start_time?: string; entity?: string; end_time?: string }
   ) {
     /**
      * 返回一个日志条目的数组。
@@ -248,9 +248,9 @@ class HassService {
       z.object({
         entity_id: z.string().optional().describe("用于筛选某个实体"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload?: { entity_id?: string },
+    payload?: { entity_id?: string }
   ) {
     /**
      * 获取 Home Assistant 中所有实体的状态信息
@@ -282,9 +282,9 @@ class HassService {
       z.object({
         camera_entity_id: z.string().describe("用于指定 camera entity_id"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { camera_entity_id: string },
+    payload: { camera_entity_id: string }
   ) {
     /**
      * 返回指定 camera entity_id 的数据（图像）。
@@ -325,9 +325,9 @@ class HassService {
         state: z.string().describe("用于指定状态"),
         attributes: z.record(z.string(), z.unknown()).optional().describe("用于指定属性"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { state: string; attributes?: Record<string, unknown> },
+    payload: { state: string; attributes?: Record<string, unknown> }
   ) {
     /**
      * 更新或创建一个状态。你可以创建任何你想要的状态，它不需要在 Home Assistant 中有对应的实体。
@@ -356,15 +356,15 @@ class HassService {
   }
 
   @Tool("触发一个指定事件类型的事件")
-  fireEvents(
+  async fireEvents(
     @Param(
       z.object({
         event_type: z.string().describe("用于指定事件类型"),
         event_data: z.record(z.string(), z.unknown()).optional().describe("用于指定事件数据"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { event_type: string; event_data?: Record<string, unknown> },
+    payload: { event_type: string; event_data?: Record<string, unknown> }
   ) {
     /**
      * 触发一个指定 `event_type` 的事件。请注意事件数据结构，详见我们的 [数据表传送门](https://data.home-assistant.io/docs/events/#database-table)。
@@ -381,16 +381,16 @@ class HassService {
   }
 
   @Tool("在指定域内调用一个服务")
-  callServices(
+  async callServices(
     @Param(
       z.object({
         domain: z.string().describe("用于指定域"),
         service: z.string().describe("用于指定服务"),
         service_data: z.record(z.string(), z.unknown()).optional().describe("用于指定服务数据"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { domain: string; service: string; service_data?: Record<string, unknown> },
+    payload: { domain: string; service: string; service_data?: Record<string, unknown> }
   ) {
     /**
      * 在指定域内调用一个服务。该方法会在服务执行完成后返回。
@@ -461,7 +461,7 @@ class HassService {
   }
 
   @Tool("触发对 configuration.yaml 的检查")
-  checkConfig() {
+  async checkConfig() {
     /**
      * 触发对 configuration.yaml 的检查。此请求无需传递额外数据。需要启用 config 集成。
      * 如果检查成功，将返回如下内容：
@@ -486,14 +486,14 @@ class HassService {
   }
 
   @Tool("删除具有指定 entity_id 的实体")
-  deleteStates(
+  async deleteStates(
     @Param(
       z.object({
         entity_id: z.string().describe("用于指定实体ID"),
       }),
-      "查询参数",
+      "查询参数"
     )
-    payload: { entity_id: string },
+    payload: { entity_id: string }
   ) {
     /**
      * 删除具有指定 entity_id 的实体。

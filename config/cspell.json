@@ -3,11 +3,15 @@
   "language": "en",
   "enableFiletypes": ["typescript", "javascript", "json", "markdown", "yaml", "toml"],
   "files": ["**/*.{ts,js,json,md,yml,yaml,toml}"],
+  "globRoot": "../",
   "ignorePaths": [
     "docs/out/**",
+    "docs/_pagefind/**",
     "dist/**",
     "node_modules/**",
     "pnpm-lock.yaml",
+    "docs/pnpm-lock.yaml",
+    "**/*.lock.yaml",
     "coverage/**",
     "coverage.lcov/**",
     "**/coverage/**",
@@ -17,12 +21,12 @@
   "dictionaryDefinitions": [
     {
       "name": "project-words",
-      "path": "./.cspell/project-words.txt",
+      "path": "../.cspell/project-words.txt",
       "addWords": true
     },
     {
       "name": "tech-terms",
-      "path": "./.cspell/tech-terms.txt",
+      "path": "../.cspell/tech-terms.txt",
       "addWords": true
     }
   ],
@@ -103,7 +107,7 @@
       "dictionaryDefinitions": [
         {
           "name": "markdown-words",
-          "path": "./.cspell/markdown-words.txt",
+          "path": "../.cspell/markdown-words.txt",
           "addWords": true
         }
       ],

@@ -1,0 +1,536 @@
+# 配置管理
+
+## 工具介绍
+
+配置管理工具提供对 Home Assistant 配置的验证、更新和管理功能，帮助确保系统配置的正确性和完整性。
+
+## 可用工具
+
+### updateState
+更新或创建实体的状态，允许在 Home Assistant 中创建虚拟实体或更新现有实体的状态。
+
+#### 参数定义
+| 参数 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `state` | string | 是 | 要设置的状态值 |
+| `attributes` | Record&lt;string, unknown&gt; (可选) | 否 | 实体的属性信息 |
+
+#### 使用示例
+```typescript
+// 创建虚拟传感器
+await updateState({
+  state: "22.5",
+  attributes: {
+    friendly_name: "虚拟温度传感器",
+    unit_of_measurement: "°C",
+    device_class: "temperature",
+    state_class: "measurement"
+  }
+});
+
+// 更新设备状态
+await updateState({
+  state: "online",
+  attributes: {
+    friendly_name: "网络设备",
+    ip_address: "192.168.1.100",
+    last_seen: new Date().toISOString()
+  }
+});
+
+// 创建开关状态
+await updateState({
+  state: "on",
+  attributes: {
+    friendly_name: "虚拟开关"
+  }
+});
+```
+
+#### 返回值格式
+```json
+{
+  "entity_id": "sensor.virtual_temperature",
+  "state": "22.5",
+  "attributes": {
+    "friendly_name": "虚拟温度传感器",
+    "unit_of_measurement": "°C",
+    "device_class": "temperature"
+  },
+  "last_changed": "2025-01-15T14:30:25+00:00",
+  "last_updated": "2025-01-15T14:30:25+00:00"
+}
+```
+
+### fireEvents
+触发自定义事件，用于系统间通信、自动化触发或状态通知。
+
+#### 参数定义
+| 参数 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `event_type` | string | 是 | 事件类型名称 |
+| `event_data` | Record&lt;string, unknown&gt; (可选) | 否 | 事件携带的数据 |
+
+#### 使用示例
+```typescript
+// 触发自定义事件
+await fireEvents({
+  event_type: "custom_notification",
+  event_data: {
+    message: "系统维护完成",
+    level: "info",
+    timestamp: new Date().toISOString()
+  }
+});
+
+// 触发设备状态变更事件
+await fireEvents({
+  event_type: "device_status_changed",
+  event_data: {
+    device_id: "sensor.temperature_001",
+    old_status: "offline",
+    new_status: "online",
+    last_seen: new Date().toISOString()
+  }
+});
+
+// 触发用户操作事件
+await fireEvents({
+  event_type: "user_action_detected",
+  event_data: {
+    action: "door_opened",
+    location: "front_door",
+    user: "john_doe",
+    confidence: 0.95
+  }
+});
+```
+
+#### 返回值格式
+```json
+{
+  "message": "Event custom_notification fired."
+}
+```
+
+### callServices
+调用 Home Assistant 中的任意服务，实现与各种设备和集成的交互。
+
+#### 参数定义
+| 参数 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `domain` | string | 是 | 服务所属域 |
+| `service` | string | 是 | 要调用的服务名称 |
+| `service_data` | Record&lt;string, unknown&gt; (可选) | 否 | 服务参数 |
+
+#### 使用示例
+```typescript
+// 调用灯光服务
+await callServices({
+  domain: "light",
+  service: "turn_on",
+  service_data: {
+    entity_id: "light.living_room",
+    brightness: 200,
+    color_temp_kelvin: 3000
+  }
+});
+
+// 调用开关服务
+await callServices({
+  domain: "switch",
+  service: "turn_on",
+  service_data: {
+    entity_id: "switch.kitchen_light"
+  }
+});
+
+// 调用通知服务
+await callServices({
+  domain: "notify",
+  service: "mobile_app",
+  service_data: {
+    title: "系统通知",
+    message: "门已打开",
+    data: {
+      ttl: 0,
+      priority: "high"
+    }
+  }
+});
+
+// 调用自动化服务
+await callServices({
+  domain: "automation",
+  service: "trigger",
+  service_data: {
+    entity_id: "automation.evening_routine"
+  }
+});
+```
+
+#### 返回值格式
+```json
+{
+  "changed_states": [
+    {
+      "entity_id": "light.living_room",
+      "state": "on",
+      "attributes": {
+        "brightness": 200,
+        "color_temp_kelvin": 3000
+      }
+    }
+  ],
+  "service_response": {}
+}
+```
+
+### deleteStates
+删除指定实体，用于清理不再需要的虚拟实体或测试实体。
+
+#### 参数定义
+| 参数 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `entity_id` | string | 是 | 要删除的实体ID |
+
+#### 使用示例
+```typescript
+// 删除虚拟实体
+await deleteStates({
+  entity_id: "sensor.test_temperature"
+});
+
+// 删除临时实体
+await deleteStates({
+  entity_id: "binary_sensor.temp_motion"
+});
+
+// 删除多个实体（需要多次调用）
+const entitiesToDelete = [
+  "sensor.test_1",
+  "sensor.test_2",
+  "sensor.test_3"
+];
+
+for (const entityId of entitiesToDelete) {
+  await deleteStates({ entity_id: entityId });
+}
+```
+
+#### 返回值格式
+删除成功时返回空响应，失败时返回错误信息。
+
+### checkConfig
+验证 Home Assistant 配置文件的正确性，检查语法错误、配置问题和兼容性问题。
+
+#### 使用示例
+```typescript
+// 检查配置文件
+const configCheck = await checkConfig();
+
+if (configCheck.result === "valid") {
+  console.log("配置文件验证通过");
+} else {
+  console.log("配置文件存在错误");
+  console.log("错误详情:", configCheck.errors);
+}
+```
+
+#### 返回值格式
+```json
+{
+  "result": "valid",
+  "errors": [],
+  "components": {
+    "loaded": ["light", "switch", "sensor"],
+    "failed": [],
+    "pending": []
+  }
+}
+```
+
+## 高级用法
+
+### 批量状态管理
+```typescript
+// 批量创建虚拟实体
+async function createVirtualSensors() {
+  const sensors = [
+    {
+      entityId: "sensor.cpu_temperature",
+      state: "45",
+      attributes: {
+        friendly_name: "CPU 温度",
+        unit_of_measurement: "°C",
+        device_class: "temperature"
+      }
+    },
+    {
+      entityId: "sensor.memory_usage",
+      state: "67",
+      attributes: {
+        friendly_name: "内存使用率",
+        unit_of_measurement: "%",
+        device_class: "power_factor"
+      }
+    },
+    {
+      entityId: "sensor.disk_space",
+      state: "25.6",
+      attributes: {
+        friendly_name: "磁盘空间",
+        unit_of_measurement: "GB",
+        device_class: "storage"
+      }
+    }
+  ];
+
+  for (const sensor of sensors) {
+    await updateState({
+      state: sensor.state,
+      attributes: sensor.attributes
+    });
+    console.log(`创建传感器: ${sensor.attributes.friendly_name}`);
+  }
+}
+```
+
+### 事件驱动的自动化
+```typescript
+// 创建自定义事件处理系统
+class AutomationEventHandler {
+  constructor() {
+    this.eventHandlers = new Map();
+  }
+
+  // 注册事件处理器
+  registerHandler(eventType, handler) {
+    if (!this.eventHandlers.has(eventType)) {
+      this.eventHandlers.set(eventType, []);
+    }
+    this.eventHandlers.get(eventType).push(handler);
+  }
+
+  // 触发事件
+  async triggerEvent(eventType, eventData) {
+    await fireEvents({
+      event_type: eventType,
+      event_data: eventData
+    });
+
+    // 执行注册的处理器
+    const handlers = this.eventHandlers.get(eventType) || [];
+    for (const handler of handlers) {
+      try {
+        await handler(eventData);
+      } catch (error) {
+        console.error(`事件处理器执行失败: ${eventType}`, error);
+      }
+    }
+  }
+}
+
+// 使用示例
+const eventHandler = new AutomationEventHandler();
+
+eventHandler.registerHandler("security_alert", async (data) => {
+  await callServices({
+    domain: "notify",
+    service: "mobile_app",
+    service_data: {
+      title: "安全警报",
+      message: data.message,
+      data: { priority: "high" }
+    }
+  });
+});
+```
+
+### 服务调用包装器
+```typescript
+// 创建服务调用包装器，简化常用操作
+class HassServiceHelper {
+  // 灯光控制
+  async turnOnLight(entityId, brightness = null, colorTemp = null) {
+    const serviceData = { entity_id: entityId };
+
+    if (brightness !== null) {
+      serviceData.brightness = Math.round(brightness * 2.55); // 转换为 0-255
+    }
+
+    if (colorTemp !== null) {
+      serviceData.color_temp_kelvin = colorTemp;
+    }
+
+    return await callServices({
+      domain: "light",
+      service: "turn_on",
+      service_data
+    });
+  }
+
+  async turnOffLight(entityId) {
+    return await callServices({
+      domain: "light",
+      service: "turn_off",
+      service_data: { entity_id: entityId }
+    });
+  }
+
+  // 通知
+  async sendNotification(title, message, priority = "normal") {
+    return await callServices({
+      domain: "notify",
+      service: "mobile_app",
+      service_data: {
+        title,
+        message,
+        data: { priority }
+      }
+    });
+  }
+
+  // 开关控制
+  async toggleSwitch(entityId) {
+    return await callServices({
+      domain: "switch",
+      service: "toggle",
+      service_data: { entity_id: entityId }
+    });
+  }
+}
+
+// 使用示例
+const helper = new HassServiceHelper();
+
+await helper.turnOnLight("light.living_room", 80, 3000);
+await helper.sendNotification("灯光已开启", "客厅灯光已设置到80%亮度");
+```
+
+## 配置验证最佳实践
+
+### 定期配置检查
+```typescript
+// 定期检查配置文件状态
+async function scheduleConfigCheck(interval = 3600000) { // 1小时
+  const checkConfigStatus = async () => {
+    try {
+      const result = await checkConfig();
+
+      if (result.result !== "valid") {
+        console.error("配置文件验证失败:", result.errors);
+
+        // 发送通知
+        await fireEvents({
+          event_type: "config_validation_failed",
+          event_data: {
+            errors: result.errors,
+            timestamp: new Date().toISOString()
+          }
+        });
+      } else {
+        console.log("配置验证通过");
+      }
+    } catch (error) {
+      console.error("配置检查失败:", error);
+    }
+  };
+
+  // 立即检查一次
+  await checkConfigStatus();
+
+  // 设置定期检查
+  setInterval(checkConfigStatus, interval);
+}
+```
+
+### 配置变更监听
+```typescript
+// 监听配置变更
+async function monitorConfigChanges() {
+  let lastConfigHash = await getCurrentConfigHash();
+
+  setInterval(async () => {
+    try {
+      const currentHash = await getCurrentConfigHash();
+
+      if (currentHash !== lastConfigHash) {
+        console.log("检测到配置文件变更");
+
+        // 触发配置变更事件
+        await fireEvents({
+          event_type: "config_file_changed",
+          event_data: {
+            old_hash: lastConfigHash,
+            new_hash: currentHash,
+            timestamp: new Date().toISOString()
+          }
+        });
+
+        // 重新验证配置
+        const validation = await checkConfig();
+        if (validation.result === "valid") {
+          console.log("新配置验证通过");
+        } else {
+          console.error("新配置验证失败:", validation.errors);
+        }
+
+        lastConfigHash = currentHash;
+      }
+    } catch (error) {
+      console.error("配置监听失败:", error);
+    }
+  }, 30000); // 每30秒检查一次
+}
+```
+
+## 注意事项
+
+### 状态管理
+- 虚拟实体不会与实际设备同步
+- 状态更新不会触发设备物理变化
+- 需要定期维护虚拟实体的状态
+
+### 权限和安全
+- 服务调用需要有相应的权限
+- 避免在事件数据中包含敏感信息
+- 定期检查和更新权限配置
+
+### 性能考虑
+- 避免频繁的状态更新
+- 批量操作时注意请求频率
+- 大量事件可能影响系统性能
+
+## 错误处理
+
+### 常见错误类型
+| 错误类型 | 可能原因 | 解决方案 |
+|----------|----------|----------|
+| 实体已存在 | 尝试创建已存在的实体 | 使用现有实体或先删除 |
+| 服务不存在 | 调用不存在的服务 | 检查域名和服务名称 |
+| 参数错误 | 服务参数不正确 | 查看服务文档确认参数 |
+| 权限不足 | 用户没有执行权限 | 检查用户权限配置 |
+| 配置错误 | 配置文件语法错误 | 使用 checkConfig 验证配置 |
+
+### 错误处理示例
+```typescript
+async function safeCallService(domain, service, data = {}) {
+  try {
+    return await callServices({
+      domain,
+      service,
+      service_data: data
+    });
+  } catch (error) {
+    if (error.message.includes('Service not found')) {
+      console.error(`服务 ${domain}.${service} 不存在`);
+    } else if (error.message.includes('permission')) {
+      console.error('权限不足，无法调用服务');
+    } else {
+      console.error('服务调用失败:', error.message);
+    }
+    throw error;
+  }
+}
+```

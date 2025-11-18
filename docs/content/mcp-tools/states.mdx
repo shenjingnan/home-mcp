@@ -1,0 +1,252 @@
+# 实体状态
+
+## 工具介绍
+
+实体状态工具提供对 Home Assistant 中所有实体状态信息的访问，支持获取全部实体状态或查询特定实体的详细信息。
+
+## 参数定义
+
+| 参数 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `entity_id` | string (可选) | 否 | 要查询的特定实体ID，如果不提供则返回所有实体 |
+
+## 使用示例
+
+### 获取所有实体状态
+```typescript
+// 获取系统中所有实体的当前状态
+const allStates = await getStates();
+console.log(`系统中共有 ${allStates.length} 个实体`);
+```
+
+### 查询特定实体
+```typescript
+// 查询特定实体的状态
+const livingRoomLight = await getStates({
+  entity_id: "light.living_room"
+});
+```
+
+### 批量查询相同类型实体
+```typescript
+// 查询所有灯光实体的状态
+const lights = await getStates({
+  entity_id: "light.*"
+});
+```
+
+## 返回值格式
+
+### 单个实体状态示例
+```json
+[
+  {
+    "entity_id": "light.living_room",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Living Room Light",
+      "supported_color_modes": ["brightness", "color_temp"],
+      "brightness": 255,
+      "color_mode": "color_temp",
+      "color_temp_kelvin": 3000,
+      "min_color_temp_kelvin": 2700,
+      "max_color_temp_kelvin": 6500,
+      "supported_features": 3
+    },
+    "last_changed": "2025-01-15T14:30:25.123456+00:00",
+    "last_updated": "2025-01-15T14:30:25.123456+00:00",
+    "context": {
+      "id": "01J8A2B3C4D5E6F7G8H9I0J1K2",
+      "parent_id": null,
+      "user_id": "c1234567890abcdef1234567890abcdef"
+    }
+  }
+]
+```
+
+### 多实体状态响应
+```json
+[
+  {
+    "entity_id": "light.living_room",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Living Room Light",
+      "brightness": 200
+    },
+    "last_changed": "2025-01-15T14:30:25+00:00",
+    "last_updated": "2025-01-15T14:30:25+00:00"
+  },
+  {
+    "entity_id": "sensor.temperature_living_room",
+    "state": "22.5",
+    "attributes": {
+      "friendly_name": "Living Room Temperature",
+      "unit_of_measurement": "°C",
+      "device_class": "temperature"
+    },
+    "last_changed": "2025-01-15T14:25:10+00:00",
+    "last_updated": "2025-01-15T14:25:10+00:00"
+  }
+]
+```
+
+## 状态数据结构
+
+### 基础字段
+- **entity_id**: 实体的唯一标识符
+- **state**: 实体的当前状态值
+- **attributes**: 实体的属性信息
+- **last_changed**: 状态上次改变时间
+- **last_updated**: 实体上次更新时间
+- **context**: 状态变更的上下文信息
+
+### 常见属性类型
+
+#### 灯光设备属性
+```json
+{
+  "friendly_name": "Living Room Light",
+  "supported_color_modes": ["brightness", "color_temp"],
+  "brightness": 200,
+  "color_mode": "color_temp",
+  "color_temp_kelvin": 3000,
+  "min_color_temp_kelvin": 2700,
+  "max_color_temp_kelvin": 6500,
+  "rgb_color": [255, 200, 100],
+  "xy_color": [0.3, 0.4]
+}
+```
+
+#### 传感器属性
+```json
+{
+  "friendly_name": "Living Room Temperature",
+  "unit_of_measurement": "°C",
+  "device_class": "temperature",
+  "state_class": "measurement"
+}
+```
+
+#### 开关设备属性
+```json
+{
+  "friendly_name": "Kitchen Light Switch",
+  "assumed_state": false,
+  "supported_features": 0
+}
+```
+
+## 常见用例
+
+### 设备状态监控
+```typescript
+// 检查关键设备状态
+const criticalDevices = await getStates();
+const deviceStatus = criticalDevices.filter(entity =>
+  entity.entity_id.startsWith("light.") ||
+  entity.entity_id.startsWith("switch.") ||
+  entity.entity_id.startsWith("climate.")
+);
+
+deviceStatus.forEach(device => {
+  console.log(`${device.attributes.friendly_name}: ${device.state}`);
+});
+```
+
+### 数据分析
+```typescript
+// 分析传感器数据
+const allStates = await getStates();
+const sensors = allStates.filter(entity =>
+  entity.entity_id.startsWith("sensor.")
+);
+
+sensors.forEach(sensor => {
+  const value = parseFloat(sensor.state);
+  if (!isNaN(value)) {
+    console.log(`${sensor.attributes.friendly_name}: ${value}`);
+  }
+});
+```
+
+### 设备发现
+```typescript
+// 发现特定类型的设备
+const allStates = await getStates();
+
+const deviceTypes = {
+  lights: allStates.filter(e => e.entity_id.startsWith("light.")),
+  switches: allStates.filter(e => e.entity_id.startsWith("switch.")),
+  sensors: allStates.filter(e => e.entity_id.startsWith("sensor.")),
+  binarySensors: allStates.filter(e => e.entity_id.startsWith("binary_sensor.")),
+  climates: allStates.filter(e => e.entity_id.startsWith("climate.")),
+  covers: allStates.filter(e => e.entity_id.startsWith("cover."))
+};
+
+console.log(`发现 ${deviceTypes.lights.length} 个灯光设备`);
+console.log(`发现 ${deviceTypes.sensors.length} 个传感器`);
+```
+
+### 状态过滤
+```typescript
+// 查找开启的设备
+const allStates = await getStates();
+const activeDevices = allStates.filter(entity =>
+  entity.state === "on" ||
+  entity.state === "home" ||
+  (entity.entity_id.startsWith("sensor.") && parseFloat(entity.state) > 0)
+);
+```
+
+## 状态值类型
+
+### 常见状态值
+- **灯光设备**: `"on"`, `"off"`, `"unavailable"`
+- **开关设备**: `"on"`, `"off"`
+- **二进制传感器**: `"on"`, `"off"`, `"unavailable"`
+- **传感器**: 数值字符串 (如 `"22.5"`, `"45.2"`)
+- **气候设备**: `"heat"`, `"cool"`, `"off"`, `"auto"`
+
+### 特殊状态
+- **unavailable**: 设备离线或不可用
+- **unknown**: 状态未知
+- **idle**: 设备空闲状态
+
+## 性能优化
+
+### 限制查询范围
+```typescript
+// 只查询需要的实体，而不是全部实体
+const specificStates = await getStates({
+  entity_id: "light.living_room,sensor.temperature"
+});
+```
+
+### 批量处理
+```typescript
+// 分批处理大量实体数据
+const allStates = await getStates();
+const batchSize = 50;
+for (let i = 0; i < allStates.length; i += batchSize) {
+  const batch = allStates.slice(i, i + batchSize);
+  // 处理批次数据
+  processBatch(batch);
+}
+```
+
+## 注意事项
+
+- 查询所有实体可能返回大量数据
+- 状态信息实时反映 Home Assistant 的当前状态
+- 某些设备可能有延迟更新
+- 属性信息取决于设备和集成的类型
+
+## 错误处理
+
+| 错误类型 | 可能原因 | 解决方案 |
+|----------|----------|----------|
+| 实体不存在 | 指定的实体ID不存在 | 检查实体ID拼写 |
+| 连接超时 | 系统负载高或网络问题 | 重试查询或检查网络状态 |
+| 权限不足 | 用户没有访问权限 | 检查 Home Assistant 用户配置 |
+| 返回空数组 | 系统中无实体或查询无结果 | 确认实体存在或调整查询参数 |

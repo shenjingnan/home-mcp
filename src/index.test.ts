@@ -15,9 +15,10 @@ declare global {
 }
 
 type ConsoleError = typeof console.error;
-type MockCallToolHandler = (request: {
-  params: CallToolRequest["params"];
-}) => Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }>;
+type MockCallToolHandler = (request: { params: CallToolRequest["params"] }) => Promise<{
+  content: Array<{ type: string; text: string }>;
+  isError?: boolean;
+}>;
 
 // 直接测试 MCP 服务器核心功能
 describe("MCP Server", () => {
@@ -48,7 +49,7 @@ describe("MCP Server", () => {
           capabilities: {
             tools: {},
           },
-        },
+        }
       );
 
       expect(server).toBeInstanceOf(Server);
@@ -64,7 +65,7 @@ describe("MCP Server", () => {
           capabilities: {
             tools: {},
           },
-        },
+        }
       );
 
       expect(testServer).toBeInstanceOf(Server);
@@ -432,8 +433,8 @@ describe("MCP Server", () => {
 
       beforeEach(() => {
         // 模拟环境变量和 fetch
-        process.env["HA_TOKEN"] = "test-token";
-        process.env["HA_BASE_URL"] = "http://localhost:8123";
+        process.env.HA_TOKEN = "test-token";
+        process.env.HA_BASE_URL = "http://localhost:8123";
 
         // 设置全局环境配置
         global.envConfig = {
@@ -499,8 +500,8 @@ describe("MCP Server", () => {
 
       afterEach(() => {
         // 清理环境变量
-        delete process.env["HA_TOKEN"];
-        delete process.env["HA_BASE_URL"];
+        delete process.env.HA_TOKEN;
+        delete process.env.HA_BASE_URL;
       });
 
       it("应该成功获取实体状态", async () => {
@@ -520,8 +521,8 @@ describe("MCP Server", () => {
 
       it("应该处理缺少环境变量的情况", async () => {
         // 删除环境变量
-        delete process.env["HA_TOKEN"];
-        delete process.env["HA_BASE_URL"];
+        delete process.env.HA_TOKEN;
+        delete process.env.HA_BASE_URL;
         global.envConfig = {
           HA_TOKEN: "",
           HA_BASE_URL: "",
@@ -538,7 +539,7 @@ describe("MCP Server", () => {
 
         expect(result.isError).toBe(true);
         expect(result.content[0]?.text).toBe(
-          "错误: 未配置 Home Assistant 凭据，请设置 HA_TOKEN 和 HA_BASE_URL 环境变量",
+          "错误: 未配置 Home Assistant 凭据，请设置 HA_TOKEN 和 HA_BASE_URL 环境变量"
         );
       });
 
@@ -707,7 +708,12 @@ describe("MCP Server", () => {
           }
         } catch (error) {
           return {
-            content: [{ type: "text", text: `错误: ${error instanceof Error ? error.message : "未知错误"}` }],
+            content: [
+              {
+                type: "text",
+                text: `错误: ${error instanceof Error ? error.message : "未知错误"}`,
+              },
+            ],
             isError: true,
           };
         }
@@ -809,7 +815,12 @@ describe("MCP Server", () => {
           }
         } catch (error) {
           return {
-            content: [{ type: "text", text: `错误: ${error instanceof Error ? error.message : "未知错误"}` }],
+            content: [
+              {
+                type: "text",
+                text: `错误: ${error instanceof Error ? error.message : "未知错误"}`,
+              },
+            ],
             isError: true,
           };
         }

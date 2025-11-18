@@ -1,0 +1,167 @@
+# 历史数据
+
+## 工具介绍
+
+历史数据工具允许查询 Home Assistant 中实体状态的历史变化记录，支持灵活的时间范围筛选和数据过滤功能。
+
+## 参数定义
+
+| 参数 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `filter_entity_id` | string | 是 | 要查询的实体ID，多个实体用逗号分隔 |
+| `end_time` | string (可选) | 否 | 查询结束时间，URL 编码格式，默认为当前时间 |
+| `minimal_response` | boolean (可选) | 否 | 仅返回 first/last 状态，不返回 attributes，提高查询速度 |
+| `no_attributes` | boolean (可选) | 否 | 跳过 attributes 字段返回，提高查询速度 |
+| `significant_changes_only` | boolean (可选) | 否 | 仅返回重要的状态变化 |
+
+## 使用示例
+
+### 基础历史查询
+```typescript
+// 查询特定实体的历史数据
+const history = await getHistory({
+  filter_entity_id: "sensor.temperature_living_room"
+});
+```
+
+### 多实体查询
+```typescript
+// 查询多个传感器的历史数据
+const history = await getHistory({
+  filter_entity_id: "sensor.temperature_living_room,sensor.humidity_living_room"
+});
+```
+
+### 时间范围查询
+```typescript
+// 查询特定时间段之前的数据
+const history = await getHistory({
+  filter_entity_id: "light.living_room",
+  end_time: "2025-01-01T12:00:00+00:00"
+});
+```
+
+### 优化查询性能
+```typescript
+// 仅获取状态变化，不包含属性详情
+const history = await getHistory({
+  filter_entity_id: "switch.kitchen_light",
+  minimal_response: true,
+  no_attributes: true
+});
+```
+
+### 重要变化筛选
+```typescript
+// 仅获取重要状态变化
+const history = await getHistory({
+  filter_entity_id: "climate.thermostat",
+  significant_changes_only: true
+});
+```
+
+## 返回值格式
+
+### 完整响应示例
+```json
+[
+  [
+    {
+      "attributes": {
+        "friendly_name": "Living Room Temperature",
+        "unit_of_measurement": "°C",
+        "device_class": "temperature"
+      },
+      "entity_id": "sensor.temperature_living_room",
+      "last_changed": "2025-01-15T10:30:00+00:00",
+      "last_updated": "2025-01-15T10:30:00+00:00",
+      "state": "22.5"
+    },
+    {
+      "attributes": {
+        "friendly_name": "Living Room Temperature",
+        "unit_of_measurement": "°C",
+        "device_class": "temperature"
+      },
+      "entity_id": "sensor.temperature_living_room",
+      "last_changed": "2025-01-15T11:00:00+00:00",
+      "last_updated": "2025-01-15T11:00:00+00:00",
+      "state": "23.1"
+    }
+  ]
+]
+```
+
+### 最小响应示例 (minimal_response: true)
+```json
+[
+  [
+    {
+      "last_changed": "2025-01-15T10:30:00+00:00",
+      "state": "22.5"
+    },
+    {
+      "last_changed": "2025-01-15T11:00:00+00:00",
+      "state": "23.1"
+    }
+  ]
+]
+```
+
+## 时间格式
+
+- **end_time**: ISO 8601 格式 (YYYY-MM-DDThh:mm:ssTZD)
+- **默认时间范围**: end_time 前24小时
+- **时区**: 始终使用 UTC 时区
+
+## 性能优化建议
+
+1. **使用 minimal_response**: 当只需要状态变化时间戳时
+2. **使用 no_attributes**: 当不需要详细属性信息时
+3. **限制查询范围**: 避免查询过长时间范围
+4. **实体筛选**: 仅查询必要的实体
+
+## 常见用例
+
+### 温度趋势分析
+```typescript
+// 获取24小时温度变化数据
+const tempHistory = await getHistory({
+  filter_entity_id: "sensor.temperature_indoor",
+  minimal_response: true
+});
+
+// 分析温度变化趋势
+const temperatures = tempHistory[0].map(record =>
+  parseFloat(record.state)
+);
+```
+
+### 设备使用统计
+```typescript
+// 获取灯光开关历史
+const lightHistory = await getHistory({
+  filter_entity_id: "light.bedroom",
+  significant_changes_only: true
+});
+
+// 统计使用时长和频率
+const stateChanges = lightHistory[0].filter(record =>
+  record.state === "on" || record.state === "off"
+);
+```
+
+## 注意事项
+
+- 历史数据存储在 Home Assistant 数据库中
+- 查询大量数据可能需要较长时间
+- 默认返回最近24小时的数据
+- 实体必须在 Home Assistant 中启用历史记录功能
+
+## 错误处理
+
+| 错误类型 | 可能原因 | 解决方案 |
+|----------|----------|----------|
+| 实体不存在 | 指定的实体ID不正确 | 检查实体ID拼写和状态 |
+| 查询超时 | 查询范围过大或系统负载高 | 缩小查询范围或使用优化选项 |
+| 无历史数据 | 实体未启用历史记录 | 在 Home Assistant 中启用历史记录组件 |

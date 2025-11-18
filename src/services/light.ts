@@ -1,6 +1,6 @@
 import { Param, Tool } from "bestmcp";
 import { z } from "zod";
-import type { HassState } from "../types";
+import type { HassState, ServiceData } from "../types";
 
 /**
  * 灯光控制服务类
@@ -37,7 +37,7 @@ export class LightService {
     @Param(z.number().min(1).max(100).optional().describe("亮度百分比 (1-100)，可选参数"))
     brightnessPct?: number,
     @Param(z.number().min(1).max(100).optional().describe("色温百分比 (1-100)，基于设备支持的色温范围，可选参数"))
-    temperaturePct?: number,
+    temperaturePct?: number
   ) {
     const hassService = this.getHassService();
 
@@ -53,7 +53,7 @@ export class LightService {
         msg: "找到多个设备，请问需要控制哪一个？",
         entities: entities.map((entity) => ({
           entity_id: entity.entity_id,
-          friendly_name: (entity.attributes as Record<string, unknown>)?.["friendly_name"] || entity.entity_id,
+          friendly_name: entity.attributes.friendly_name || entity.entity_id,
         })),
       };
     }
@@ -70,28 +70,16 @@ export class LightService {
     // 验证亮度参数
     if (brightnessPct !== undefined) {
       if (!capabilities.supportsBrightness) {
-        errors.push(
-          `设备 ${
-            (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId
-          } 不支持亮度调节`,
-        );
+        errors.push(`设备 ${selectedEntity.attributes.friendly_name || entityId} 不支持亮度调节`);
       }
     }
 
     // 验证色温参数
     if (temperaturePct !== undefined) {
       if (!capabilities.supportsColorTemp) {
-        errors.push(
-          `设备 ${
-            (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId
-          } 不支持色温调节`,
-        );
+        errors.push(`设备 ${selectedEntity.attributes.friendly_name || entityId} 不支持色温调节`);
       } else if (!capabilities.minColorTemp || !capabilities.maxColorTemp) {
-        errors.push(
-          `无法获取设备 ${
-            (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId
-          } 的色温范围信息`,
-        );
+        errors.push(`无法获取设备 ${selectedEntity.attributes.friendly_name || entityId} 的色温范围信息`);
       }
     }
 
@@ -101,13 +89,13 @@ export class LightService {
         success: false,
         entity_id: entityId,
         errors,
-        friendly_name: (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId,
+        friendly_name: selectedEntity.attributes.friendly_name || entityId,
       };
     }
 
     try {
       // 构建服务调用参数
-      const serviceData: Record<string, unknown> = {
+      const serviceData: ServiceData = {
         entity_id: entityId,
       };
 
@@ -115,7 +103,7 @@ export class LightService {
       if (action === "turn_on") {
         // 添加亮度控制
         if (brightnessPct !== undefined && capabilities.supportsBrightness) {
-          serviceData["brightness"] = this.convertBrightnessPercentage(brightnessPct);
+          serviceData.brightness = this.convertBrightnessPercentage(brightnessPct);
         }
 
         // 添加色温控制
@@ -128,9 +116,9 @@ export class LightService {
           const kelvinTemp = this.convertTemperaturePercentage(
             temperaturePct,
             capabilities.minColorTemp,
-            capabilities.maxColorTemp,
+            capabilities.maxColorTemp
           );
-          serviceData["color_temp_kelvin"] = kelvinTemp;
+          serviceData.color_temp_kelvin = kelvinTemp;
         }
       }
 
@@ -145,13 +133,13 @@ export class LightService {
       return {
         success: true,
         entity_id: entityId,
-        friendly_name: (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId,
+        friendly_name: selectedEntity.attributes.friendly_name || entityId,
         action,
         ...(brightnessPct !== undefined ? { brightness_pct: brightnessPct } : {}),
         ...(temperaturePct !== undefined ? { temperature_pct: temperaturePct } : {}),
         changed_states: result.changed_states || [],
         message: `成功${action === "turn_on" ? "开启" : "关闭"}设备 ${
-          (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId
+          selectedEntity.attributes.friendly_name || entityId
         }${brightnessPct ? `，亮度设置为 ${brightnessPct}%` : ""}${
           temperaturePct ? `，色温设置为 ${temperaturePct}%` : ""
         }`,
@@ -160,7 +148,7 @@ export class LightService {
       return {
         success: false,
         entity_id: entityId,
-        friendly_name: (selectedEntity.attributes as Record<string, unknown>)?.["friendly_name"] || entityId,
+        friendly_name: selectedEntity.attributes.friendly_name || entityId,
         errors: [`控制失败: ${error instanceof Error ? error.message : "未知错误"}`],
       };
     }
@@ -176,10 +164,7 @@ export class LightService {
   private async getEntitiesByName(name: string): Promise<HassState[]> {
     const hassService = this.getHassService();
     const allStates = await hassService.getStates();
-    const filteredStates = allStates.filter((state: HassState) =>
-      // @ts-expect-error
-      state.attributes?.["friendly_name"]?.includes(name),
-    );
+    const filteredStates = allStates.filter((state: HassState) => state.attributes.friendly_name?.includes(name));
     return filteredStates;
   }
 
@@ -210,19 +195,17 @@ export class LightService {
     minColorTemp?: number;
     maxColorTemp?: number;
   } {
-    const attributes = entity.attributes as Record<string, unknown>;
+    const attributes = entity.attributes;
+    const supportedColorModes = attributes.supported_color_modes;
 
     return {
       supportsBrightness: true, // 大部分灯光都支持亮度调节
-      supportsColorTemp:
-        Array.isArray(attributes["supported_color_modes"]) &&
-        (attributes["supported_color_modes"] as string[]).includes("color_temp"),
+      supportsColorTemp: Array.isArray(supportedColorModes) && (supportedColorModes as string[]).includes("color_temp"),
       supportsColor:
-        Array.isArray(attributes["supported_color_modes"]) &&
-        ((attributes["supported_color_modes"] as string[]).includes("rgb") ||
-          (attributes["supported_color_modes"] as string[]).includes("hs")),
-      minColorTemp: attributes["min_color_temp_kelvin"] as number,
-      maxColorTemp: attributes["max_color_temp_kelvin"] as number,
+        Array.isArray(supportedColorModes) &&
+        ((supportedColorModes as string[]).includes("rgb") || (supportedColorModes as string[]).includes("hs")),
+      minColorTemp: attributes.min_color_temp_kelvin as number,
+      maxColorTemp: attributes.max_color_temp_kelvin as number,
     };
   }
 }

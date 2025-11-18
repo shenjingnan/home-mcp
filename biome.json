@@ -1,33 +1,42 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
   "vcs": {
-    "enabled": false,
+    "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": false
   },
   "files": {
-    "includes": ["**", "!coverage", "!dist", "!node_modules", "!docs/.next", "!docs/out"]
+    "ignoreUnknown": false,
+    "includes": ["src/**/*", "api/**/*", "config/**/*"]
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
-    "lineWidth": 120,
-    "lineEnding": "lf"
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 120
   },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
+      "correctness": {
+        "noUnusedImports": "error"
+      },
       "complexity": {
-        "useLiteralKeys": "off"
+        "noStaticOnlyClass": "off",
+        "noUselessConstructor": "off"
       },
       "suspicious": {
         "noExplicitAny": "error"
       },
       "style": {
+        "useConst": "error",
+        "useTemplate": "error",
         "noNonNullAssertion": "off"
       },
       "a11y": {
+        "useValidAnchor": "off",
         "noSvgWithoutTitle": "off"
       }
     }
@@ -37,15 +46,9 @@
       "unsafeParameterDecoratorsEnabled": true
     },
     "formatter": {
-      "quoteStyle": "double"
-    }
-  },
-  "assist": {
-    "enabled": true,
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "es5"
     }
   }
 }
