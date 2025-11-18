@@ -1,9 +1,0 @@
-* {{type}}{{#if scope}}({{scope}}){{/if}}: {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}{{#if references}}{{#each references}}{{#if this.issue}} ([#{{this.issue}}]({{href}})){{/if}}{{/each}}{{else}} ([{{shortHash}}]({{href}})){{/if}}{{#if body}}
-
-  {{body}}
-{{/if}}{{#if footnotes}}
-{{#each footnotes}}
-
-  - {{this}}
-{{/each}}
-{{/if}}

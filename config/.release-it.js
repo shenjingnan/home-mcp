@@ -1,8 +1,3 @@
-const fs = require("node:fs");
-
-// 读取自定义模板文件
-const commitTemplate = fs.readFileSync("config/changelog-commit.hbs", "utf8");
-
 module.exports = {
   git: {
     commitMessage: "chore: release v${version}",
@@ -75,7 +70,7 @@ module.exports = {
       writerOpts: {
         commitsSort: ["scope", "subject"],
         groupBy: false,
-        commitPartial: commitTemplate,
+        commitPartial: "* {{type}}{{#if scope}}({{scope}}){{/if}}: {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}{{#if references}}{{#each references}}{{#if this.issue}} ([#{{this.issue}}]({{href}})){{/if}}{{/each}}{{else}} ([{{shortHash}}]({{href}})){{/if}}",
         headerPartial: `# 更新日志\n\n`,
         footerPartial: "",
       },
