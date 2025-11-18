@@ -1,7 +1,7 @@
 module.exports = {
   git: {
-    commitMessage: "chore: release v${version}",
-    tagName: "v${version}",
+    commitMessage: `chore: release v${version}`,
+    tagName: `v${version}`,
     pushArgs: ["--follow-tags"],
     requireCleanWorkingDir: true,
     requireUpstream: true,
@@ -11,7 +11,7 @@ module.exports = {
   },
   github: {
     release: true,
-    releaseName: "🚀 v${version}",
+    releaseName: `🚀 v${version}`,
     releaseNotes: "npx conventional-changelog-cli -p conventionalcommits",
   },
   npm: {
@@ -22,7 +22,7 @@ module.exports = {
   plugins: {
     "@release-it/conventional-changelog": {
       infile: "docs/content/changelog.mdx",
-      releaseCommitMessageFormat: "chore: release v${version}",
+      releaseCommitMessageFormat: `chore: release v${version}`,
       ignoreRecommendedBump: false,
       strictSemVer: true,
       preset: {
@@ -70,19 +70,15 @@ module.exports = {
       writerOpts: {
         commitsSort: ["scope", "subject"],
         groupBy: false,
-        commitPartial: "* {{type}}{{#if scope}}({{scope}}){{/if}}: {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}{{#if references}}{{#each references}}{{#if this.issue}} ([#{{this.issue}}]({{href}})){{/if}}{{/each}}{{else}} ([{{shortHash}}]({{href}})){{/if}}",
+        commitPartial:
+          "* {{type}}{{#if scope}}({{scope}}){{/if}}: {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}{{#if references}}{{#each references}}{{#if this.issue}} ([#{{this.issue}}]({{href}})){{/if}}{{/each}}{{else}} ([{{shortHash}}]({{href}})){{/if}}",
         header: "# 更新日志\n\n",
         footerPartial: "",
       },
     },
   },
   hooks: {
-    "before:init": [
-      "pnpm audit --audit-level moderate",
-      "pnpm test",
-      "pnpm type:check",
-      "pnpm check",
-    ],
+    "before:init": ["pnpm audit --audit-level moderate", "pnpm test", "pnpm type:check", "pnpm check"],
     "before:release": [
       'git status --porcelain || echo "Git状态检查完成"',
       "pnpm clean",
@@ -90,6 +86,6 @@ module.exports = {
       'git status --porcelain || echo "构建后Git状态检查完成"',
     ],
     "after:bump": ["pnpm build"],
-    "after:release": ['echo "🎉 版本 v${version} 发布完成！"'],
+    "after:release": [`echo "🎉 版本 v${version} 发布完成！"`],
   },
 };
