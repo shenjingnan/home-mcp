@@ -76,23 +76,7 @@ module.exports = {
         commitsSort: ["scope", "subject"],
         groupBy: false,
         commitPartial: commitTemplate,
-        mainTemplate: `{{#each tagGroups}}
-{{#if hasCommits}}
-## {{#if @root.compareLinks.previous}}[{{version}}]({{href}}){{else}}{{version}}{{/if}} ({{date}})
-
-{{#each commits}}
-{{> commit}}
-{{/each}}
-{{/if}}
-{{/each}}`,
-        headerPartial: `---
-title: 更新日志
-description: 记录项目的所有重要变更
----
-
-# 更新日志
-
-`,
+        headerPartial: `# 更新日志\n\n`,
         footerPartial: "",
       },
     },
