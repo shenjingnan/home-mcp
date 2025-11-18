@@ -21,73 +21,11 @@
   },
   "plugins": {
     "@release-it/conventional-changelog": {
-      "preset": {
-        "name": "angular",
-        "types": [
-          { "type": "feat", "section": "**新功能**" },
-          { "type": "fix", "section": "**修复**" },
-          { "type": "refactor", "section": "**重构**" },
-          { "type": "docs", "section": "**文档**" },
-          { "type": "style", "section": "**样式**" },
-          { "type": "perf", "section": "**性能优化**" },
-          { "type": "test", "section": "**测试**" },
-          { "type": "build", "section": "**构建**" },
-          { "type": "ci", "section": "**持续集成**" },
-          { "type": "chore", "section": "**其他**" }
-        ]
-      },
+      "preset": "angular",
       "infile": "docs/content/changelog.mdx",
       "releaseCommitMessageFormat": "chore: release v${version}",
       "ignoreRecommendedBump": false,
-      "strictSemVer": true,
-      "typeOrder": [
-        "feat",
-        "fix",
-        "refactor",
-        "docs",
-        "style",
-        "perf",
-        "test",
-        "build",
-        "ci",
-        "chore"
-      ],
-      "types": {
-        "feat": {
-          "title": "✨ 新功能",
-          "section": "✨ 新功能"
-        },
-        "fix": {
-          "section": "🐛 修复"
-        },
-        "refactor": {
-          "section": "♻️ 重构"
-        },
-        "docs": {
-          "section": "📚 文档"
-        },
-        "style": {
-          "section": "💄 样式"
-        },
-        "perf": {
-          "section": "⚡ 性能优化"
-        },
-        "test": {
-          "section": "✅ 测试"
-        },
-        "build": {
-          "section": "📦 构建"
-        },
-        "ci": {
-          "section": "👷 持续集成"
-        },
-        "chore": {
-          "section": "🔧 其他"
-        },
-        "revert": {
-          "section": "⏪ 回滚"
-        }
-      }
+      "strictSemVer": true
     }
   },
   "hooks": {
