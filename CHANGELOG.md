@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.4-beta.0](https://github.com/shenjingnan/home-mcp/compare/v0.0.3...v0.0.4-beta.0) (2025-11-18)
+
+### Features
+
+* **build:** 优化 NPM 包发布配置，控制发布文件范围 ([2104893](https://github.com/shenjingnan/home-mcp/commit/2104893adb60f812c15c52a67a2cba648b213ad1))
+
 ## [0.0.3](https://github.com/shenjingnan/home-mcp/compare/v0.0.2...v0.0.3) (2025-11-16)
 
 ### Features
