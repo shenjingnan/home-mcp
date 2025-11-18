@@ -26,7 +26,6 @@ vitest.config.ts
 # 文档
 docs/
 CLAUDE.md
-CHANGELOG.md
 
 # 开发文件
 .env*

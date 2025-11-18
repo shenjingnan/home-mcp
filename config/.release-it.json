@@ -1,4 +1,5 @@
 {
+  "$schema": "https://unpkg.com/release-it@19/schema/release-it.json",
   "git": {
     "commitMessage": "chore: release v${version}",
     "tagName": "v${version}",
@@ -21,17 +22,69 @@
   },
   "plugins": {
     "@release-it/conventional-changelog": {
-      "preset": "conventionalcommits",
-      "infile": "CHANGELOG.md",
+      "infile": "docs/content/changelog.mdx",
       "releaseCommitMessageFormat": "chore: release v${version}",
       "ignoreRecommendedBump": false,
-      "strictSemVer": true
+      "strictSemVer": true,
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          {
+            "type": "feat"
+          },
+          {
+            "type": "fix"
+          },
+          {
+            "type": "docs"
+          },
+          {
+            "type": "style"
+          },
+          {
+            "type": "refactor"
+          },
+          {
+            "type": "perf"
+          },
+          {
+            "type": "test"
+          },
+          {
+            "type": "build"
+          },
+          {
+            "type": "ci",
+            "hidden": true
+          },
+          {
+            "type": "chore",
+            "hidden": true
+          },
+          {
+            "type": "revert"
+          }
+        ],
+        "issueUrlFormat": "https://github.com/shenjingnan/home-mcp/pull/{{id}}",
+        "commitUrlFormat": "https://github.com/shenjingnan/home-mcp/commit/{{hash}}"
+      },
+      "writerOpts": {
+        "commitsSort": ["scope", "subject"],
+        "groupBy": false,
+        "commitPartial": "* {{type}}{{#if scope}}({{scope}}){{/if}}: {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}{{#if references}}{{#each references}}{{#if this.issue}} ([#{{this.issue}}]({{href}})){{/if}}{{/each}}{{else}} ([{{shortHash}}]({{href}})){{/if}}",
+        "footerPartial": ""
+      }
     }
   },
   "hooks": {
-    "before:init": ["pnpm audit --audit-level moderate", "pnpm test", "pnpm type:check", "pnpm check:fix"],
-    "before:release": ["pnpm clean", "pnpm build"],
+    "before:init": ["pnpm audit --audit-level moderate", "pnpm test", "pnpm type:check", "pnpm check"],
+    "before:release": [
+      "git status --porcelain || echo \"Git状态检查完成\"",
+      "pnpm clean",
+      "pnpm build",
+      "git status --porcelain || echo \"构建后Git状态检查完成\""
+    ],
     "after:bump": ["pnpm build"],
-    "after:release": ["echo \"🎉 版本 v${version} 发布完成！\""]
+    "after:release": ["echo '🎉 版本 v${version} 发布完成！'"]
   }
 }
