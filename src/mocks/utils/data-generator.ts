@@ -110,7 +110,7 @@ export function generateUUID(): string {
 /**
  * 生成设备属性
  */
-export function generateDeviceAttributes(domain: string, deviceClass?: string): Record<string, any> {
+export function generateDeviceAttributes(domain: string, deviceClass?: string): Record<string, unknown> {
   const baseAttributes = {
     friendly_name: `Mock ${domain}`,
     icon: `mdi:${domain}`,
@@ -195,9 +195,9 @@ function getUnitByDeviceClass(deviceClass?: string): string {
 export function generateHistoryPoint(
   entityId: string,
   state: string,
-  attributes: Record<string, any>,
+  attributes: Record<string, unknown>,
   timestamp?: string
-): any[] {
+): unknown[] {
   return [
     {
       attributes,
@@ -212,7 +212,7 @@ export function generateHistoryPoint(
 /**
  * 生成日志条目
  */
-export function generateLogbookEntry(entityId: string, eventName: string, message?: string): any {
+export function generateLogbookEntry(entityId: string, eventName: string, message?: string): Record<string, unknown> {
   return {
     entity_id: entityId,
     event_type: eventName,

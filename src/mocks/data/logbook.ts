@@ -223,7 +223,11 @@ const allLogbook = [
   ...deviceTrackerLogbook,
   ...notificationLogbook,
   ...updateLogbook,
-].sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
+].sort((a, b) => {
+  const timeA = new Date(a.when as string).getTime();
+  const timeB = new Date(b.when as string).getTime();
+  return timeB - timeA;
+});
 
 export const mockLogbook = allLogbook;
 

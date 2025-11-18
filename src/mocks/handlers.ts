@@ -8,6 +8,28 @@ import { mockServices } from "./data/services";
 import { mockStates } from "./data/states";
 import { buildResponse } from "./utils/response-builder";
 
+// API请求体类型定义
+interface StateUpdateRequest {
+  state?: string;
+  attributes?: Record<string, unknown>;
+}
+
+interface ServiceCallRequest {
+  entity_id?: string;
+  brightness_pct?: number;
+  rgb_color?: number[];
+  [key: string]: unknown;
+}
+
+interface EventTriggerRequest {
+  [key: string]: unknown;
+}
+
+// 动态属性设置的类型安全方法
+function setEntityAttributes(entity: { attributes: Record<string, unknown> }, updates: Record<string, unknown>): void {
+  Object.assign(entity.attributes, updates);
+}
+
 /**
  * Home Assistant API Mock处理器
  * 覆盖项目中的所有HomeAssistant API端点
@@ -73,7 +95,7 @@ export const handlers = [
   // 更新实体状态 API
   http.post("*/api/states/:entityId", async ({ params, request }) => {
     const { entityId } = params;
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as StateUpdateRequest;
 
     const entity = mockStates.find((state) => state.entity_id === entityId);
 
@@ -108,7 +130,7 @@ export const handlers = [
   // 服务调用 API
   http.post("*/api/services/:domain/:service", async ({ params, request }) => {
     const { domain, service } = params;
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as ServiceCallRequest;
 
     // 模拟服务调用处理
     if (domain === "light" && service === "turn_on") {
@@ -117,8 +139,10 @@ export const handlers = [
 
       if (entity && "supported_features" in entity.attributes && entity.attributes.supported_features) {
         entity.state = "on";
-        (entity.attributes as any).brightness = Math.floor((body.brightness_pct || 100) * 2.55);
-        (entity.attributes as any).rgb_color = body.rgb_color || [255, 255, 255];
+        setEntityAttributes(entity, {
+          brightness: Math.floor((body.brightness_pct || 100) * 2.55),
+          rgb_color: body.rgb_color || [255, 255, 255],
+        });
         entity.last_updated = new Date().toISOString();
         entity.last_changed = new Date().toISOString();
       }
@@ -153,7 +177,10 @@ export const handlers = [
     // 根据实体ID过滤历史数据
     let filteredHistory = mockHistory;
     if (entityId) {
-      filteredHistory = mockHistory.filter((item) => item[0].entity_id === entityId);
+      filteredHistory = mockHistory.filter((item) => {
+        const historyItem = item[0] as { entity_id: string };
+        return historyItem.entity_id === entityId;
+      });
     }
 
     return HttpResponse.json(buildResponse(filteredHistory));
@@ -181,7 +208,7 @@ export const handlers = [
   // 触发事件 API
   http.post("*/api/events/:eventType", async ({ params, request }) => {
     const { eventType } = params;
-    const body = (await request.json()) as any;
+    const body = (await request.json()) as EventTriggerRequest;
 
     return HttpResponse.json(
       buildResponse({

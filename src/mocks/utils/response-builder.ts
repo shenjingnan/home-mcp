@@ -6,11 +6,22 @@
 /**
  * Home Assistant API 标准响应格式
  */
-export interface HassResponse<T = any> {
+export interface HassResponse<T = unknown> {
   data?: T;
   message?: string;
   error?: string;
   code?: number;
+}
+
+/**
+ * 实体状态接口
+ */
+export interface EntityState {
+  entity_id: string;
+  state: string;
+  attributes: Record<string, unknown>;
+  last_changed: string;
+  last_updated: string;
 }
 
 /**
@@ -88,6 +99,6 @@ export function createServiceCallResponse(domain: string, service: string): Hass
  * 创建状态更新响应
  * @param entity 更新后的实体状态
  */
-export function createStateUpdateResponse(entity: any): HassResponse {
+export function createStateUpdateResponse(entity: EntityState): HassResponse {
   return buildResponse(entity, "State updated successfully");
 }
