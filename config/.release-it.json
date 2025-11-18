@@ -28,36 +28,14 @@
       "strictSemVer": true,
       "writerOpts": {
         "transform": {
-          "feat": {
-            "title": "**Features**"
-          },
-          "fix": {
-            "title": "**Bug Fixes**"
-          },
-          "perf": {
-            "title": "**Performance Improvements**"
-          },
-          "revert": {
-            "title": "**Reverts**"
-          },
-          "docs": {
-            "title": "**Documentation**"
-          },
-          "style": {
-            "title": "**Styles**"
-          },
-          "refactor": {
-            "title": "**Code Refactoring**"
-          },
-          "test": {
-            "title": "**Tests**"
-          },
-          "build": {
-            "title": "**Build System**"
-          },
-          "ci": {
-            "title": "**Continuous Integration**"
-          }
+          "feat": "✨ 新功能",
+          "fix": "🐛 修复",
+          "docs": "📝 文档",
+          "style": "💄 样式",
+          "refactor": "♻️ 重构",
+          "perf": "⚡ 性能优化",
+          "test": "✅ 测试",
+          "chore": "🔧 其他"
         }
       }
     }
