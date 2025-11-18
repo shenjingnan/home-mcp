@@ -13,7 +13,7 @@
 | 参数 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `state` | string | 是 | 要设置的状态值 |
-| `attributes` | Record<string, unknown> (可选) | 否 | 实体的属性信息 |
+| `attributes` | Record&lt;string, unknown&gt; (可选) | 否 | 实体的属性信息 |
 
 #### 使用示例
 ```typescript
@@ -69,7 +69,7 @@ await updateState({
 | 参数 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `event_type` | string | 是 | 事件类型名称 |
-| `event_data` | Record<string, unknown> (可选) | 否 | 事件携带的数据 |
+| `event_data` | Record&lt;string, unknown&gt; (可选) | 否 | 事件携带的数据 |
 
 #### 使用示例
 ```typescript
@@ -121,7 +121,7 @@ await fireEvents({
 |------|------|------|------|
 | `domain` | string | 是 | 服务所属域 |
 | `service` | string | 是 | 要调用的服务名称 |
-| `service_data` | Record<string, unknown> (可选) | 否 | 服务参数 |
+| `service_data` | Record&lt;string, unknown&gt; (可选) | 否 | 服务参数 |
 
 #### 使用示例
 ```typescript
