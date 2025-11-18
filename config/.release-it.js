@@ -35,55 +35,44 @@ module.exports = {
         types: [
           {
             type: "feat",
-            section: "**新特性**",
           },
           {
             type: "fix",
-            section: "**问题修复**",
           },
           {
             type: "docs",
-            section: "**文档更新**",
           },
           {
             type: "style",
-            section: "**代码规范**",
           },
           {
             type: "refactor",
-            section: "**代码重构**",
           },
           {
             type: "perf",
-            section: "**性能优化**",
           },
           {
             type: "test",
-            section: "**测试改进**",
           },
           {
             type: "build",
-            section: "**构建系统**",
           },
           {
             type: "ci",
-            section: "**CI/CD**",
             hidden: true,
           },
           {
             type: "chore",
-            section: "**日常任务**",
             hidden: true,
           },
           {
             type: "revert",
-            section: "**版本回退**",
           },
         ],
       },
       writerOpts: {
         commitsSort: ["scope", "subject"],
-        groupBy: "type",
+        groupBy: false,
         commitPartial: commitTemplate,
         mainTemplate: `---
 title: 更新日志
@@ -98,17 +87,8 @@ description: 记录项目的所有重要变更
 {{#if hasCommits}}
 ## {{#if @root.compareLinks.previous}}[{{version}}]({{href}}){{else}}{{version}}{{/if}} ({{date}})
 
-{{#if body}}
-{{body}}
-
-{{/if}}
-{{#each commitGroups}}
-
-### {{title}}
-
 {{#each commits}}
 {{> commit}}
-{{/each}}
 {{/each}}
 {{/if}}
 {{/each}}`,
