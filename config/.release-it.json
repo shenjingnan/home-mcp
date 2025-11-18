@@ -51,7 +51,42 @@
         "build",
         "ci",
         "chore"
-      ]
+      ],
+      "types": {
+        "feat": {
+          "section": "✨ 新功能"
+        },
+        "fix": {
+          "section": "🐛 修复"
+        },
+        "refactor": {
+          "section": "♻️ 重构"
+        },
+        "docs": {
+          "section": "📚 文档"
+        },
+        "style": {
+          "section": "💄 样式"
+        },
+        "perf": {
+          "section": "⚡ 性能优化"
+        },
+        "test": {
+          "section": "✅ 测试"
+        },
+        "build": {
+          "section": "📦 构建"
+        },
+        "ci": {
+          "section": "👷 持续集成"
+        },
+        "chore": {
+          "section": "🔧 其他"
+        },
+        "revert": {
+          "section": "⏪ 回滚"
+        }
+      }
     }
   },
   "hooks": {
