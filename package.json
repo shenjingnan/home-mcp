@@ -8,9 +8,9 @@
     "home-mcp": "./dist/index.js"
   },
   "scripts": {
-    "dev": "nodemon --watch \"src/**/*\" --ext ts,js --exec \"tsc --project config/tsconfig.json && node dist/index.js\"",
+    "dev": "nodemon --watch \"src/**/*\" --ext ts,js --exec \"tsc --project tsconfig.json && node dist/index.js\"",
     "dev:docs": "cd docs && pnpm run dev",
-    "build": "tsc --project config/tsconfig.json",
+    "build": "tsc --project tsconfig.json",
     "clean": "rm -rf dist",
     "test": "vitest run --config config/vitest.config.ts",
     "test:silent": "vitest run --silent --config config/vitest.config.ts",

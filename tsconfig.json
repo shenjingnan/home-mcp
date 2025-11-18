@@ -3,8 +3,8 @@
     "target": "ES2022",
     "module": "commonjs",
     "lib": ["ES2022"],
-    "outDir": "../dist",
-    "rootDir": "../src",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -27,7 +27,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
-    "baseUrl": "../src",
+    "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],
       "@/types/*": ["types/*"],
@@ -38,8 +38,8 @@
       "@/tools/*": ["tools/*"]
     }
   },
-  "include": ["../src/**/*"],
-  "exclude": ["../node_modules", "../dist", "../**/*.test.ts", "../**/*.spec.ts"],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
   "ts-node": {
     "require": ["tsconfig-paths/register"]
   }
