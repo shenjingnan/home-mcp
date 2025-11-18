@@ -22,14 +22,53 @@
   "plugins": {
     "@release-it/conventional-changelog": {
       "preset": "conventionalcommits",
-      "infile": "CHANGELOG.md",
+      "infile": "docs/content/changelog.mdx",
       "releaseCommitMessageFormat": "chore: release v${version}",
       "ignoreRecommendedBump": false,
-      "strictSemVer": true
+      "strictSemVer": true,
+      "writerOpts": {
+        "transform": {
+          "feat": {
+            "title": "**Features**"
+          },
+          "fix": {
+            "title": "**Bug Fixes**"
+          },
+          "perf": {
+            "title": "**Performance Improvements**"
+          },
+          "revert": {
+            "title": "**Reverts**"
+          },
+          "docs": {
+            "title": "**Documentation**"
+          },
+          "style": {
+            "title": "**Styles**"
+          },
+          "refactor": {
+            "title": "**Code Refactoring**"
+          },
+          "test": {
+            "title": "**Tests**"
+          },
+          "build": {
+            "title": "**Build System**"
+          },
+          "ci": {
+            "title": "**Continuous Integration**"
+          }
+        }
+      }
     }
   },
   "hooks": {
-    "before:init": ["pnpm audit --audit-level moderate", "pnpm test", "pnpm type:check", "pnpm check:fix"],
+    "before:init": [
+      "pnpm audit --audit-level moderate",
+      "pnpm test",
+      "pnpm type:check",
+      "pnpm check:fix"
+    ],
     "before:release": ["pnpm clean", "pnpm build"],
     "after:bump": ["pnpm build"],
     "after:release": ["echo \"🎉 版本 v${version} 发布完成！\""]
