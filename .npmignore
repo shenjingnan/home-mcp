@@ -1,0 +1,49 @@
+# 源代码
+src/
+*.ts
+!*.d.ts
+
+# 测试文件
+*.test.ts
+*.spec.ts
+test/
+tests/
+coverage/
+
+# 开发工具配置
+.claude/
+.cspell/
+.github/
+.vscode/
+.idea/
+
+# 构建工具配置
+config/
+biome.json
+tsconfig*.json
+vitest.config.ts
+
+# 文档
+docs/
+CLAUDE.md
+CHANGELOG.md
+
+# 开发文件
+.env*
+.nvmrc
+pnpm-workspace.yaml
+vercel.json
+
+# API 测试文件
+api/
+
+# 依赖目录
+node_modules/
+
+# 构建缓存
+.tsup/
+*.log
+
+# 发布相关
+.npm
+.tgz
