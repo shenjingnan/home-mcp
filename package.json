@@ -1,6 +1,6 @@
 {
   "name": "home-mcp",
-  "version": "0.0.4-beta.7",
+  "version": "0.0.4-beta.8",
   "description": "Home Assistant MCP Server - A Model Context Protocol server for smart home integration",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
