@@ -31,6 +31,7 @@
       "Bash(xargs sed:*)",
       "Bash(nr:*)",
       "Bash(cat:*)",
+      "Bash(ls:*)",
       "WebFetch",
       "WebSearch"
     ],
