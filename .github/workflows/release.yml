@@ -116,21 +116,31 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           TARGET_VERSION="${{ steps.parse-version.outputs.target_version }}"
-          RELEASE_CMD="npx release-it --ci --config config/.release-it.json"
 
           if [ "${{ steps.parse-version.outputs.version_type }}" = "release" ]; then
-            # 正式版发布
-            RELEASE_CMD="$RELEASE_CMD -i $TARGET_VERSION"
+            # 正式版发布：使用完整配置，包含changelog、tag、release
+            RELEASE_CMD="npx release-it --ci --config config/.release-it.json -i $TARGET_VERSION"
+            echo "📦 开始正式版发布流程..."
+            echo "   ✅ 将更新changelog.mdx"
+            echo "   ✅ 将创建Git tag"
+            echo "   ✅ 将创建GitHub Release"
+            echo "   ✅ 将发布到NPM正式版本"
           else
-            # 预发布版发布
-            RELEASE_CMD="$RELEASE_CMD $TARGET_VERSION --preRelease=${{ steps.parse-version.outputs.prerelease_id }}"
+            # Beta版发布：使用简化配置，仅发布到NPM
+            RELEASE_CMD="npx release-it --ci --config config/.release-it-beta.json $TARGET_VERSION --preRelease=${{ steps.parse-version.outputs.prerelease_id }}"
+            echo "📦 开始Beta版发布流程..."
+            echo "   ⚪  跳过changelog.mdx更新"
+            echo "   ⚪  跳过Git tag创建"
+            echo "   ⚪  跳过GitHub Release创建"
+            echo "   ✅ 将发布到NPM beta版本"
           fi
 
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             RELEASE_CMD="$RELEASE_CMD --dry-run"
+            echo "   🧪 预演模式：不会实际执行发布操作"
           fi
 
-          echo "📦 开始发布流程..."
+          echo ""
           echo "📋 版本信息："
           echo "   - 目标版本: $TARGET_VERSION"
           echo "   - 版本类型: ${{ steps.parse-version.outputs.version_type }}"
