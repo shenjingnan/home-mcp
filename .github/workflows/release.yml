@@ -81,72 +81,47 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: 解析版本号参数
-        id: parse-version
+      - name: 选择发版配置
+        id: select-config
         run: |
           TARGET_VERSION="${{ github.event.inputs.target_version }}"
 
           if [[ "$TARGET_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            # 正式版: 1.0.0
-            VERSION_TYPE="release"
-            PRERELEASE_ID=""
-            echo "检测到正式版版本号: $TARGET_VERSION"
-          elif [[ "$TARGET_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
-            # Beta 版: 1.0.0-beta.0
-            VERSION_TYPE="prerelease"
-            PRERELEASE_ID="beta"
-            echo "检测到Beta版本号: $TARGET_VERSION"
-          elif [[ "$TARGET_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
-            # RC 版: 1.0.0-rc.0
-            VERSION_TYPE="prerelease"
-            PRERELEASE_ID="rc"
-            echo "检测到RC版本号: $TARGET_VERSION"
+            # 正式版使用完整配置
+            CONFIG_FILE="config/.release-it.json"
+            echo "✅ 检测到正式版版本号: $TARGET_VERSION"
+            echo "📋 将执行完整发布流程：changelog → Git tag → GitHub Release → NPM"
           else
-            echo "❌ 版本号格式无法识别"
-            exit 1
+            # Beta/RC 版使用简化配置
+            CONFIG_FILE="config/.release-it-beta.json"
+            echo "✅ 检测到预发布版本号: $TARGET_VERSION"
+            echo "📋 将执行简化发布流程：NPM only (跳过 changelog、tag、GitHub Release)"
           fi
 
-          echo "version_type=$VERSION_TYPE" >> $GITHUB_OUTPUT
-          echo "target_version=$TARGET_VERSION" >> $GITHUB_OUTPUT
-          echo "prerelease_id=$PRERELEASE_ID" >> $GITHUB_OUTPUT
+          echo "config_file=$CONFIG_FILE" >> $GITHUB_OUTPUT
 
       - name: 发布
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          TARGET_VERSION="${{ steps.parse-version.outputs.target_version }}"
-          RELEASE_CMD="npx release-it --ci --config config/.release-it.json"
+          TARGET_VERSION="${{ github.event.inputs.target_version }}"
+          CONFIG_FILE="${{ steps.select-config.outputs.config_file }}"
 
-          if [ "${{ steps.parse-version.outputs.version_type }}" = "release" ]; then
-            # 正式版发布
-            RELEASE_CMD="$RELEASE_CMD -i $TARGET_VERSION"
-          else
-            # 预发布版发布
-            RELEASE_CMD="$RELEASE_CMD $TARGET_VERSION --preRelease=${{ steps.parse-version.outputs.prerelease_id }}"
-          fi
+          # 构建发布命令
+          RELEASE_CMD="npx release-it --ci --config $CONFIG_FILE $TARGET_VERSION"
 
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             RELEASE_CMD="$RELEASE_CMD --dry-run"
+            echo "🧪 预演模式：不会实际执行发布操作"
           fi
 
-          echo "📦 开始发布流程..."
-          echo "📋 版本信息："
+          echo ""
+          echo "📋 发布信息："
           echo "   - 目标版本: $TARGET_VERSION"
-          echo "   - 版本类型: ${{ steps.parse-version.outputs.version_type }}"
-          echo "   - 预发布ID: ${{ steps.parse-version.outputs.prerelease_id }}"
+          echo "   - 配置文件: $CONFIG_FILE"
           echo "   - 当前分支: ${{ github.ref_name }}"
           echo "   - 预演模式: ${{ github.event.inputs.dry_run }}"
-          echo "   - 执行命令: $RELEASE_CMD"
-          echo ""
-
-          # 检查环境
-          echo "🔍 环境检查："
-          echo "   - Node版本: $(node --version)"
-          echo "   - pnpm版本: $(pnpm --version)"
-          echo "   - Git状态: $(git status --porcelain | wc -l) 个文件有修改"
-          echo "   - 当前分支: $(git branch --show-current)"
-          echo "   - 最新标签: $(git describe --tags --match='v*' --abbrev=0 || echo '无标签')"
           echo ""
 
           # 执行发布命令

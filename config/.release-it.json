@@ -30,28 +30,40 @@
         "name": "conventionalcommits",
         "types": [
           {
-            "type": "feat"
+            "type": "feat",
+            "section": "Features"
           },
           {
-            "type": "fix"
+            "type": "feature",
+            "section": "Features"
           },
           {
-            "type": "docs"
+            "type": "fix",
+            "section": "Bug Fixes"
           },
           {
-            "type": "style"
+            "type": "docs",
+            "section": "Documentation"
           },
           {
-            "type": "refactor"
+            "type": "style",
+            "section": "Styles"
           },
           {
-            "type": "perf"
+            "type": "refactor",
+            "section": "Code Refactoring"
           },
           {
-            "type": "test"
+            "type": "perf",
+            "section": "Performance Improvements"
           },
           {
-            "type": "build"
+            "type": "test",
+            "section": "Tests"
+          },
+          {
+            "type": "build",
+            "section": "Builds"
           },
           {
             "type": "ci",
@@ -62,7 +74,8 @@
             "hidden": true
           },
           {
-            "type": "revert"
+            "type": "revert",
+            "section": "Reverts"
           }
         ],
         "issueUrlFormat": "https://github.com/shenjingnan/home-mcp/pull/{{id}}",
@@ -71,7 +84,7 @@
       "writerOpts": {
         "commitsSort": ["scope", "subject"],
         "groupBy": false,
-        "commitPartial": "* {{type}}{{#if scope}}({{scope}}){{/if}}: {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}{{#if references}}{{#each references}}{{#if this.issue}} ([#{{this.issue}}]({{href}})){{/if}}{{/each}}{{else}} ([{{shortHash}}]({{href}})){{/if}}",
+        "commitPartial": "* {{type}}{{#if scope}}({{scope}}){{/if}}: {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}{{#if references}}{{#each references}}{{#if this.issue}} ([#{{this.issue}}]({{href}})){{/if}}{{/each}}{{/if}}\n",
         "footerPartial": ""
       }
     }
