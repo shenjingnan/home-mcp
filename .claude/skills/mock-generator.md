@@ -197,7 +197,7 @@ interface DeviceConfig {
 
 ### 直接调用
 ```typescript
-import { MockGenerator } from './mock-generator';
+import { MockGenerator } from '@/mocks/utils/mock-generator';
 
 const generator = new MockGenerator();
 const mockData = generator.generateDevices({

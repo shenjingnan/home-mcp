@@ -92,11 +92,37 @@ const lightControlSchema = z.object({
 type LightControlParams = z.infer<typeof lightControlSchema>;
 ```
 
-### 4. Biome 配置集成
+### 4. 路径别名类型检查
+确保路径别名系统的类型安全，避免别名使用导致的类型错误。
+
+#### 别名一致性检查
+```typescript
+// 检查别名导入的类型定义
+import { LightService } from "@/services";
+import type { HassState } from "@/types";
+
+// 验证导入的模块是否具有正确的类型定义
+// 确保 @/services 和 @/types 指向正确的文件
+```
+
+#### 类型别名映射验证
+```typescript
+// 确保别名映射不会导致类型冲突
+interface TypeMapping {
+  "@/services": "./src/services";
+  "@/types": "./src/types";
+  "@/utils": "./src/utils";
+}
+
+// 验证映射的正确性和类型完整性
+```
+
+### 5. Biome 配置集成
 与现有的 Biome 代码检查工具集成，确保类型检查与代码规范的一致性。
 
 #### 配置同步
 - **noExplicitAny** 规则：检查 any 类型使用
+- **路径别名支持**：确保 Biome 能正确解析别名路径
 - **noUnusedVariables**：检查未使用的变量
 - **noImplicitReturns**：确保函数返回值类型明确
 - **exactOptionalPropertyTypes**：精确的可选属性类型

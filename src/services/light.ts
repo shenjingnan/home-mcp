@@ -1,6 +1,6 @@
 import { Param, Tool } from "bestmcp";
 import { z } from "zod";
-import type { HassState, ServiceData } from "../types";
+import type { HassState, ServiceData } from "@/types";
 
 /**
  * 灯光控制服务类

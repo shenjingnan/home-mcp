@@ -83,6 +83,38 @@ src/
 3. 添加适当的参数验证和错误处理
 4. 返回标准格式的响应
 
+### 路径别名系统
+**重要：优先使用别名引用，避免相对路径**
+
+项目已配置完整的路径别名系统，使用 `@/xxx` 格式：
+
+```typescript
+// ✅ 推荐：使用别名
+import { LightService } from "@/services";
+import type { HassState } from "@/types";
+import { formatDate } from "@/utils";
+
+// ❌ 避免：使用相对路径
+import { LightService } from "./services";
+import type { HassState } from "../types";
+import { formatDate } from "./utils";
+```
+
+#### 可用别名映射
+- `@/*` - 根目录快速访问
+- `@/types/*` - 类型定义目录
+- `@/utils/*` - 工具函数目录
+- `@/services/*` - 服务层目录
+- `@/mocks/*` - Mock 数据目录
+- `@/test/*` - 测试配置目录
+
+#### 使用别名的好处
+1. **代码可读性** - 明确显示模块来源和层级关系
+2. **维护便利** - 重构文件位置时无需修改导入路径
+3. **IDE支持** - 更好的智能提示和跳转功能
+4. **避免歧义** - 减少与npm包名的命名冲突风险
+5. **行业标准** - 符合主流框架和工具链的实践
+
 ### 类型定义
 - 使用 TypeScript 严格模式
 - 所有工具参数必须有完整的 JSON Schema 定义

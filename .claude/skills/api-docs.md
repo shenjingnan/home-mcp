@@ -185,7 +185,18 @@ try {
 // 提取：功能描述、参数说明、返回值、使用示例
 ```
 
-### 3. 类型定义解析
+### 3. 路径别名解析
+```typescript
+// 支持 @/xxx 格式的路径别名
+import { LightService } from "@/services";
+import type { HassState } from "@/types";
+import { formatDate } from "@/utils";
+
+// 提取：模块路径信息，用于生成导航和链接
+// 支持：@/types, @/utils, @/services, @/mocks, @/test
+```
+
+### 4. 类型定义解析
 ```typescript
 // 接口定义
 export interface LightControlResult {

@@ -32,10 +32,9 @@
       "@/*": ["*"],
       "@/types/*": ["types/*"],
       "@/utils/*": ["utils/*"],
-      "@/config/*": ["config/*"],
-      "@/clients/*": ["clients/*"],
-      "@/server/*": ["server/*"],
-      "@/tools/*": ["tools/*"]
+      "@/services/*": ["services/*"],
+      "@/mocks/*": ["mocks/*"],
+      "@/test/*": ["test/*"]
     }
   },
   "include": ["src/**/*"],

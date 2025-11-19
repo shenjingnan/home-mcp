@@ -2,9 +2,9 @@
 
 import { BestMCP, Param, Tool } from "bestmcp";
 import z from "zod";
-import { LightControlService } from "./services";
-import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassState } from "./types";
-import { buildPath, getPackageVersion, separatePathParams } from "./utils";
+import { LightControlService } from "@/services";
+import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassState } from "@/types";
+import { buildPath, getPackageVersion, separatePathParams } from "@/utils";
 
 // Mock服务器支持 - 仅在开发环境启用
 async function initializeMocks() {
@@ -16,7 +16,7 @@ async function initializeMocks() {
     console.log("🔧 Initializing Mock Server for Home Assistant API...");
 
     try {
-      const { setupMocks } = await import("./mocks/server");
+      const { setupMocks } = await import("@/mocks/server");
       setupMocks();
     } catch (error) {
       console.error("❌ Failed to initialize mock server:", error);
