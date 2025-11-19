@@ -1,0 +1,146 @@
+import { Callout, Tabs, Steps } from 'nextra/components'
+
+# 开发入门指南
+
+Home-MCP 支持两种开发模式，根据您的环境选择合适的方式。
+
+## 选择开发模式
+
+<Tabs items={['普通模式', 'Mock 模式']}>
+<Tabs.Tab>
+### 普通开发模式
+
+适用于已有 Home Assistant 实例的开发者，需要测试真实的设备交互。
+
+**要求**：
+- Home Assistant 运行实例
+- 开发者访问令牌
+</Tabs.Tab>
+
+<Tabs.Tab>
+### Mock 开发模式
+
+适用于没有 Home Assistant 环境的开发者，或需要快速原型开发。
+
+**优势**：
+- 无需外部依赖
+- 快速启动，支持热重载
+- 完整的 Home Assistant API 模拟
+</Tabs.Tab>
+</Tabs>
+
+## 快速开始
+
+### 普通开发模式
+
+<Steps>
+## 1. 配置环境变量
+创建 `.env` 文件：
+```bash
+HA_BASE_URL="http://localhost:8123"
+HA_TOKEN="your_access_token"
+LOG_LEVEL="debug"
+```
+
+## 2. 启动开发服务器
+```bash
+pnpm install
+pnpm dev
+```
+
+## 3. 验证连接
+检查输出：
+```bash
+✅ Home Assistant API 连接成功
+📡 传输层: stdio
+🔧 已注册 17 个工具
+```
+</Steps>
+
+### Mock 开发模式
+
+<Steps>
+## 1. 启动 Mock 模式
+```bash
+pnpm install
+pnpm dev:mock
+```
+
+## 2. 验证 Mock 服务
+输出示例：
+```bash
+🔧 Initializing Mock Server for Home Assistant API...
+🔧 Mock server started for Home Assistant API
+📍 Mocked endpoints:
+   - GET /api/
+   - GET /api/states
+   - POST /api/services/<domain>/<service>
+```
+</Steps>
+
+<Callout type="info">
+Mock 模式适合快速开发，普通模式用于最终验证。
+</Callout>
+
+## 开发工作流
+
+### 日常开发
+```bash
+pnpm dev        # 普通模式
+pnpm dev:mock   # Mock 模式
+```
+
+### 代码检查
+```bash
+pnpm check:all      # 运行所有检查
+pnpm lint          # 代码风格检查
+pnpm type:check    # TypeScript 类型检查
+pnpm spell:check   # 拼写检查
+```
+
+<Callout type="warning">
+项目严格禁止使用 `any` 类型，请使用明确的类型定义。
+</Callout>
+
+### 测试
+```bash
+pnpm test           # 运行所有测试
+pnpm test:mock      # Mock 模式测试
+pnpm test:coverage  # 生成覆盖率报告
+```
+
+### 构建
+```bash
+pnpm build           # 构建生产版本
+node dist/index.js   # 本地测试构建版本
+```
+
+## 常见问题
+
+### 如何切换开发模式？
+```bash
+# 切换到 Mock 模式
+USE_MOCK=true pnpm dev
+
+# 切换到普通模式
+pnpm dev
+```
+
+### Mock 数据不满足需求？
+修改 `src/mocks/data/` 中的数据文件，或在 `src/mocks/handlers.ts` 中添加新的处理器。
+
+### 遇到类型错误？
+```bash
+pnpm type:check
+pnpm check:fix
+```
+
+## 下一步
+
+1. 阅读贡献指南：`docs/content/development/contributing.mdx`
+2. 根据需求选择开发模式开始开发
+3. 运行测试确保代码质量
+
+<Callout type="success">
+选择合适的开发模式，开始您的开发工作吧！
+</Callout>
