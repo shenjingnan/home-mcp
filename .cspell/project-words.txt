@@ -28,3 +28,7 @@ tsc
 tsconfig-paths
 tsup
 vitest
+zeroconf
+hvac
+mireds
+mdi
