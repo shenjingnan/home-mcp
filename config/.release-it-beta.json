@@ -17,20 +17,13 @@
     "tag": "beta"
   },
   "hooks": {
-    "before:init": [
-      "pnpm audit --audit-level moderate",
-      "pnpm test",
-      "pnpm type:check",
-      "pnpm check"
-    ],
+    "before:init": ["pnpm audit --audit-level moderate", "pnpm test", "pnpm type:check", "pnpm check"],
     "before:release": [
       "git status --porcelain || echo \"Git状态检查完成\"",
       "pnpm clean",
       "pnpm build",
       "git status --porcelain || echo \"构建后Git状态检查完成\""
     ],
-    "after:release": [
-      "echo '🎉 Beta版本 v${version} 发布完成！'"
-    ]
+    "after:release": ["echo '🎉 Beta版本 v${version} 发布完成！'"]
   }
 }
