@@ -1,2 +1,2 @@
-export * from "../types";
-export * from "./light";
+export * from "@/types";
+export * from "@/types/light";

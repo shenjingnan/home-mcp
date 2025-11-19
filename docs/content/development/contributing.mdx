@@ -172,8 +172,8 @@ src/
 ```typescript
 // 测试示例
 import { describe, it, expect, beforeEach } from 'vitest';
-import { HassService } from '../hass.js';
-import { createMockTransport } from '../test/utils/transport.js';
+import { HassService } from '@/services/hass.js';
+import { createMockTransport } from '@/test/utils/transport.js';
 
 describe('HassService', () => {
   let hassService: HassService;
@@ -327,7 +327,7 @@ chore: 构建工具或依赖更新
 ```typescript
 // src/tools/custom-device.ts
 import { z } from 'zod';
-import { HassService } from '../services/hass.js';
+import { HassService } from '@/services/hass.js';
 
 const schema = z.object({
   deviceId: z.string(),
@@ -366,7 +366,7 @@ export const customDeviceTool = {
 在 `src/index.ts` 中注册新工具：
 
 ```typescript
-import { customDeviceTool } from './tools/custom-device.js';
+import { customDeviceTool } from '@/tools/custom-device.js';
 
 // 在工具列表中添加
 const tools = [
@@ -379,8 +379,8 @@ const tools = [
 ```typescript
 // src/tools/custom-device.test.ts
 import { describe, it, expect } from 'vitest';
-import { customDeviceTool } from './custom-device.js';
-import { createMockHassService } from '../test/utils/hass.js';
+import { customDeviceTool } from '@/tools/custom-device.js';
+import { createMockHassService } from '@/test/utils/hass.js';
 
 describe('customDeviceTool', () => {
   it('should control device correctly', async () => {

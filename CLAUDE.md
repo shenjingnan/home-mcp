@@ -83,6 +83,88 @@ src/
 3. 添加适当的参数验证和错误处理
 4. 返回标准格式的响应
 
+### 文档开发流程
+**重要：更新文档后必须进行本地验证，避免Vercel部署失败**
+
+1. **创建或更新文档**
+   - 使用 `/docs-create [type] [title]` 创建新文档
+   - 或直接编辑现有的 `.mdx` 文件
+
+2. **本地验证（必须执行）**
+   ```bash
+   # 启动文档开发服务器
+   nr dev:docs
+
+   # 等待服务启动（约10-15秒）
+
+   # 验证首页访问
+   curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+   # 应返回200状态码
+   ```
+
+3. **检查常见问题**
+   - **编译错误**：查看终端输出，修复MDX语法或组件导入问题
+   - **_meta.ts配置**：确保新文档在对应的_meta.ts文件中正确配置
+   - **组件导入**：避免使用有问题的Nextra组件，出现问题时可用普通HTML元素替代
+
+4. **验证成功标准**
+   - [ ] 服务启动无报错
+   - [ ] 首页返回200状态码
+   - [ ] 新文档页面正常访问
+   - [ ] 拼写检查通过：`pnpm spellcheck`
+
+5. **停止服务**
+   ```bash
+   # 使用 Ctrl+C 停止服务
+   ```
+
+### 文档问题排查经验
+根据实际遇到的问题总结：
+
+- **TypeError: Cannot convert undefined or null to object**
+  - 通常由Nextra组件导入问题引起
+  - 解决方案：移除有问题的组件，使用普通HTML或CSS样式替代
+
+- **Validation of "_meta" file has failed**
+  - _meta.ts文件引用了不存在的文档
+  - 解决方案：从_meta.ts中移除无效引用，或创建对应的文档文件
+
+- **Tailwind配置缺失**
+  - 确保 `docs/tailwind.config.ts` 文件存在
+  - 包含正确的内容路径和主题配置
+
+### 路径别名系统
+**重要：优先使用别名引用，避免相对路径**
+
+项目已配置完整的路径别名系统，使用 `@/xxx` 格式：
+
+```typescript
+// ✅ 推荐：使用别名
+import { LightService } from "@/services";
+import type { HassState } from "@/types";
+import { formatDate } from "@/utils";
+
+// ❌ 避免：使用相对路径
+import { LightService } from "./services";
+import type { HassState } from "../types";
+import { formatDate } from "./utils";
+```
+
+#### 可用别名映射
+- `@/*` - 根目录快速访问
+- `@/types/*` - 类型定义目录
+- `@/utils/*` - 工具函数目录
+- `@/services/*` - 服务层目录
+- `@/mocks/*` - Mock 数据目录
+- `@/test/*` - 测试配置目录
+
+#### 使用别名的好处
+1. **代码可读性** - 明确显示模块来源和层级关系
+2. **维护便利** - 重构文件位置时无需修改导入路径
+3. **IDE支持** - 更好的智能提示和跳转功能
+4. **避免歧义** - 减少与npm包名的命名冲突风险
+5. **行业标准** - 符合主流框架和工具链的实践
+
 ### 类型定义
 - 使用 TypeScript 严格模式
 - 所有工具参数必须有完整的 JSON Schema 定义

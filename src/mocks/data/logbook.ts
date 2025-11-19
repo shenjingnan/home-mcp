@@ -1,4 +1,4 @@
-import { generateLogbookEntry, generateUUID, getCurrentTimestamp } from "../utils/data-generator";
+import { generateLogbookEntry, generateUUID, getCurrentTimestamp } from "@/mocks/utils/data-generator";
 
 /**
  * Mock日志簿数据

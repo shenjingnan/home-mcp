@@ -3,7 +3,7 @@ import {
   generateHumidity,
   generatePowerConsumption,
   generateTemperature,
-} from "../utils/data-generator";
+} from "@/mocks/utils/data-generator";
 
 /**
  * Mock历史数据

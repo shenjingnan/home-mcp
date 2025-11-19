@@ -5,7 +5,7 @@ import {
   generatePowerConsumption,
   generateTemperature,
   getCurrentTimestamp,
-} from "../utils/data-generator";
+} from "@/mocks/utils/data-generator";
 
 /**
  * Mock设备状态数据

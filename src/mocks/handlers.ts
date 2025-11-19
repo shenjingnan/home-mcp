@@ -1,12 +1,12 @@
 import { HttpResponse, http } from "msw";
-import { mockComponents } from "./data/components";
-import { mockConfig } from "./data/config";
-import { mockEvents } from "./data/events";
-import { mockHistory } from "./data/history";
-import { mockLogbook } from "./data/logbook";
-import { mockServices } from "./data/services";
-import { mockStates } from "./data/states";
-import { buildResponse } from "./utils/response-builder";
+import { mockComponents } from "@/mocks/data/components";
+import { mockConfig } from "@/mocks/data/config";
+import { mockEvents } from "@/mocks/data/events";
+import { mockHistory } from "@/mocks/data/history";
+import { mockLogbook } from "@/mocks/data/logbook";
+import { mockServices } from "@/mocks/data/services";
+import { mockStates } from "@/mocks/data/states";
+import { buildResponse } from "@/mocks/utils/response-builder";
 
 // API请求体类型定义
 interface StateUpdateRequest {

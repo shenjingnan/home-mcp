@@ -1,4 +1,4 @@
-import { generateUUID, getCurrentTimestamp } from "../utils/data-generator";
+import { generateUUID, getCurrentTimestamp } from "@/mocks/utils/data-generator";
 
 /**
  * Mock事件数据

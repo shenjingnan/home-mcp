@@ -3,7 +3,7 @@
  * 基于 Home Assistant Light API 规范
  */
 
-import type { HassState } from "../types";
+import type { HassState } from "@/types";
 
 // 灯光控制操作类型
 export type LightActionType =

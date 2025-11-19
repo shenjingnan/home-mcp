@@ -1,0 +1,270 @@
+# 文档验证检查清单和故障排除指南
+
+## 概述
+
+本文档提供了 Home-MCP 项目的文档开发和验证的完整检查清单，以及常见问题的故障排除方法。遵循这些指导原则可以有效避免 Vercel 部署失败。
+
+## 📋 文档创建检查清单
+
+### 创建前准备
+- [ ] **明确文档类型**：确认文档类型（mcp-tool、dev-guide、api-doc、user-manual）
+- [ ] **确定存放位置**：根据文档类型选择正确的目录
+- [ ] **规划文档结构**：提前规划章节结构和内容大纲
+
+### 文档编写阶段
+- [ ] **使用MDX格式**：确保文件扩展名为 `.mdx`
+- [ ] **正确的front matter**：包含必要的元数据
+- [ ] **语法正确性**：确保MDX语法无错误
+- [ ] **组件导入**：谨慎使用Nextra组件，优先使用标准HTML元素
+- [ ] **代码示例**：提供完整、可运行的代码示例
+- [ ] **链接有效性**：确保所有内部链接指向正确的文件
+
+### 质量检查
+- [ ] **拼写检查**：运行 `pnpm spellcheck`
+- [ ] **格式检查**：运行 `pnpm format`
+- [ ] **语法验证**：检查MDX语法错误
+- [ ] **内容审核**：确保内容准确、结构清晰
+
+### 导航配置
+- [ ] **更新_meta.ts**：在对应目录的 `_meta.ts` 文件中添加文档条目
+- [ ] **验证路径**：确保_meta.ts中的key与文件名匹配
+- [ ] **显示名称**：提供合适的中文显示名称
+
+## 🧪 本地验证流程
+
+### 必须执行的验证步骤
+
+1. **启动文档服务**
+   ```bash
+   nr dev:docs
+   ```
+
+2. **等待服务完全启动**
+   - 等待时间：10-15秒
+   - 观察控制台输出，确认无编译错误
+
+3. **验证首页访问**
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+   # 期望结果：200
+   ```
+
+4. **验证具体文档页面**
+   ```bash
+   # 根据实际文档路径调整URL
+   curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/development/path-aliases
+   # 期望结果：200
+   ```
+
+5. **浏览器验证**
+   - 在浏览器中访问 http://localhost:3000
+   - 检查新创建的文档是否在导航中显示
+   - 点击文档链接，确认页面正常加载
+
+### 验证成功标准
+- [ ] 文档服务启动无任何错误信息
+- [ ] 首页访问返回HTTP 200状态码
+- [ ] 新文档页面正常显示，无404或500错误
+- [ ] 导航菜单正确显示新文档
+- [ ] 所有代码块和表格正常渲染
+- [ ] 图片和其他媒体正常显示
+
+## 🚨 常见问题及解决方案
+
+### 1. TypeError: Cannot convert undefined or null to object
+
+**症状表现**：
+```
+[nextra] Error compiling /path/to/document.mdx.
+⨯ ./content/development/document.mdx
+TypeError: Cannot convert undefined or null to object
+```
+
+**根本原因**：
+- Nextra组件导入错误
+- 组件版本兼容性问题
+- 组件使用方式不正确
+
+**解决方案**：
+1. **移除有问题的组件导入**：
+   ```mdx
+   // ❌ 有问题的导入
+   import { Callout, Steps } from 'nextra/components'
+
+   // ✅ 使用普通HTML替代
+   // import { Callout, Steps } from 'nextra/components'
+   ```
+
+2. **使用HTML元素替代**：
+   ```mdx
+   <!-- 替代 Callout 组件 -->
+   > **💡 提示信息**
+   >
+   > 这里是提示内容
+
+   <!-- 替代 Steps 组件 -->
+   1. 第一步
+   2. 第二步
+   3. 第三步
+   ```
+
+3. **检查Nextra版本**：
+   ```bash
+   # 检查当前版本
+   cd docs && pnpm list nextra
+
+   # 如有必要，更新到兼容版本
+   cd docs && pnpm update nextra@latest nextra-theme-docs@latest
+   ```
+
+### 2. Validation of "_meta" file has failed
+
+**症状表现**：
+```
+⨯ Error: Validation of "_meta" file has failed.
+The field key "document-name" in `_meta` file refers to a page that cannot be found, remove this key from "_meta" file.
+```
+
+**根本原因**：
+- `_meta.ts` 文件中引用了不存在的文档
+- 文档文件名与_meta.ts中的key不匹配
+
+**解决方案**：
+1. **检查文件是否存在**：
+   ```bash
+   # 列出目录中的所有.md/.mdx文件
+   ls -la docs/content/development/
+   ```
+
+2. **修复_meta.ts文件**：
+   ```typescript
+   // 移除无效引用，或创建对应的文档文件
+   const meta: MetaRecord = {
+     "existing-doc": "现有文档",  // 保留存在的文档
+     // "missing-doc": "缺失文档",  // 移除或创建此文档
+   };
+   ```
+
+3. **确保文件名匹配**：
+   ```typescript
+   // 文件名：path-aliases.mdx
+   const meta: MetaRecord = {
+     "path-aliases": "路径别名指南",  // key必须与文件名匹配（不含扩展名）
+   };
+   ```
+
+### 3. Tailwind CSS 配置问题
+
+**症状表现**：
+- 样式不正确
+- CSS类名不生效
+- 构建时出现Tailwind相关错误
+
+**解决方案**：
+1. **确保tailwind.config.ts存在**：
+   ```bash
+   # 检查文件是否存在
+   ls -la docs/tailwind.config.ts
+   ```
+
+2. **验证配置内容**：
+   ```typescript
+   import type { Config } from "tailwindcss";
+
+   const config: Config = {
+     content: [
+       "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+       "./components/**/*.{js,ts,jsx,tsx,mdx}",
+       "./app/**/*.{js,ts,jsx,tsx,mdx}",
+       "./content/**/*.{md,mdx}",  // 确保包含此行
+       "./node_modules/nextra/**/*.{js,mjs,ts,tsx,jsx}",
+     ],
+     // ... 其他配置
+   };
+   ```
+
+### 4. TypeScript 配置问题
+
+**症状表现**：
+- MDX文件类型检查错误
+- 智能提示不工作
+- 编译时类型错误
+
+**解决方案**：
+1. **检查tsconfig.json配置**：
+   ```json
+   {
+     "compilerOptions": {
+       "jsx": "preserve",
+       "strict": true,
+       "baseUrl": ".",
+       "paths": {
+         "@/*": ["./content/*"]
+       },
+       "include": [
+         "**/*.ts",
+         "**/*.tsx",
+         "**/*.mdx",  // 确保包含此行
+         // ... 其他包含项
+       ]
+     }
+   }
+   ```
+
+## 🔧 预防性措施
+
+### 开发习惯
+1. **增量验证**：每完成一个章节就进行本地验证
+2. **组件测试**：使用新组件时先创建测试页面
+3. **备份重要文件**：修改关键配置前先备份
+
+### 版本控制
+1. **频繁提交**：小步快跑，每次修改后立即提交
+2. **有意义的提交信息**：清楚描述修改内容
+3. **分支策略**：使用独立分支进行文档开发
+
+### 自动化检查
+1. **Pre-commit hooks**：在提交前自动运行检查
+2. **CI/CD集成**：在CI流程中添加文档验证步骤
+3. **定时检查**：定期验证文档站点的可用性
+
+## 📞 获取帮助
+
+### 内部资源
+- **项目文档**：查看docs目录中的其他文档作为参考
+- **Nextra官方文档**：https://nextra.site/
+- **MDX文档**：https://mdxjs.com/
+
+### 问题报告
+如果遇到本文档未涵盖的问题：
+1. 记录详细的错误信息和复现步骤
+2. 检查是否有相关的GitHub Issues
+3. 在项目仓库中创建新的Issue
+
+## 📝 快速参考
+
+### 常用命令
+```bash
+# 启动文档开发服务器
+nr dev:docs
+
+# 拼写检查
+pnpm spellcheck
+
+# 代码格式化
+pnpm format
+
+# 构建文档
+cd docs && pnpm build
+```
+
+### 文件位置参考
+- **开发指南**：`docs/content/development/`
+- **MCP工具文档**：`docs/content/mcp-tools/`
+- **用户指南**：`docs/content/guides/`
+- **API文档**：`docs/content/api/`
+- **配置文件**：`docs/tailwind.config.ts`, `docs/tsconfig.json`
+
+---
+
+记住：**本地验证是避免部署失败的关键步骤，绝对不能跳过！**

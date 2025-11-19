@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { generateStaticParamsFor, importPage } from "nextra/pages";
 import { useMDXComponents as getMDXComponents } from "../../mdx-components";
 
@@ -6,11 +7,15 @@ import { useMDXComponents as getMDXComponents } from "../../mdx-components";
 export const generateStaticParams =
   process.env.NODE_ENV === "production" ? generateStaticParamsFor("mdxPath") : () => [];
 
-export async function generateMetadata(props) {
-  const params = await props.params;
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ mdxPath?: string[] }>
+}): Promise<Metadata> {
+  const resolvedParams = await params;
 
   // 如果 mdxPath 不存在或者是数组且为空，返回首页 metadata
-  if (!params.mdxPath || (Array.isArray(params.mdxPath) && params.mdxPath.length === 0)) {
+  if (!resolvedParams.mdxPath || resolvedParams.mdxPath.length === 0) {
     try {
       const { metadata } = await importPage([]);
       return metadata;
@@ -21,7 +26,7 @@ export async function generateMetadata(props) {
 
   // 如果 mdxPath 是数组，保持为数组格式传递给 importPage
   try {
-    const { metadata } = await importPage(params.mdxPath);
+    const { metadata } = await importPage(resolvedParams.mdxPath);
     return metadata;
   } catch (_error) {
     return {};
@@ -30,16 +35,20 @@ export async function generateMetadata(props) {
 
 const Wrapper = getMDXComponents({}).wrapper;
 
-export default async function Page(props) {
-  const params = await props.params;
+export default async function Page({
+  params
+}: {
+  params: Promise<{ mdxPath?: string[] }>
+}) {
+  const resolvedParams = await params;
 
   // 如果 mdxPath 不存在或者是数组且为空，返回首页
-  if (!params.mdxPath || (Array.isArray(params.mdxPath) && params.mdxPath.length === 0)) {
+  if (!resolvedParams.mdxPath || resolvedParams.mdxPath.length === 0) {
     try {
       const { default: MDXContent, toc, metadata, sourceCode } = await importPage([]);
       return (
         <Wrapper toc={toc} metadata={metadata} sourceCode={sourceCode}>
-          <MDXContent {...props} params={params} />
+          <MDXContent params={resolvedParams} />
         </Wrapper>
       );
     } catch (_error) {
@@ -49,10 +58,10 @@ export default async function Page(props) {
 
   // 如果 mdxPath 是数组，保持为数组格式传递给 importPage
   try {
-    const { default: MDXContent, toc, metadata, sourceCode } = await importPage(params.mdxPath);
+    const { default: MDXContent, toc, metadata, sourceCode } = await importPage(resolvedParams.mdxPath);
     return (
       <Wrapper toc={toc} metadata={metadata} sourceCode={sourceCode}>
-        <MDXContent {...props} params={params} />
+        <MDXContent params={resolvedParams} />
       </Wrapper>
     );
   } catch (_error) {
