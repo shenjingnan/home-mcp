@@ -6,6 +6,25 @@ import { LightControlService } from "./services";
 import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassState } from "./types";
 import { buildPath, getPackageVersion, separatePathParams } from "./utils";
 
+// Mock服务器支持 - 仅在开发环境启用
+async function initializeMocks() {
+  if (process.env.USE_MOCK === "true") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Mock mode should not be used in production environment");
+    }
+
+    console.log("🔧 Initializing Mock Server for Home Assistant API...");
+
+    try {
+      const { setupMocks } = await import("./mocks/server");
+      setupMocks();
+    } catch (error) {
+      console.error("❌ Failed to initialize mock server:", error);
+      process.exit(1);
+    }
+  }
+}
+
 class HassService {
   hassToken = (process.env.HA_TOKEN ?? "").trim();
   hassUrl = (process.env.HA_BASE_URL ?? "").trim();
@@ -15,17 +34,31 @@ class HassService {
     method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
     body?: unknown
   ): Promise<T> {
-    if (!this.hassToken || !this.hassUrl) {
+    // 在Mock模式下使用固定的mock URL
+    const baseUrl =
+      process.env.USE_MOCK === "true"
+        ? "http://mock-homeassistant.local" // MSW会拦截这个域名的请求
+        : this.hassUrl;
+
+    // Mock模式下不需要验证真实的Home Assistant凭据
+    if (process.env.USE_MOCK !== "true" && (!this.hassToken || !this.hassUrl)) {
       throw new Error("未配置 Home Assistant 凭据，请设置 HA_TOKEN 和 HA_BASE_URL 环境变量");
     }
 
     try {
-      const response = await fetch(`${this.hassUrl}${endpoint}`, {
+      // Mock模式下的请求头
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      // 只在非Mock模式下添加认证头
+      if (process.env.USE_MOCK !== "true") {
+        headers.Authorization = `Bearer ${this.hassToken}`;
+      }
+
+      const response = await fetch(`${baseUrl}${endpoint}`, {
         method,
-        headers: {
-          Authorization: `Bearer ${this.hassToken}`,
-          "Content-Type": "application/json",
-        },
+        headers,
         ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       });
 
@@ -519,7 +552,13 @@ mcp.register(HassService);
 mcp.register(LightControlService);
 
 // 启动服务器
-mcp.run().catch((error: Error) => {
-  console.error("Failed to start MCP server:", error);
-  process.exit(1);
-});
+async function startServer() {
+  await initializeMocks();
+
+  mcp.run().catch((error: Error) => {
+    console.error("Failed to start MCP server:", error);
+    process.exit(1);
+  });
+}
+
+startServer();

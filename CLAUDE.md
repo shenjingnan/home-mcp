@@ -122,6 +122,79 @@ src/
 - 依赖版本锁定在 `pnpm-lock.yaml`
 - 开发依赖包含完整的工具链
 
+## Claude 辅助工具
+
+项目配置了多种 Slash Commands 和 Skills 来辅助开发和维护工作。
+
+### Slash Commands
+
+#### 文档和开发工具
+- **`/docs-create [type] [title]`** - 标准化文档创建
+  - 支持类型：`mcp-tool`、`dev-guide`、`api-doc`、`user-manual`
+  - 自动生成符合项目风格的模板
+  - 自动更新导航文件
+  - 示例：`/docs-create mcp-tool "温湿度传感器控制"`
+
+- **`/tool-create [name] [description]`** - MCP工具开发流程
+  - 生成完整的MCP工具代码结构
+  - 包含服务类、类型定义、测试文件、文档
+  - 符合项目严格类型要求
+  - 示例：`/tool-create "temperature-sensor" "温湿度传感器数据读取和控制"`
+
+- **`/test-create [type] [target]`** - 测试用例生成流程
+  - 支持类型：`mcp-tool`、`service`、`utility`、`type`
+  - 生成符合Vitest框架的测试用例
+  - 包含Mock数据和边界条件测试
+  - 确保达到80%+覆盖率要求
+  - 示例：`/test-create mcp-tool "services/temperature-sensor"`
+
+#### 现有命令
+- **`/fix-test [file]`** - 修复失败的测试用例
+- **`/gen-tech`** - 编写技术方案
+- **`/gen-analyze [problem]`** - 问题分析
+- **`/gen-commit`** - 生成代码评审友好的commit信息
+- **`/fix-audit`** - 安全审计
+- **`/fix-github-comment [pr-number]`** - 获取GitHub PR的Copilot评论并分析修复问题
+
+### Skills
+
+#### 开发辅助技能
+- **`mock-generator`** - Home Assistant模拟数据生成
+  - 支持8种设备类型：灯光、传感器、开关、二进制传感器、摄像头、恒温器、覆盖器、设备追踪器
+  - 生成符合Home Assistant API规范的测试数据
+  - 包含历史数据、服务调用模拟、日志记录生成
+  - 提供完整的TypeScript类型定义
+
+- **`type-validator`** - TypeScript严格模式检查
+  - 检测和修复所有`any`类型使用
+  - 确保类型定义完整性
+  - 集成Zod验证和Biome配置
+  - 提供类型安全的修复建议
+
+- **`api-docs`** - 文档自动生成
+  - 从源代码提取API信息
+  - 生成符合Nextra标准的MDX文档
+  - 自动生成示例代码和类型文档
+  - 支持文档同步和持续更新
+
+### 使用方式
+
+在对话中直接调用命令或技能：
+
+```bash
+# 创建新工具的完整开发流程
+/tool-create "smart-switch" "智能开关控制"
+/docs-create mcp-tool "智能开关控制工具"
+/test-create mcp-tool "services/smart-switch"
+
+# 生成测试数据和验证类型
+skill: mock-generator
+skill: type-validator
+
+# 自动生成API文档
+skill: api-docs
+```
+
 ## 部署说明
 
 ### 构建产物
