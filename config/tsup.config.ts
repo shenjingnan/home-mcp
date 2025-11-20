@@ -14,17 +14,13 @@ export default defineConfig({
   target: "node18",
   external: [],
   tsconfig: "tsconfig.json",
-  esbuildOptions: (options) => {
-    options.resolve = {
-      ...options.resolve,
-      alias: {
-        "@": "./src",
-        "@/types": "./src/types",
-        "@/utils": "./src/utils",
-        "@/services": "./src/services",
-        "@/mocks": "./src/mocks",
-        "@/test": "./src/test",
-      },
-    };
+  // 使用tsup内置的alias支持
+  alias: {
+    "@": "./src",
+    "@/types": "./src/types",
+    "@/utils": "./src/utils",
+    "@/services": "./src/services",
+    "@/mocks": "./src/mocks",
+    "@/test": "./src/test",
   },
 });

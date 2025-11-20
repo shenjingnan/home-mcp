@@ -11,7 +11,7 @@
     "dev": "nodemon --watch \"src/**/*\" --ext ts,js --exec \"tsc --project tsconfig.json && node dist/index.js\"",
     "dev:mock": "USE_MOCK=true nodemon --watch \"src/**/*\" --ext ts,js --exec \"tsc --project tsconfig.json && node dist/index.js\"",
     "dev:docs": "cd docs && pnpm run dev",
-    "build": "tsc --project tsconfig.json",
+    "build": "tsup --config config/tsup.config.ts",
     "clean": "rm -rf dist",
     "test": "vitest run --config config/vitest.config.ts",
     "test:mock": "USE_MOCK=true vitest run --config config/vitest.config.ts",
