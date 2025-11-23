@@ -12,8 +12,8 @@ export const metadata = {
 
 const navbar = (
   <Navbar
-    logo={<b>Bestmcp</b>}
-    projectLink="https://github.com/shenjingnan/bestmcp"
+    logo={<b>Home-MCP</b>}
+    projectLink="https://github.com/shenjingnan/home-mcp"
     chatLink="https://qun.qq.com/universal-share/share?ac=1&authKey=c08PvS2zvAF1NN%2F%2BuaOi0ze1AElTIsvFBLwbWUMFc2ixjaZYxqZTUQHzipwd8Kka&busi_data=eyJncm91cENvZGUiOiIxMDU0ODg4NDczIiwidG9rZW4iOiJuSmJUN2cyUEVkNEQ5WXovM3RQbFVNcDluMGVibUNZTUQvL1RuQnFJRjBkZmRZQnRBRTdwU0szL3V2Y0dLc1ZmIiwidWluIjoiMzkxMTcyMDYwMCJ9&data=9cH6_zEC-sN3xYlwzKEWiYF71RLY9CId5taN-gy6XZo7axSlSWDpd1Ojui5hYMQKIgEJYSPw59XYgF5vH2wLog&svctype=4&tempid=h5_group_info"
     chatIcon={
       <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
@@ -25,7 +25,7 @@ const navbar = (
     }
   />
 );
-const footer = <Footer>MIT {new Date().getFullYear()} © Bestmcp.</Footer>;
+const footer = <Footer>MIT {new Date().getFullYear()} © Home-MCP.</Footer>;
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -46,7 +46,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <Layout
           navbar={navbar}
           pageMap={await getPageMap()}
-          docsRepositoryBase="https://github.com/shenjingnan/bestmcp/tree/main/docs"
+          docsRepositoryBase="https://github.com/shenjingnan/home-mcp/tree/main/docs"
           footer={footer}
           // ... Your additional layout options
         >
