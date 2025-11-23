@@ -75,7 +75,7 @@ class HassService {
     }
   }
 
-  @Tool("检查 Home Assistant API 服务")
+  // @Tool("检查 Home Assistant API 服务")
   checkHassAPIService() {
     /**
      * 检查 Home Assistant API 服务
@@ -84,7 +84,7 @@ class HassService {
     return this.makeHassRequest<{ message: string }>("/api/");
   }
 
-  @Tool("获取 Home Assistant 配置")
+  // @Tool("获取 Home Assistant 配置")
   getConfig() {
     /**
      * 获取 Home Assistant 配置
@@ -93,7 +93,7 @@ class HassService {
     return this.makeHassRequest<HassConfig>("/api/config");
   }
 
-  @Tool("获取当前加载组件的列表")
+  // @Tool("获取当前加载组件的列表")
   getComponents() {
     /**
      * 获取当前加载组件的列表
@@ -102,7 +102,7 @@ class HassService {
     return this.makeHassRequest<string[]>("/api/components");
   }
 
-  @Tool("获取当前加载的事件列表")
+  // @Tool("获取当前加载的事件列表")
   getEvents() {
     /**
      * 返回一个事件对象数组。每个事件对象包含事件名称和监听器数量。
@@ -111,7 +111,7 @@ class HassService {
     return this.makeHassRequest<Array<{ event: string; listener_count: number }>>("/api/events");
   }
 
-  @Tool("获取当前加载的服务列表")
+  // @Tool("获取当前加载的服务列表")
   getServices() {
     /**
      * 返回一个服务对象数组。每个对象包含域和包含的服务。
@@ -120,7 +120,7 @@ class HassService {
     return this.makeHassRequest<Array<{ domain: string; services: string[] }>>("/api/services");
   }
 
-  @Tool("获取过去一段时间内状态变化的数组")
+  // @Tool("获取过去一段时间内状态变化的数组")
   async getHistory(
     @Param(
       z.object({
@@ -221,7 +221,7 @@ class HassService {
     );
   }
 
-  @Tool("获取日志条目")
+  // @Tool("获取日志条目")
   async getLogbook(
     @Param(
       z.object({
@@ -297,7 +297,7 @@ class HassService {
     return this.makeHassRequest<HassState[]>("/api/states", "GET");
   }
 
-  @Tool("获取当前 Home Assistant 会话期间记录的所有错误日志")
+  // @Tool("获取当前 Home Assistant 会话期间记录的所有错误日志")
   async getErrorLog() {
     /**
      * 获取当前 Home Assistant 会话期间记录的所有错误日志，并以纯文本形式返回。
@@ -309,7 +309,7 @@ class HassService {
     return this.makeHassRequest<string>("/api/error_log", "GET");
   }
 
-  @Tool("返回指定 camera entity_id 的数据（图像）")
+  // @Tool("返回指定 camera entity_id 的数据（图像）")
   async getCameraProxy(
     @Param(
       z.object({
@@ -325,7 +325,7 @@ class HassService {
     return this.makeHassRequest<string>(`/api/camera_proxy/${payload.camera_entity_id}`, "GET");
   }
 
-  @Tool("返回 calendar entity 的列表")
+  // @Tool("返回 calendar entity 的列表")
   async getCalendars(payload: { calendar_entity_id?: string; end_time?: string; start_time?: string }) {
     /**
      * 返回 calendar entity 的列表。
@@ -351,7 +351,7 @@ class HassService {
     return this.makeHassRequest<{ entity_id: string; name: string }[]>(path, "GET", queryParams);
   }
 
-  @Tool("更新或创建一个状态")
+  // @Tool("更新或创建一个状态")
   async updateState(
     @Param(
       z.object({
@@ -388,7 +388,7 @@ class HassService {
     return this.makeHassRequest<HassState>("/api/states", "POST", payload);
   }
 
-  @Tool("触发一个指定事件类型的事件")
+  // @Tool("触发一个指定事件类型的事件")
   async fireEvents(
     @Param(
       z.object({
@@ -413,7 +413,7 @@ class HassService {
     return this.makeHassRequest<{ message: string }>(`/api/events/${payload.event_type}`, "POST", payload.event_data);
   }
 
-  @Tool("在指定域内调用一个服务")
+  // @Tool("在指定域内调用一个服务")
   async callServices(
     @Param(
       z.object({
@@ -493,7 +493,7 @@ class HassService {
     }>(`/api/services/${payload.domain}/${payload.service}`, "POST", payload.service_data);
   }
 
-  @Tool("触发对 configuration.yaml 的检查")
+  // @Tool("触发对 configuration.yaml 的检查")
   async checkConfig() {
     /**
      * 触发对 configuration.yaml 的检查。此请求无需传递额外数据。需要启用 config 集成。
@@ -518,7 +518,7 @@ class HassService {
     }>("/api/config/core/check_config", "POST");
   }
 
-  @Tool("删除具有指定 entity_id 的实体")
+  // @Tool("删除具有指定 entity_id 的实体")
   async deleteStates(
     @Param(
       z.object({
