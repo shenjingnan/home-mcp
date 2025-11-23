@@ -35,6 +35,9 @@ export interface HassState {
   attributes: HAEntityAttributes;
   entity_id: string;
   last_changed: string;
+  last_reported: string;
+  last_updated: string;
+  context: Record<string, unknown>;
   state: string;
 }
 
