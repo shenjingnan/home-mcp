@@ -42,7 +42,7 @@ export class LightService {
     const hassService = this.getHassService();
 
     // 查找匹配的设备
-    const entities = await this.getEntitiesByName(name);
+    const entities = (await this.getEntitiesByName(name)).filter((entity) => entity.entity_id.startsWith("light."));
     if (entities.length <= 0) {
       return "没有找到可以控制的设备";
     }
