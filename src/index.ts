@@ -6,6 +6,17 @@ import { LightControlService } from "@/services";
 import type { HassConfig, HassHistory, HassLogbook, HassMinimalHistory, HassState } from "@/types";
 import { buildPath, getPackageVersion, separatePathParams } from "@/utils";
 
+const MEANINGFUL_DOMAINS = new Set([
+  "light",
+  "weather",
+  //  'switch', 'climate', 'cover', 'lock',
+  // 'sensor', 'binary_sensor', ,
+  // 'person', 'zone',
+  // 'media_player', 'fan', 'vacuum',
+  // 'number', 'select', 'button',
+  // 'todo', 'calendar',
+]);
+
 // Mock服务器支持 - 仅在开发环境启用
 async function initializeMocks() {
   if (process.env.USE_MOCK === "true") {
@@ -291,10 +302,16 @@ class HassService {
      *   - entity_id=<entity_id> 用于筛选某个实体。
      * @returns 返回一个状态对象数组。每个状态对象包含以下属性：entity_id、state、last_changed 和 attributes。
      */
-    if (payload?.entity_id) {
-      return this.makeHassRequest<HassState[]>(`/api/states/${payload.entity_id}`, "GET");
-    }
-    return this.makeHassRequest<HassState[]>("/api/states", "GET");
+    const url = payload?.entity_id ? `/api/states/${payload.entity_id}` : "/api/states";
+    const states = await this.makeHassRequest<HassState[]>(url, "GET");
+    const pureStates = states
+      .map((state) => {
+        // biome-ignore lint/correctness/noUnusedVariables: <暂时禁用>
+        const { last_changed, last_reported, last_updated, context, ...rest } = state;
+        return rest as HassState;
+      })
+      .filter((state) => MEANINGFUL_DOMAINS.has(state.entity_id?.split(".")[0] ?? ""));
+    return pureStates;
   }
 
   // @Tool("获取当前 Home Assistant 会话期间记录的所有错误日志")
