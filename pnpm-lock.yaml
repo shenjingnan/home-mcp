@@ -9,6 +9,7 @@ overrides:
   esbuild: '>=0.25.0'
   vite@>=5.2.6 <=5.4.20: '>=5.4.21'
   glob@>=10.3.7 <=11.0.3: '>=11.1.0'
+  bestmcp: link:../bestmcp/packages/bestmcp
 
 importers:
 
@@ -18,8 +19,8 @@ importers:
         specifier: ^1.17.5
         version: 1.18.1
       bestmcp:
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: link:../bestmcp/packages/bestmcp
+        version: link:../bestmcp/packages/bestmcp
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -143,14 +144,6 @@ packages:
 
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
-
-  '@bestmcp/client@0.1.2':
-    resolution: {integrity: sha512-wlUTxuHGCrWhdhj5WmZ3z0vylK2USDevsMSJVA6WC2hzRjZuhifYb1Ctt9tQ3iS2fHQQAS53xt9jfgX4J+sp5A==}
-
-  '@bestmcp/server@0.1.2':
-    resolution: {integrity: sha512-adsF7KGWZpmd9zqXSHb/iPUz3i7NuALiWueQw7cBKKUKmxvMGpMmQ5O6PMsny4+XctvR/43yDOd/crTEqnTaAA==}
-    peerDependencies:
-      zod: ^3.25.0
 
   '@biomejs/biome@2.2.4':
     resolution: {integrity: sha512-TBHU5bUy/Ok6m8c0y3pZiuO/BZoY/OcGxoLlrfQof5s8ISVwbVBdFINPQZyFfKwil8XibYWb7JMwnT8wT4WVPg==}
@@ -965,10 +958,6 @@ packages:
 
   '@modelcontextprotocol/sdk@1.18.1':
     resolution: {integrity: sha512-d//GE8/Yh7aC3e7p+kZG8JqqEAwwDUmAfvH1quogtbk+ksS6E0RR6toKKESPYYZVre0meqkJb27zb+dhqE9Sgw==}
-    engines: {node: '>=18'}
-
-  '@modelcontextprotocol/sdk@1.20.1':
-    resolution: {integrity: sha512-j/P+yuxXfgxb+mW7OEoRCM3G47zCTDqUPivJo/VzpjbG8I9csTXtOprCf5FfOfHK4whOJny0aHuBEON+kS7CCA==}
     engines: {node: '>=18'}
 
   '@mswjs/interceptors@0.40.0':
@@ -1916,9 +1905,6 @@ packages:
 
   before-after-hook@4.0.0:
     resolution: {integrity: sha512-q6tR3RPqIB1pMiTRMFcZwuG5T8vwp+vUvEG0vuI6B+Rikh5BfPp2fQ82c925FOs+b0lcFQ8CFrL+KbilfZFhOQ==}
-
-  bestmcp@0.1.2:
-    resolution: {integrity: sha512-hJTZGHOd6259UpiRXafy0Gk+Kkwl6tOBvvCwI0YPhDmlVJhxQOmXq2vqYvTJFavnjQszWBhXkEyZph75H198pQ==}
 
   better-react-mathjax@2.3.0:
     resolution: {integrity: sha512-K0ceQC+jQmB+NLDogO5HCpqmYf18AU2FxDbLdduYgkHYWZApFggkHE4dIaXCV1NqeoscESYXXo1GSkY6fA295w==}
@@ -4007,9 +3993,6 @@ packages:
   recma-stringify@1.0.0:
     resolution: {integrity: sha512-cjwII1MdIIVloKvC9ErQ+OgAtwHBmcZ0Bg4ciz78FtbT8In39aAYbaA7zvxQ61xVMSPE8WxhLwLbhif4Js2C+g==}
 
-  reflect-metadata@0.2.2:
-    resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
-
   regex-recursion@6.0.2:
     resolution: {integrity: sha512-0YCaSCq2VRIebiaUviZNs0cBz1kg5kVS2UKUfNIx8YVs1cN3AV7NTctO5FOKBA+UT2BPJIWZauYHPqJODG50cg==}
 
@@ -4909,20 +4892,6 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@bestmcp/client@0.1.2':
-    dependencies:
-      '@modelcontextprotocol/sdk': 1.20.1
-    transitivePeerDependencies:
-      - supports-color
-
-  '@bestmcp/server@0.1.2(zod@3.25.76)':
-    dependencies:
-      '@modelcontextprotocol/sdk': 1.20.1
-      reflect-metadata: 0.2.2
-      zod: 3.25.76
-    transitivePeerDependencies:
-      - supports-color
-
   '@biomejs/biome@2.2.4':
     optionalDependencies:
       '@biomejs/cli-darwin-arm64': 2.2.4
@@ -5634,23 +5603,6 @@ snapshots:
       langium: 3.3.1
 
   '@modelcontextprotocol/sdk@1.18.1':
-    dependencies:
-      ajv: 6.12.6
-      content-type: 1.0.5
-      cors: 2.8.5
-      cross-spawn: 7.0.6
-      eventsource: 3.0.7
-      eventsource-parser: 3.0.6
-      express: 5.1.0
-      express-rate-limit: 7.5.1(express@5.1.0)
-      pkce-challenge: 5.0.0
-      raw-body: 3.0.1
-      zod: 3.25.76
-      zod-to-json-schema: 3.24.6(zod@3.25.76)
-    transitivePeerDependencies:
-      - supports-color
-
-  '@modelcontextprotocol/sdk@1.20.1':
     dependencies:
       ajv: 6.12.6
       content-type: 1.0.5
@@ -6538,16 +6490,6 @@ snapshots:
   basic-ftp@5.0.5: {}
 
   before-after-hook@4.0.0: {}
-
-  bestmcp@0.1.2:
-    dependencies:
-      '@bestmcp/client': 0.1.2
-      '@bestmcp/server': 0.1.2(zod@3.25.76)
-      '@modelcontextprotocol/sdk': 1.20.1
-      reflect-metadata: 0.2.2
-      zod: 3.25.76
-    transitivePeerDependencies:
-      - supports-color
 
   better-react-mathjax@2.3.0(react@19.2.0):
     dependencies:
@@ -9212,8 +9154,6 @@ snapshots:
       estree-util-to-js: 2.0.0
       unified: 11.0.5
       vfile: 6.0.3
-
-  reflect-metadata@0.2.2: {}
 
   regex-recursion@6.0.2:
     dependencies:
