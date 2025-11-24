@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
-    "bestmcp": "^0.1.2",
+    "bestmcp": "^0.1.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {
