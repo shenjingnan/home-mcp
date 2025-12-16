@@ -9,7 +9,7 @@ import { buildPath, getPackageVersion, separatePathParams } from "@/utils";
 const MEANINGFUL_DOMAINS = new Set([
   "light",
   "weather",
-  'switch',
+  "switch",
   // 'climate', 'cover', 'lock',
   // 'sensor', 'binary_sensor', ,
   // 'person', 'zone',
