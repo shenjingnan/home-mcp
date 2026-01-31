@@ -109,21 +109,44 @@ const switchStates = [
   {
     entity_id: "switch.outlet_1",
     state: "on",
-    attributes: generateDeviceAttributes("switch"),
+    attributes: {
+      ...generateDeviceAttributes("switch", "outlet"),
+      friendly_name: "客厅插座",
+      device_class: "outlet",
+    },
     last_changed: getCurrentTimestamp(),
     last_updated: getCurrentTimestamp(),
   },
   {
     entity_id: "switch.outlet_2",
     state: "off",
-    attributes: generateDeviceAttributes("switch"),
+    attributes: {
+      ...generateDeviceAttributes("switch", "outlet"),
+      friendly_name: "卧室插座",
+      device_class: "outlet",
+    },
+    last_changed: getCurrentTimestamp(),
+    last_updated: getCurrentTimestamp(),
+  },
+  {
+    entity_id: "switch.outlet_kitchen",
+    state: "on",
+    attributes: {
+      ...generateDeviceAttributes("switch", "outlet"),
+      friendly_name: "厨房插座",
+      device_class: "outlet",
+    },
     last_changed: getCurrentTimestamp(),
     last_updated: getCurrentTimestamp(),
   },
   {
     entity_id: "switch.fan_main",
     state: "off",
-    attributes: generateDeviceAttributes("switch"),
+    attributes: {
+      ...generateDeviceAttributes("switch", "fan"),
+      friendly_name: "卧室风扇",
+      device_class: "fan",
+    },
     last_changed: getCurrentTimestamp(),
     last_updated: getCurrentTimestamp(),
   },
@@ -132,7 +155,8 @@ const switchStates = [
     state: "closed",
     attributes: {
       ...generateDeviceAttributes("switch"),
-      device_class: "garage_door",
+      friendly_name: "车库门",
+      device_class: "garage",
     },
     last_changed: getCurrentTimestamp(),
     last_updated: getCurrentTimestamp(),

@@ -132,7 +132,7 @@ export const handlers = [
     const { domain, service } = params;
     const body = (await request.json()) as ServiceCallRequest;
 
-    // 模拟服务调用处理
+    // 模拟灯光服务调用处理
     if (domain === "light" && service === "turn_on") {
       const entityId = body.entity_id;
       const entity = mockStates.find((state) => state.entity_id === entityId);
@@ -152,6 +152,24 @@ export const handlers = [
 
       if (entity) {
         entity.state = "off";
+        entity.last_updated = new Date().toISOString();
+        entity.last_changed = new Date().toISOString();
+      }
+    }
+
+    // 模拟开关服务调用处理
+    if (domain === "switch") {
+      const entityId = body.entity_id;
+      const entity = mockStates.find((state) => state.entity_id === entityId);
+
+      if (entity) {
+        if (service === "turn_on") {
+          entity.state = "on";
+        } else if (service === "turn_off") {
+          entity.state = "off";
+        } else if (service === "toggle") {
+          entity.state = entity.state === "on" ? "off" : "on";
+        }
         entity.last_updated = new Date().toISOString();
         entity.last_changed = new Date().toISOString();
       }
