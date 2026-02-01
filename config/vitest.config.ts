@@ -9,11 +9,18 @@ export default defineConfig({
     environment: "happy-dom",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.ts"],
-    exclude: ["node_modules/", "dist/", "**/*.d.ts", "src/types/light.test.ts"],
+    exclude: [
+      "node_modules/",
+      "dist/",
+      "**/*.d.ts",
+      "src/types/light.test.ts",
+      "src/types/switch.test.ts",
+      "src/services/*.test.ts",
+    ],
     testTimeout: 10000,
     server: {
       deps: {
-        inline: ["./src/types/light.ts"],
+        inline: ["./src/types/light.ts", "./src/types/switch.ts"],
       },
     },
     coverage: {

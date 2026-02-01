@@ -143,6 +143,12 @@ export function generateDeviceAttributes(domain: string, deviceClass?: string): 
       return {
         ...baseAttributes,
         supported_features: 0,
+        // 添加功率信息的 extra_state_attributes
+        extra_state_attributes: {
+          current_power_w: deviceClass === "outlet" ? generatePowerConsumption() : undefined,
+          today_energy_kwh: deviceClass === "outlet" ? Number((Math.random() * 10).toFixed(1)) : undefined,
+          monthly_energy_kwh: deviceClass === "outlet" ? Number((Math.random() * 100).toFixed(1)) : undefined,
+        },
       };
 
     case "climate":

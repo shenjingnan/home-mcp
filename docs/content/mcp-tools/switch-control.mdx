@@ -1,0 +1,147 @@
+# SwitchControl
+
+## 工具介绍
+
+SwitchControl 是一个语义化的智能家居开关控制工具，它封装了 Home Assistant 的 Switch API，提供了直观且用户友好的开关设备控制接口。
+
+**支持的设备类型：**
+- 智能插座（插座、插排）
+- 墙壁开关
+- 风扇
+- 热水器
+- 其他单一开关设备
+
+**注意**：此工具不适用于灯光设备（请使用 [LightControl](/mcp-tools/light-control)），也不支持亮度调节。
+
+## 参数定义
+
+| 参数 | 类型 | 范围 | 说明 |
+|------|------|------|------|
+| `name` | string | - | 开关设备名称，支持模糊匹配（如"客厅插座"、"卧室风扇"） |
+| `action` | "turn_on" \| "turn_off" \| "toggle" | - | 控制动作 |
+
+### action 参数说明
+
+| 值 | 说明 | 适用场景 |
+|-----|------|---------|
+| `turn_on` | 开启设备 | "打开客厅插座" |
+| `turn_off` | 关闭设备 | "关闭卧室风扇" |
+| `toggle` | 切换状态（自动反转当前状态） | "切换一下插座的状态" |
+
+## 使用示例
+
+### 基础开关控制
+```typescript
+// 打开插座
+SwitchControl("客厅插座", "turn_on");
+
+// 关闭风扇
+SwitchControl("卧室风扇", "turn_off");
+```
+
+### 状态切换
+```typescript
+// 切换插座状态（自动反转）
+// 如果当前是开启状态，则会关闭
+// 如果当前是关闭状态，则会开启
+SwitchControl("客厅插座", "toggle");
+```
+
+### 功率信息返回
+```typescript
+// 开启插座，返回功率信息
+SwitchControl("客厅插座", "turn_on");
+// 返回示例：
+// {
+//   success: true,
+//   entity_id: "switch.outlet_1",
+//   friendly_name: "客厅插座",
+//   action: "turn_on",
+//   state: "on",
+//   power_info: {
+//     current_power_w: 125.5,
+//     today_energy_kwh: 2.3
+//   },
+//   message: "已开启客厅插座，当前功率 125.5W，今日耗电 2.3kWh"
+// }
+```
+
+## 错误信息
+
+### 错误类型汇总
+
+| 错误类型 | 错误信息 | 处理建议 |
+|----------|----------|---------------|
+| **设备未找到** | 未找到名称包含 'xxx' 的开关设备 | 检查设备名称拼写，确保设备已正确接入 Home Assistant，使用更精确的设备名称 |
+| **多设备匹配** | 找到多个设备，请问需要控制哪一个？ | 使用更精确的设备名称进行匹配，或根据返回的实体列表选择具体设备 |
+| **服务调用失败** | 控制失败: xxx（网络问题、服务不可用等） | 检查 Home Assistant 服务状态，确认网络连接正常，或稍后重试 |
+
+## 返回值格式
+
+### 成功响应（有功率信息）
+```typescript
+{
+  success: true,
+  entity_id: "switch.outlet_1",
+  friendly_name: "客厅插座",
+  action: "turn_on",
+  state: "on",
+  power_info: {
+    current_power_w: 125.5,
+    today_energy_kwh: 2.3,
+    monthly_energy_kwh: 65.8
+  },
+  message: "已开启客厅插座，当前功率 125.5W，今日耗电 2.3kWh",
+  execution_time: 150
+}
+```
+
+### 成功响应（无功率信息）
+```typescript
+{
+  success: true,
+  entity_id: "switch.fan_main",
+  friendly_name: "卧室风扇",
+  action: "turn_on",
+  state: "on",
+  message: "已开启卧室风扇",
+  execution_time: 120
+}
+```
+
+### 多设备匹配响应
+```typescript
+{
+  success: false,
+  msg: "找到多个设备，请问需要控制哪一个？",
+  entities: [
+    { entity_id: "switch.outlet_1", friendly_name: "客厅插座1" },
+    { entity_id: "switch.outlet_2", friendly_name: "客厅插座2" }
+  ]
+}
+```
+
+### 错误响应
+```typescript
+{
+  success: false,
+  errors: ["未找到名称包含 '书房插座' 的开关设备"]
+}
+```
+
+## 语音互动示例
+
+| 用户语音 | LLM 调用 | 返回结果 |
+|---------|---------|---------|
+| "帮我打开客厅插座" | `SwitchControl("客厅插座", "turn_on")` | "已开启客厅插座，当前功率 125.5W" |
+| "把卧室的风扇关一下" | `SwitchControl("卧室风扇", "turn_off")` | "已关闭卧室风扇" |
+| "切换一下厨房插座的状态" | `SwitchControl("厨房插座", "toggle")` | "已切换厨房插座状态，现在已关闭" |
+
+## 与 LightControl 的区别
+
+| 特性 | SwitchControl | LightControl |
+|------|--------------|--------------|
+| 支持设备 | 插座、风扇、墙壁开关等 | 灯泡、灯带等照明设备 |
+| 控制复杂度 | 低（仅开关） | 高（亮度、色温、颜色） |
+| Toggle 操作 | ✅ 支持 | ❌ 不支持 |
+| 功率信息 | ✅ 部分设备支持 | ❌ 不支持 |
