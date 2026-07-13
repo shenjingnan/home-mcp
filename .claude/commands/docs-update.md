@@ -1,6 +1,6 @@
 ---
 description: 文档批量更新和路径别名修复
-argument-hint: [scope] [target]
+argument-hint: "[scope] [target]"
 ---
 
 <scope>$1</scope>

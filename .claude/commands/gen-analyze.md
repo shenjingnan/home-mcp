@@ -1,6 +1,6 @@
 ---
 description: 问题分析
-argument-hint: [problem]
+argument-hint: "[problem]"
 ---
 
 # 问题分析

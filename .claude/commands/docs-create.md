@@ -1,6 +1,6 @@
 ---
 description: 标准化文档创建
-argument-hint: [document-type] [document-title]
+argument-hint: "[document-type] [document-title]"
 ---
 
 <document-type>$1</document-type>

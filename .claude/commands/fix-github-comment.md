@@ -1,6 +1,6 @@
 ---
 description: 获取GitHub PR的Copilot评论并分析修复问题
-argument-hint: [pr-number]
+argument-hint: "[pr-number]"
 ---
 
 # GitHub PR Copilot 评论分析和修复

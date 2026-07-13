@@ -1,6 +1,6 @@
 ---
 description: 测试用例生成流程
-argument-hint: [test-type] [target-file-or-module]
+argument-hint: "[test-type] [target-file-or-module]"
 ---
 
 <test-type>$1</test-type>
