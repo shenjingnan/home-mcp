@@ -1,6 +1,6 @@
 ---
 description: MCP工具开发流程
-argument-hint: [tool-name] [tool-description]
+argument-hint: "[tool-name] [tool-description]"
 ---
 
 <tool-name>$1</tool-name>

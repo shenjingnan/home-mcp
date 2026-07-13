@@ -1,6 +1,6 @@
 ---
 description: 修复失败的测试用例
-argument-hint: [failed-test-file]
+argument-hint: "[failed-test-file]"
 ---
 
 <failed-test-file>$1</failed-test-file>

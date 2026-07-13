@@ -1,6 +1,6 @@
 ---
 description: 修复类型检查失败
-argument-hint: [path, error-log]
+argument-hint: "[path, error-log]"
 ---
 
 我在目录 `<path>$1</path>` 执行命令 `nr type:check`
